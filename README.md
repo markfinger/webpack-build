@@ -1,6 +1,8 @@
 webpack-service
 ===============
 
+[![Build Status](https://travis-ci.org/markfinger/webpack-service.svg?branch=master)](https://travis-ci.org/markfinger/webpack-service)
+
 ```javascript
 webpackService({
   config: '/path/to/webpack.config.js',
