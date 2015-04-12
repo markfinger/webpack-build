@@ -32,3 +32,10 @@ webpackService({
   // ...
 });
 ```
+
+Installation
+------------
+
+```bash
+npm install webpack-service
+```
