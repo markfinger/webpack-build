@@ -519,6 +519,7 @@ describe('Bundle', function() {
           bundle.onceDone(function(err, stats) {
             assert.isNull(err);
             assert.isObject(stats);
+            assert.property(stats.pathsToAssets, 'output.js');
             assert.equal(output, stats.pathsToAssets['output.js']);
             contents = fs.readFileSync(output);
             assert.include(contents.toString(), '__WATCH_TEST_TWO__');
