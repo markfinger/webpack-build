@@ -64,6 +64,16 @@ describe('Bundle', function() {
       });
     });
   });
+  it('can expose the webpack config on the stats object', function(done) {
+    var bundle = new Bundle({}, require('./test_bundles/basic_bundle/webpack.config'));
+
+    bundle.compile(function(err, stats) {
+      assert.isNull(err);
+      assert.isObject(stats);
+      assert.strictEqual(stats.webpackConfig, require('./test_bundles/basic_bundle/webpack.config'));
+      done();
+    });
+  });
   it('tracks compilation state', function(done) {
     var bundle = new Bundle({}, require('./test_bundles/basic_bundle/webpack.config'));
 
