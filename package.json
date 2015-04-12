@@ -1,6 +1,6 @@
 {
   "name": "webpack-service",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Webpack service",
   "main": "lib/index.js",
   "author": "Mark Finger <markfinger@gmail.com>",
