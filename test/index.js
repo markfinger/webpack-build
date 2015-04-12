@@ -1,6 +1,6 @@
 var fs = require('fs');
 var path = require('path');
-var child_process = require('child_process');
+var spawnSync = require('spawn-sync'); // node 0.10.x compatibility
 var _ = require('lodash');
 var mkdirp = require('mkdirp');
 var assert = require('chai').assert;
@@ -12,17 +12,17 @@ var TEST_OUTPUT_DIR = path.join(__dirname, 'index_test_output');
 
 // Ensure we have a clean slate before and after each test
 beforeEach(function() {
+  cache.clear();
   Bundle._resetFileWatcher();
   // The file watcher seems to be really inconsistent unless we punch in a
   // random file before we start using it
   Bundle._fileWatcher.add(module.filename);
-  child_process.spawnSync('rm', ['-rf', TEST_OUTPUT_DIR]);
-  cache.clear();
+  spawnSync('rm', ['-rf', TEST_OUTPUT_DIR]);
 });
 afterEach(function() {
-  Bundle._resetFileWatcher();
-  child_process.spawnSync('rm', ['-rf', TEST_OUTPUT_DIR]);
   cache.clear();
+  Bundle._resetFileWatcher();
+  spawnSync('rm', ['-rf', TEST_OUTPUT_DIR]);
 });
 
 describe('webpack-service', function() {
