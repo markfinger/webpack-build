@@ -110,4 +110,9 @@ describe('webpack-service', function() {
       });
     });
   });
+  it('can pass the `this.host.logger` prop to bundles', function() {
+    var logger = {};
+    var bundle = webpackService.call({host: {logger: logger}}, {}, function(){});
+    assert.strictEqual(bundle.opts.logger, logger);
+  });
 });

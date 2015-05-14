@@ -7,6 +7,12 @@ var assert = require('chai').assert;
 var Bundle = require('../lib/Bundle');
 
 var TEST_OUTPUT_DIR = path.join(__dirname, 'bundle_test_output');
+var SILENT_LOGGER = {
+  log: function(){},
+  info: function(){},
+  warn: function(){},
+  error: function(){}
+};
 
 // Ensure we have a clean slate before and after each test
 beforeEach(function() {
@@ -541,6 +547,94 @@ describe('Bundle', function() {
                 assert.equal(output, stats.pathsToAssets['output.js']);
                 contents = fs.readFileSync(output);
                 assert.include(contents.toString(), '__WATCH_TEST_THREE__');
+                done();
+              });
+            }, 200);
+          });
+        }, 200);
+      });
+    });
+    it('can indicate errors produced during compilation', function(done) {
+      var entry = path.join(TEST_OUTPUT_DIR, 'watched_file_error', 'entry.js');
+      var output = path.join(TEST_OUTPUT_DIR, 'watched_file_error', 'output.js');
+
+      var bundle = new Bundle({
+        watch: true,
+        logger: SILENT_LOGGER
+      }, {
+        context: path.dirname(entry),
+        entry: './' + path.basename(entry),
+        output: {
+          path: path.dirname(output),
+          filename: path.basename(output)
+        },
+        logger: SILENT_LOGGER
+      });
+
+      mkdirp.sync(path.dirname(entry));
+
+      fs.writeFileSync(entry, 'module.exports = "__WATCHED_FILE_ERROR_ONE__";');
+      bundle.onceDone(function(err, stats) {
+        assert.isNull(err);
+        assert.isObject(stats);
+        assert.equal(output, stats.pathsToAssets['output.js']);
+        var contents = fs.readFileSync(output);
+        assert.include(contents.toString(), '__WATCHED_FILE_ERROR_ONE__');
+
+        fs.writeFileSync(entry, '+?');
+        setTimeout(function() {
+          bundle.onceDone(function(err, stats) {
+            assert.instanceOf(err, Error);
+            assert.isNull(stats);
+            bundle.onceDone(function(err, stats) {
+              assert.instanceOf(err, Error);
+              assert.isNull(stats);
+              done();
+            });
+          });
+        }, 200);
+      });
+    });
+    it('can continue to compile if a file change introduces an error', function(done) {
+      var entry = path.join(TEST_OUTPUT_DIR, 'watched_file_continues_to_compile', 'entry.js');
+      var output = path.join(TEST_OUTPUT_DIR, 'watched_file_continues_to_compile', 'output.js');
+
+      var bundle = new Bundle({
+        watch: true,
+        logger: SILENT_LOGGER
+      }, {
+        context: path.dirname(entry),
+        entry: './' + path.basename(entry),
+        output: {
+          path: path.dirname(output),
+          filename: path.basename(output)
+        }
+      });
+
+      mkdirp.sync(path.dirname(entry));
+
+      fs.writeFileSync(entry, 'module.exports = "__WATCHED_FILE_ERROR_ONE__";');
+      bundle.onceDone(function(err, stats) {
+        assert.isNull(err);
+        assert.isObject(stats);
+        assert.equal(output, stats.pathsToAssets['output.js']);
+        var contents = fs.readFileSync(output);
+        assert.include(contents.toString(), '__WATCHED_FILE_ERROR_ONE__');
+
+        fs.writeFileSync(entry, '+?');
+        setTimeout(function() {
+          bundle.onceDone(function(err, stats) {
+            assert.instanceOf(err, Error);
+            assert.isNull(stats);
+
+            fs.writeFileSync(entry, '__WATCHED_FILE_ERROR_TWO__');
+            setTimeout(function() {
+              bundle.onceDone(function(err, stats) {
+                assert.isNull(err);
+                assert.isObject(stats);
+                assert.equal(output, stats.pathsToAssets['output.js']);
+                var contents = fs.readFileSync(output);
+                assert.include(contents.toString(), '__WATCHED_FILE_ERROR_TWO__');
                 done();
               });
             }, 200);
