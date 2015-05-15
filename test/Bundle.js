@@ -99,6 +99,7 @@ describe('Bundle', function() {
         changesDetected++;
       });
 
+      console.log(0, +new Date())
       setTimeout(function() {
         assert.isArray(Bundle._watchedFiles[testFile]);
         assert.equal(Bundle._watchedFiles[testFile].length, 1);
@@ -107,9 +108,12 @@ describe('Bundle', function() {
         fs.writeFileSync(testFile, 'test 2');
         assert.equal(Bundle._watchedFiles[testFile].length, 1);
 
+        console.log(1, +new Date())
         bundle.watchFile(testFile, _.once(function() {
+          console.log(2, +new Date())
           assert.equal(changesDetected, 1);
           bundle.watchFile(testFile, _.once(function() {
+            console.log(3, +new Date())
             assert.equal(changesDetected, 2);
             done();
           }));

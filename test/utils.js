@@ -19,7 +19,7 @@ module.exports = {
     spawnSync('rm', ['-rf', TEST_OUTPUT_DIR]);
   },
   watchDelay: 10,
-  watcherWarmUpWait: CI ? 250 : 50,
+  watcherWarmUpWait: CI ? 1000 : 50,
   watcherWait: CI ? 500 : 400,
   watcherTimeout: CI ? 5000 : 2000
 };
