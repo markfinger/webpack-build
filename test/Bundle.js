@@ -287,11 +287,14 @@ describe('Bundle', function() {
         assert.equal(Bundle._watchedFiles[opts.config].length, 1);
         assert.equal(invalidatedConfigCount, 0);
 
+        console.log(0, +new Date())
         bundle.watchFile(opts.config, _.once(function() {
+          console.log(1, +new Date())
           assert.equal(invalidatedConfigCount, 1);
           assert.equal(Bundle._watchedFiles[opts.config].length, 2);
 
           bundle.watchFile(opts.config, _.once(function() {
+            console.log(2, +new Date())
             assert.equal(invalidatedConfigCount, 2);
             done();
           }));
@@ -325,7 +328,9 @@ describe('Bundle', function() {
         assert.strictEqual(bundle.config, config);
         assert.equal(config.test, 1);
 
+        console.log(0, +new Date())
         bundle.watchFile(opts.config, _.once(function() {
+          console.log(1, +new Date())
           assert.isNull(bundle.config);
           bundle.getConfig(function(err, config) {
             assert.isNull(err);
@@ -333,7 +338,9 @@ describe('Bundle', function() {
             assert.strictEqual(bundle.config, config);
             assert.equal(config.test, 2);
 
+            console.log(2, +new Date())
             bundle.watchFile(opts.config, _.once(function() {
+              console.log(3, +new Date())
               assert.isNull(bundle.config);
               bundle.getConfig(function(err, config) {
                 assert.isNull(err);
@@ -391,15 +398,20 @@ describe('Bundle', function() {
         var contents = fs.readFileSync(existsAt);
         assert.include(contents.toString(), '__WATCHED_CONFIG_ONE__');
 
+        console.log(0, +new Date())
         bundle.watchFile(opts.config, _.once(function() {
+          console.log(1, +new Date())
           bundle.onceDone(function(err, stats) {
             var existsAt = stats.pathsToAssets['output.js'];
             assert.isString(existsAt);
             contents = fs.readFileSync(existsAt);
             assert.include(contents.toString(), '__WATCHED_CONFIG_TWO__');
 
+            console.log(2, +new Date())
             bundle.watchFile(opts.config, _.once(function() {
+              console.log(3, +new Date())
               bundle.onceDone(function(err, stats) {
+                console.log(4, +new Date())
                 var existsAt = stats.pathsToAssets['output.js'];
                 assert.isString(existsAt);
                 contents = fs.readFileSync(existsAt);
@@ -463,12 +475,15 @@ describe('Bundle', function() {
         var contents = fs.readFileSync(existsAt);
         assert.include(contents.toString(), '__WATCHED_SOURCE_AND_CONFIG_ONE__');
 
+        console.log(0, +new Date())
         bundle.watchFile(opts.config, _.once(function() {
+          console.log(1, +new Date())
           assert.isTrue(bundle.watchingConfig);
           assert.isFalse(bundle.watching);
           assert.isNull(bundle.watcher);
 
           bundle.onceDone(function(err, stats) {
+            console.log(2, +new Date())
             assert.isTrue(bundle.watchingConfig);
             assert.isTrue(bundle.watching);
             assert.isObject(bundle.watcher);
@@ -477,12 +492,15 @@ describe('Bundle', function() {
             contents = fs.readFileSync(existsAt);
             assert.include(contents.toString(), '__WATCHED_SOURCE_AND_CONFIG_TWO__');
 
+            console.log(3, +new Date())
             bundle.watchFile(opts.config, _.once(function() {
+              console.log(4, +new Date())
               assert.isTrue(bundle.watchingConfig);
               assert.isFalse(bundle.watching);
               assert.isNull(bundle.watcher);
 
               bundle.onceDone(function(err, stats) {
+                console.log(5, +new Date())
                 assert.isTrue(bundle.watchingConfig);
                 assert.isTrue(bundle.watching);
                 assert.isObject(bundle.watcher);
@@ -545,6 +563,8 @@ describe('Bundle', function() {
       assert.isTrue(bundle.opts.watch);
     });
     it('should cause file changes to trigger bundle rebuilds', function(done) {
+      this.timeout(utils.watcherTimeout);
+
       var entry = path.join(TEST_OUTPUT_DIR, 'watch_source', 'entry.js');
       var output = path.join(TEST_OUTPUT_DIR, 'watch_source', 'output.js');
 
@@ -600,6 +620,8 @@ describe('Bundle', function() {
       });
     });
     it('should indicate any errors which occurred during background compilation', function(done) {
+      this.timeout(utils.watcherTimeout);
+
       var entry = path.join(TEST_OUTPUT_DIR, 'watched_file_error', 'entry.js');
       var output = path.join(TEST_OUTPUT_DIR, 'watched_file_error', 'output.js');
 
@@ -648,6 +670,8 @@ describe('Bundle', function() {
       });
     });
     it('should continue to compile if a file change introduces an error', function(done) {
+      this.timeout(utils.watcherTimeout);
+
       var entry = path.join(TEST_OUTPUT_DIR, 'watched_file_continues_to_compile', 'entry.js');
       var output = path.join(TEST_OUTPUT_DIR, 'watched_file_continues_to_compile', 'output.js');
 

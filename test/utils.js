@@ -21,5 +21,5 @@ module.exports = {
   watchDelay: 10,
   watcherWarmUpWait: CI ? 1000 : 50,
   watcherWait: CI ? 500 : 400,
-  watcherTimeout: CI ? 5000 : 2000
+  watcherTimeout: CI ? 10000 : 2000
 };
