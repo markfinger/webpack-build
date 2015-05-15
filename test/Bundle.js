@@ -83,6 +83,8 @@ describe('Bundle', function() {
   });
   describe('#watchFile', function() {
     it('should be able to detect changes to a particular file', function(done) {
+      this.timeout(utils.watcherTimeout);
+
       var testFile = path.join(TEST_OUTPUT_DIR, 'watch_test', 'test.js');
 
       mkdirp.sync(path.dirname(testFile));
@@ -255,10 +257,13 @@ describe('Bundle', function() {
       assert.isTrue(bundle.opts.watchConfig);
     });
     it('should cause config files changes to be detected', function(done) {
+      this.timeout(utils.watcherTimeout);
+
       var opts = {
         config: path.join(TEST_OUTPUT_DIR, 'detect_changes_to_config_watch_test', 'webpack.config.js'),
         watchConfig: true
       };
+
       var bundle = new Bundle(opts);
 
       var invalidatedConfigCount = 0;
@@ -298,10 +303,13 @@ describe('Bundle', function() {
       });
     });
     it('should cause config file changes to invalidate the config', function(done) {
+      this.timeout(utils.watcherTimeout);
+
       var opts = {
         config: path.join(TEST_OUTPUT_DIR, 'invalidate_config_watch_test', 'webpack.config.js'),
         watchConfig: true
       };
+
       var bundle = new Bundle(opts);
 
       mkdirp.sync(path.dirname(opts.config));
@@ -342,6 +350,8 @@ describe('Bundle', function() {
       });
     });
     it('should cause config file changes to rebuild the bundle', function(done) {
+      this.timeout(utils.watcherTimeout);
+
       var opts = {
         config: path.join(TEST_OUTPUT_DIR, 'watch_config_to_invalidate_bundle', 'webpack.config.js'),
         watchConfig: true
@@ -355,9 +365,11 @@ describe('Bundle', function() {
           filename: 'output.js'
         }
       };
+
       var config_2 = _.defaults({
         entry: './entry_2.js'
       }, config_1);
+
       var config_3 = _.defaults({
         entry: './entry_3.js'
       }, config_2);
@@ -402,11 +414,14 @@ describe('Bundle', function() {
       });
     });
     it('should cause config file changes to invalidate the watcher', function(done) {
+      this.timeout(utils.watcherTimeout);
+
       var opts = {
         config: path.join(TEST_OUTPUT_DIR, 'watched_source_and_config_bundle', 'webpack.config.js'),
         watchConfig: true,
         watch: true
       };
+
       var config_1 = {
         context: path.join(__dirname, 'test_bundles', 'watched_source_and_config_bundle'),
         entry: './entry_1.js',
@@ -415,9 +430,11 @@ describe('Bundle', function() {
           filename: 'output.js'
         }
       };
+
       var config_2 = _.defaults({
         entry: './entry_2.js'
       }, config_1);
+
       var config_3 = _.defaults({
         entry: './entry_3.js'
       }, config_2);
