@@ -11,7 +11,9 @@ chai.config.includeStack = true;
 
 var CI = !!process.env.TRAVIS;
 
-console.log('IS CI', CI);
+if (CI) {
+  console.log('Detected CI environment. Tweaking settings...');
+}
 
 module.exports = {
   assert: chai.assert,

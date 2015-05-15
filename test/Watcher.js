@@ -322,6 +322,8 @@ describe('Watcher', function() {
   });
   describe('#invalidate', function() {
     it('should force the compiler to rebuild', function(done) {
+      this.timeout(utils.watcherTimeout);
+
       var entry = path.join(TEST_OUTPUT_DIR, 'watcher_invalidate', 'entry.js');
       var output = path.join(TEST_OUTPUT_DIR, 'watcher_invalidate', 'output.js');
 
@@ -367,15 +369,18 @@ describe('Watcher', function() {
             assert.isNull(err);
             assert.isObject(stats);
 
+            assert.equal(invalidCount, 3);
+
             var contents = watcher.fs.readFileSync(output);
             assert.include(contents.toString(), '__INVALID_TEST_TWO__');
 
             fs.writeFileSync(entry, 'module.exports = "__INVALID_TEST_THREE__";');
 
             watcher.invalidate();
+
             assert.isNull(watcher.err);
             assert.isNull(watcher.stats);
-            assert.equal(invalidCount, 3);
+            assert.equal(invalidCount, 4);
 
             setTimeout(function() {
               watcher.onceDone(function(err, stats) {
@@ -387,9 +392,9 @@ describe('Watcher', function() {
 
                 done();
               });
-            }, utils.watcherWarmUpWait);
+            }, utils.watcherWait);
           });
-        }, utils.watcherWarmUpWait);
+        }, utils.watcherWait);
       });
     });
   });
