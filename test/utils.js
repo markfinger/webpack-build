@@ -3,6 +3,7 @@
 var path = require('path');
 var chai = require('chai');
 var spawnSync = require('spawn-sync');
+var Bundle = require('../lib/Bundle');
 
 var TEST_OUTPUT_DIR = path.join(__dirname, 'test_output');
 
@@ -11,6 +12,14 @@ chai.config.includeStack = true;
 var CI = !!process.env.TRAVIS;
 
 console.log('IS CI', CI);
+
+if (CI) {
+  Bundle._fileWatcherOptions = {
+    usePolling: true,
+    interval: 50,
+    atomic: true
+  };
+}
 
 module.exports = {
   assert: chai.assert,
