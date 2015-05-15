@@ -241,8 +241,6 @@ describe('Bundle', function() {
   });
   describe('#invalidateConfig', function() {
     it('should reset the bundle\'s config', function(done) {
-      this.timeout(utils.watcherTimeout);
-
       var opts = {
         config: path.join(TEST_OUTPUT_DIR, 'invalidate_config_watch_test', 'webpack.config.js')
       };
@@ -271,8 +269,6 @@ describe('Bundle', function() {
       });
     });
     it('should cause any config changes to be reflected in the bundle', function(done) {
-      this.timeout(utils.watcherTimeout);
-
       var opts = {
         config: path.join(TEST_OUTPUT_DIR, 'watch_config_to_invalidate_bundle', 'webpack.config.js')
       };
@@ -330,8 +326,6 @@ describe('Bundle', function() {
       });
     });
     it('should cause config file changes to invalidate the watcher', function(done) {
-      this.timeout(utils.watcherTimeout);
-
       var opts = {
         config: path.join(TEST_OUTPUT_DIR, 'watched_source_and_config_bundle', 'webpack.config.js'),
         watch: true
@@ -445,7 +439,10 @@ describe('Bundle', function() {
         assert.isNull(err);
         assert.isArray(Bundle._watchedFiles[opts.config]);
         assert.equal(Bundle._watchedFiles[opts.config].length, 1);
-        fs.writeFileSync(opts.config, 'module.exports = {test:2}');
+
+        setTimeout(function() {
+          fs.writeFileSync(opts.config, 'module.exports = {test:2}');
+        }, utils.watcherWarmUpWait);
       });
     });
   });

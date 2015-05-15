@@ -168,6 +168,8 @@ describe('Watcher', function() {
       });
     });
     it('should continue to detect changes and build the bundle', function(done) {
+      this.timeout(utils.watcherTimeout);
+
       var entry = path.join(TEST_OUTPUT_DIR, 'persistent_watch', 'entry.js');
       var output = path.join(TEST_OUTPUT_DIR, 'persistent_watch', 'output.js');
 
@@ -393,6 +395,8 @@ describe('Watcher', function() {
   });
   describe('#fs', function() {
     it('should allow files to be read from memory and written to disk', function(done) {
+      this.timeout(utils.watcherTimeout);
+
       var entry = path.join(TEST_OUTPUT_DIR, 'rw_test', 'entry.js');
       var output = path.join(TEST_OUTPUT_DIR, 'rw_test', 'output.js');
 
@@ -453,6 +457,8 @@ describe('Watcher', function() {
   });
   describe('#writeAssets', function() {
     it('should async write files from memory to disk', function(done) {
+      this.timeout(utils.watcherTimeout);
+
       var entry = path.join(TEST_OUTPUT_DIR, 'write_files_async', 'entry.js');
       var output = path.join(TEST_OUTPUT_DIR, 'write_files_async', 'output.js');
 
