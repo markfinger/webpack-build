@@ -94,32 +94,22 @@ describe('Bundle', function() {
       fs.writeFileSync(testFile, 'test 1');
 
       assert.isUndefined(Bundle._watchedFiles[testFile]);
-      var changesDetected = 0;
+      var changeDetected = false;
       bundle.watchFile(testFile, function() {
-        changesDetected++;
+        changeDetected = true;
       });
 
-      console.log(0, +new Date())
       setTimeout(function() {
         assert.isArray(Bundle._watchedFiles[testFile]);
         assert.equal(Bundle._watchedFiles[testFile].length, 1);
-        assert.equal(changesDetected, 0);
+        assert.isFalse(changeDetected);
+
+        bundle.watchFile(testFile, _.once(function() {
+          assert.isTrue(changeDetected);
+          done();
+        }));
 
         fs.writeFileSync(testFile, 'test 2');
-        assert.equal(Bundle._watchedFiles[testFile].length, 1);
-
-        console.log(1, +new Date())
-        bundle.watchFile(testFile, _.once(function() {
-          console.log(2, +new Date())
-          assert.equal(changesDetected, 1);
-          bundle.watchFile(testFile, _.once(function() {
-            console.log(3, +new Date())
-            assert.equal(changesDetected, 2);
-            done();
-          }));
-          assert.equal(Bundle._watchedFiles[testFile].length, 3);
-          fs.writeFileSync(testFile, 'test 3');
-        }));
 
         assert.equal(Bundle._watchedFiles[testFile].length, 2);
       }, utils.watcherWarmUpWait);
@@ -249,72 +239,12 @@ describe('Bundle', function() {
       });
     });
   });
-  describe('#opts.watchConfig', function() {
-    it('should default to false', function() {
-      var bundle = new Bundle();
-      assert.isFalse(bundle.opts.watchConfig);
-
-      bundle = new Bundle({
-        watchConfig: true
-      });
-
-      assert.isTrue(bundle.opts.watchConfig);
-    });
-    it('should cause config files changes to be detected', function(done) {
+  describe('#invalidateConfig', function() {
+    it('should reset the bundle\'s config', function(done) {
       this.timeout(utils.watcherTimeout);
 
       var opts = {
-        config: path.join(TEST_OUTPUT_DIR, 'detect_changes_to_config_watch_test', 'webpack.config.js'),
-        watchConfig: true
-      };
-
-      var bundle = new Bundle(opts);
-
-      var invalidatedConfigCount = 0;
-
-      bundle.invalidateConfig = function() {
-        invalidatedConfigCount++;
-      };
-
-      mkdirp.sync(path.dirname(opts.config));
-      fs.writeFileSync(opts.config, 'module.exports = {test:1}');
-
-      assert.isUndefined(Bundle._watchedFiles[opts.config]);
-
-      bundle.getConfig(function(err) {
-        assert.isNull(err);
-        assert.isArray(Bundle._watchedFiles[opts.config]);
-        assert.equal(Bundle._watchedFiles[opts.config].length, 1);
-        assert.equal(invalidatedConfigCount, 0);
-
-        console.log(0, +new Date())
-        bundle.watchFile(opts.config, _.once(function() {
-          console.log(1, +new Date())
-          assert.equal(invalidatedConfigCount, 1);
-          assert.equal(Bundle._watchedFiles[opts.config].length, 2);
-
-          bundle.watchFile(opts.config, _.once(function() {
-            console.log(2, +new Date())
-            assert.equal(invalidatedConfigCount, 2);
-            done();
-          }));
-          assert.equal(Bundle._watchedFiles[opts.config].length, 3);
-
-          fs.writeFileSync(opts.config, 'module.exports = {test:2}');
-        }));
-
-        setTimeout(function() {
-          assert.equal(Bundle._watchedFiles[opts.config].length, 2);
-          fs.writeFileSync(opts.config, 'module.exports = {test:3}');
-        }, utils.watcherWarmUpWait);
-      });
-    });
-    it('should cause config file changes to invalidate the config', function(done) {
-      this.timeout(utils.watcherTimeout);
-
-      var opts = {
-        config: path.join(TEST_OUTPUT_DIR, 'invalidate_config_watch_test', 'webpack.config.js'),
-        watchConfig: true
+        config: path.join(TEST_OUTPUT_DIR, 'invalidate_config_watch_test', 'webpack.config.js')
       };
 
       var bundle = new Bundle(opts);
@@ -322,50 +252,29 @@ describe('Bundle', function() {
       mkdirp.sync(path.dirname(opts.config));
       fs.writeFileSync(opts.config, 'module.exports = {test:1};');
 
-      bundle.getConfig(function(err, config) {
+      bundle.getConfig(function(err, config1) {
         assert.isNull(err);
-        assert.isObject(config);
-        assert.strictEqual(bundle.config, config);
-        assert.equal(config.test, 1);
+        assert.isObject(config1);
+        assert.strictEqual(bundle.config, config1);
+        assert.equal(config1.test, 1);
 
-        console.log(0, +new Date())
-        bundle.watchFile(opts.config, _.once(function() {
-          console.log(1, +new Date())
-          assert.isNull(bundle.config);
-          bundle.getConfig(function(err, config) {
-            assert.isNull(err);
-            assert.isObject(config);
-            assert.strictEqual(bundle.config, config);
-            assert.equal(config.test, 2);
+        bundle.invalidateConfig();
+        assert.isNull(bundle.config);
 
-            console.log(2, +new Date())
-            bundle.watchFile(opts.config, _.once(function() {
-              console.log(3, +new Date())
-              assert.isNull(bundle.config);
-              bundle.getConfig(function(err, config) {
-                assert.isNull(err);
-                assert.isObject(config);
-                assert.strictEqual(bundle.config, config);
-                assert.equal(config.test, 3);
-                done();
-              });
-            }));
-
-            fs.writeFileSync(opts.config, 'module.exports = {test:3};');
-          });
-        }));
-
-        setTimeout(function() {
-          fs.writeFileSync(opts.config, 'module.exports = {test:2};');
-        }, utils.watcherWarmUpWait);
+        bundle.getConfig(function(err, config2) {
+          assert.isNull(err);
+          assert.isObject(config2);
+          assert.notStrictEqual(config2, config1);
+          assert.strictEqual(bundle.config, config2);
+          done();
+        });
       });
     });
-    it('should cause config file changes to rebuild the bundle', function(done) {
+    it('should cause any config changes to be reflected in the bundle', function(done) {
       this.timeout(utils.watcherTimeout);
 
       var opts = {
-        config: path.join(TEST_OUTPUT_DIR, 'watch_config_to_invalidate_bundle', 'webpack.config.js'),
-        watchConfig: true
+        config: path.join(TEST_OUTPUT_DIR, 'watch_config_to_invalidate_bundle', 'webpack.config.js')
       };
 
       var config_1 = {
@@ -398,35 +307,26 @@ describe('Bundle', function() {
         var contents = fs.readFileSync(existsAt);
         assert.include(contents.toString(), '__WATCHED_CONFIG_ONE__');
 
-        console.log(0, +new Date())
-        bundle.watchFile(opts.config, _.once(function() {
-          console.log(1, +new Date())
+        bundle.invalidateConfig();
+        fs.writeFileSync(opts.config, 'module.exports = ' + JSON.stringify(config_2));
+
+        bundle.onceDone(function(err, stats) {
+          var existsAt = stats.pathsToAssets['output.js'];
+          assert.isString(existsAt);
+          contents = fs.readFileSync(existsAt);
+          assert.include(contents.toString(), '__WATCHED_CONFIG_TWO__');
+
+          bundle.invalidateConfig();
+          fs.writeFileSync(opts.config, 'module.exports = ' + JSON.stringify(config_3));
+
           bundle.onceDone(function(err, stats) {
             var existsAt = stats.pathsToAssets['output.js'];
             assert.isString(existsAt);
             contents = fs.readFileSync(existsAt);
-            assert.include(contents.toString(), '__WATCHED_CONFIG_TWO__');
-
-            console.log(2, +new Date())
-            bundle.watchFile(opts.config, _.once(function() {
-              console.log(3, +new Date())
-              bundle.onceDone(function(err, stats) {
-                console.log(4, +new Date())
-                var existsAt = stats.pathsToAssets['output.js'];
-                assert.isString(existsAt);
-                contents = fs.readFileSync(existsAt);
-                assert.include(contents.toString(), '__WATCHED_CONFIG_THREE__');
-                done();
-              });
-            }));
-
-            fs.writeFileSync(opts.config, 'module.exports = ' + JSON.stringify(config_3));
+            assert.include(contents.toString(), '__WATCHED_CONFIG_THREE__');
+            done();
           });
-        }));
-
-        setTimeout(function() {
-          fs.writeFileSync(opts.config, 'module.exports = ' + JSON.stringify(config_2));
-        }, utils.watcherWarmUpWait);
+        });
       });
     });
     it('should cause config file changes to invalidate the watcher', function(done) {
@@ -434,7 +334,6 @@ describe('Bundle', function() {
 
       var opts = {
         config: path.join(TEST_OUTPUT_DIR, 'watched_source_and_config_bundle', 'webpack.config.js'),
-        watchConfig: true,
         watch: true
       };
 
@@ -457,7 +356,6 @@ describe('Bundle', function() {
 
       var bundle = new Bundle(opts);
 
-      assert.isFalse(bundle.watchingConfig);
       assert.isFalse(bundle.watching);
       assert.isNull(bundle.watcher);
 
@@ -467,58 +365,87 @@ describe('Bundle', function() {
       bundle.onceDone(function(err, stats) {
         assert.isNull(err);
         assert.isObject(stats);
-        assert.isTrue(bundle.watchingConfig);
+
         assert.isTrue(bundle.watching);
         assert.isObject(bundle.watcher);
+
         var existsAt = stats.pathsToAssets['output.js'];
         assert.isString(existsAt);
         var contents = fs.readFileSync(existsAt);
         assert.include(contents.toString(), '__WATCHED_SOURCE_AND_CONFIG_ONE__');
 
-        console.log(0, +new Date())
-        bundle.watchFile(opts.config, _.once(function() {
-          console.log(1, +new Date())
-          assert.isTrue(bundle.watchingConfig);
+        bundle.invalidateConfig();
+        fs.writeFileSync(opts.config, 'module.exports = ' + JSON.stringify(config_2));
+
+        assert.isFalse(bundle.watching);
+        assert.isNull(bundle.watcher);
+
+        bundle.onceDone(function(err, stats) {
+          assert.isTrue(bundle.watching);
+          assert.isObject(bundle.watcher);
+
+          var existsAt = stats.pathsToAssets['output.js'];
+          assert.isString(existsAt);
+          contents = fs.readFileSync(existsAt);
+          assert.include(contents.toString(), '__WATCHED_SOURCE_AND_CONFIG_TWO__');
+
+          bundle.invalidateConfig();
+
           assert.isFalse(bundle.watching);
           assert.isNull(bundle.watcher);
 
+          fs.writeFileSync(opts.config, 'module.exports = ' + JSON.stringify(config_3));
+
           bundle.onceDone(function(err, stats) {
-            console.log(2, +new Date())
-            assert.isTrue(bundle.watchingConfig);
             assert.isTrue(bundle.watching);
             assert.isObject(bundle.watcher);
+
             var existsAt = stats.pathsToAssets['output.js'];
             assert.isString(existsAt);
             contents = fs.readFileSync(existsAt);
-            assert.include(contents.toString(), '__WATCHED_SOURCE_AND_CONFIG_TWO__');
+            assert.include(contents.toString(), '__WATCHED_SOURCE_AND_CONFIG_THREE__');
 
-            console.log(3, +new Date())
-            bundle.watchFile(opts.config, _.once(function() {
-              console.log(4, +new Date())
-              assert.isTrue(bundle.watchingConfig);
-              assert.isFalse(bundle.watching);
-              assert.isNull(bundle.watcher);
-
-              bundle.onceDone(function(err, stats) {
-                console.log(5, +new Date())
-                assert.isTrue(bundle.watchingConfig);
-                assert.isTrue(bundle.watching);
-                assert.isObject(bundle.watcher);
-                var existsAt = stats.pathsToAssets['output.js'];
-                assert.isString(existsAt);
-                contents = fs.readFileSync(existsAt);
-                assert.include(contents.toString(), '__WATCHED_SOURCE_AND_CONFIG_THREE__');
-                done();
-              });
-            }));
-
-            fs.writeFileSync(opts.config, 'module.exports = ' + JSON.stringify(config_3));
+            done();
           });
-        }));
+        });
+      });
+    });
+  });
+  describe('#opts.watchConfig', function() {
+    it('should default to false', function() {
+      var bundle = new Bundle();
+      assert.isFalse(bundle.opts.watchConfig);
 
-        setTimeout(function() {
-          fs.writeFileSync(opts.config, 'module.exports = ' + JSON.stringify(config_2));
-        }, utils.watcherWarmUpWait);
+      bundle = new Bundle({
+        watchConfig: true
+      });
+
+      assert.isTrue(bundle.opts.watchConfig);
+    });
+    it('should cause config files changes to trigger invalidateConfig', function(done) {
+      this.timeout(utils.watcherTimeout);
+
+      var opts = {
+        config: path.join(TEST_OUTPUT_DIR, 'detect_changes_to_config_watch_test', 'webpack.config.js'),
+        watchConfig: true
+      };
+
+      var bundle = new Bundle(opts);
+
+      bundle.invalidateConfig = function() {
+        done();
+      };
+
+      mkdirp.sync(path.dirname(opts.config));
+      fs.writeFileSync(opts.config, 'module.exports = {test:1}');
+
+      assert.isUndefined(Bundle._watchedFiles[opts.config]);
+
+      bundle.getConfig(function(err) {
+        assert.isNull(err);
+        assert.isArray(Bundle._watchedFiles[opts.config]);
+        assert.equal(Bundle._watchedFiles[opts.config].length, 1);
+        fs.writeFileSync(opts.config, 'module.exports = {test:2}');
       });
     });
   });

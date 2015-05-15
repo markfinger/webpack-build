@@ -13,14 +13,6 @@ var CI = !!process.env.TRAVIS;
 
 console.log('IS CI', CI);
 
-if (CI) {
-  Bundle._fileWatcherOptions = {
-    usePolling: true,
-    interval: 50,
-    atomic: true
-  };
-}
-
 module.exports = {
   assert: chai.assert,
   TEST_OUTPUT_DIR: TEST_OUTPUT_DIR,
