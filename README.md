@@ -21,16 +21,16 @@ Installation
 ------------
 
 ```bash
-npm install webpack webpack-service
+npm install webpack webpack-wrapper
 ```
 
 Usage
 -----
 
 ```javascript
-var webpackService = require('webpack-service');
+var webpackWrapper = require('webpack-wrapper');
 
-webpackService({
+webpackWrapper({
   // An absolute path to a webpack config file.
   config: '/path/to/webpack.config.js',
   // Should webpack watch the source files for changes and rebuild in the background
@@ -46,8 +46,8 @@ webpackService({
   // replaced with the value of `bundleDir`
   bundleDir: null,
 }), function(err, stats) {
-  // Besides the usual stats data produced by webpack, the service adds extra props:
-  // stats.webpackConfig: the object passed in to webpack
-  // stats.pathsToAssets: an object mapping asset names to the full path of the emitted asset
+  // Besides the usual stats data produced by webpack, the wrapper adds two extra props:
+  // - stats.webpackConfig: the object passed in to webpack
+  // - stats.pathsToAssets: an object mapping asset names to the full path of the emitted asset
 });
 ```
