@@ -1,106 +1,103 @@
-var fs = require('fs');
-var path = require('path');
-var spawnSync = require('spawn-sync'); // node 0.10.x compatibility
-var _ = require('lodash');
-var mkdirp = require('mkdirp');
-var assert = require('chai').assert;
-var webpackService = require('..');
-var cache = require('../lib/cache');
-var Bundle = require('../lib/Bundle');
+'use strict';
 
-var TEST_OUTPUT_DIR = path.join(__dirname, 'index_test_output');
+var path = require('path');
+var fs = require('fs');
+var webpackWrapper = require('..');
+var Bundle = require('../lib/Bundle');
+var utils = require('./utils');
+
+var assert = utils.assert;
 
 // Ensure we have a clean slate before and after each test
 beforeEach(function() {
-  cache.clear();
+  webpackWrapper._bundles.clear();
   Bundle._resetFileWatcher();
-  // The file watcher seems to be really inconsistent unless we punch in a
-  // random file before we start using it
-  Bundle._fileWatcher.add(module.filename);
-  spawnSync('rm', ['-rf', TEST_OUTPUT_DIR]);
+  utils.cleanTestOutputDir();
 });
 afterEach(function() {
-  cache.clear();
+  webpackWrapper._bundles.clear();
   Bundle._resetFileWatcher();
-  spawnSync('rm', ['-rf', TEST_OUTPUT_DIR]);
+  utils.cleanTestOutputDir();
 });
 
-describe('webpack-service', function() {
+describe('webpack-wrapper', function() {
   it('is a function', function() {
-    assert.isFunction(webpackService);
+    assert.isFunction(webpackWrapper);
   });
   it('can accept options and callback arguments', function() {
     var opts = {
       config: require('./test_bundles/basic_bundle/webpack.config')
     };
-    webpackService(opts, function() {});
+    webpackWrapper(opts, function() {});
   });
-  it('populates the cache', function() {
+  it('populates the bundle list', function() {
     var pathToConfig = path.join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config');
     var opts1 = {
       config: pathToConfig,
       watch: true
     };
-    assert.equal(cache._cache.length, 0);
-    webpackService(opts1, function() {});
-    assert.equal(cache._cache.length, 1);
-    assert.instanceOf(cache._cache[0], Bundle);
-    assert.strictEqual(cache._cache[0].opts, opts1);
-    assert.strictEqual(cache._cache[0].config, require(pathToConfig));
+    assert.equal(webpackWrapper._bundles.bundles.length, 0);
+    webpackWrapper(opts1, function() {});
+    assert.equal(webpackWrapper._bundles.bundles.length, 1);
+    assert.instanceOf(webpackWrapper._bundles.bundles[0], Bundle);
+    assert.strictEqual(webpackWrapper._bundles.bundles[0].opts, opts1);
+    assert.strictEqual(webpackWrapper._bundles.bundles[0].config, require(pathToConfig));
 
     var opts2 = {
       config: pathToConfig,
       watch: true
     };
-    webpackService(opts2, function() {});
-    assert.equal(cache._cache.length, 1);
-    assert.instanceOf(cache._cache[0], Bundle);
-    assert.strictEqual(cache._cache[0].opts, opts1);
-    assert.strictEqual(cache._cache[0].config, require(pathToConfig));
+    webpackWrapper(opts2, function() {});
+    assert.equal(webpackWrapper._bundles.bundles.length, 1);
+    assert.instanceOf(webpackWrapper._bundles.bundles[0], Bundle);
+    assert.strictEqual(webpackWrapper._bundles.bundles[0].opts, opts1);
+    assert.strictEqual(webpackWrapper._bundles.bundles[0].config, require(pathToConfig));
 
     var opts3 = {
       config: pathToConfig,
       watch: false
     };
-    webpackService(opts3, function() {});
-    assert.equal(cache._cache.length, 2);
-    assert.instanceOf(cache._cache[1], Bundle);
-    assert.strictEqual(cache._cache[1].opts, opts3);
-    assert.strictEqual(cache._cache[1].config, require(pathToConfig));
+    webpackWrapper(opts3, function() {});
+    assert.equal(webpackWrapper._bundles.bundles.length, 2);
+    assert.instanceOf(webpackWrapper._bundles.bundles[1], Bundle);
+    assert.strictEqual(webpackWrapper._bundles.bundles[1].opts, opts3);
+    assert.strictEqual(webpackWrapper._bundles.bundles[1].config, require(pathToConfig));
 
     var opts4 = {
       config: pathToConfig + 'test',
       watch: false
     };
-    webpackService(opts4, function() {});
-    assert.equal(cache._cache.length, 3);
-    assert.instanceOf(cache._cache[2], Bundle);
-    assert.strictEqual(cache._cache[2].opts, opts4);
-    assert.strictEqual(cache._cache[2].config, null);
+    webpackWrapper(opts4, function() {});
+    assert.equal(webpackWrapper._bundles.bundles.length, 3);
+    assert.instanceOf(webpackWrapper._bundles.bundles[2], Bundle);
+    assert.strictEqual(webpackWrapper._bundles.bundles[2].opts, opts4);
+    assert.strictEqual(webpackWrapper._bundles.bundles[2].config, null);
 
     var opts5 = {
       config: pathToConfig + 'test',
       watch: false
     };
-    webpackService(opts5, function() {});
-    assert.equal(cache._cache.length, 3);
+    webpackWrapper(opts5, function() {});
+    assert.equal(webpackWrapper._bundles.bundles.length, 3);
 
     var opts6 = {
       config: pathToConfig,
       watch: true
     };
-    webpackService(opts6, function() {});
-    assert.equal(cache._cache.length, 3);
+    webpackWrapper(opts6, function() {});
+    assert.equal(webpackWrapper._bundles.bundles.length, 3);
   });
   it('can generate a bundle', function(done) {
-    webpackService({
+    webpackWrapper({
       config: path.join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config')
     }, function(err, stats) {
       assert.isNull(err);
       assert.isObject(stats);
 
+      assert.isObject(stats.pathsToAssets);
       var existsAt = stats.pathsToAssets['output.js'];
       assert.isString(existsAt);
+
       fs.readFile(existsAt, function(err, contents) {
         assert.isNull(err);
         var compiledBundle = contents.toString();
@@ -112,7 +109,13 @@ describe('webpack-service', function() {
   });
   it('can pass the `this.host.logger` prop to bundles', function() {
     var logger = {};
-    var bundle = webpackService.call({host: {logger: logger}}, {}, function(){});
+
+    var bundle = webpackWrapper.call(
+      {host: {logger: logger}},
+      {},
+      function(){}
+    );
+
     assert.strictEqual(bundle.opts.logger, logger);
   });
 });

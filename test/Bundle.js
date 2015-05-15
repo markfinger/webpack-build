@@ -1,48 +1,49 @@
+'use strict';
+
 var fs = require('fs');
 var path = require('path');
-var spawnSync = require('spawn-sync'); // node 0.10.x compatibility
 var _ = require('lodash');
 var mkdirp = require('mkdirp');
-var assert = require('chai').assert;
 var Bundle = require('../lib/Bundle');
+var Watcher = require('../lib/Watcher');
+var utils = require('./utils');
+var assert = utils.assert;
 
-var TEST_OUTPUT_DIR = path.join(__dirname, 'bundle_test_output');
+var TEST_OUTPUT_DIR = utils.TEST_OUTPUT_DIR;
+
+var NOOP = function(){};
 var SILENT_LOGGER = {
-  log: function(){},
-  info: function(){},
-  warn: function(){},
-  error: function(){}
+  log: NOOP,
+  info: NOOP,
+  warn: NOOP,
+  error: NOOP
 };
 
 // Ensure we have a clean slate before and after each test
 beforeEach(function() {
   Bundle._resetFileWatcher();
-  // The file watcher seems to be really inconsistent unless we punch in a
-  // random file before we start using it
-  Bundle._fileWatcher.add(module.filename);
-  spawnSync('rm', ['-rf', TEST_OUTPUT_DIR]);
+  utils.cleanTestOutputDir();
 });
 afterEach(function() {
   Bundle._resetFileWatcher();
-  spawnSync('rm', ['-rf', TEST_OUTPUT_DIR]);
+  utils.cleanTestOutputDir();
 });
 
 describe('Bundle', function() {
-  it('is a function', function() {
+  it('should be a function', function() {
     assert.isFunction(Bundle);
   });
-  it('can accept options and config arguments', function() {
+  it('should accept options and config arguments', function() {
     var opts = {};
     var config = {};
     var bundle = new Bundle(opts, config);
     assert.strictEqual(bundle.opts, opts);
     assert.strictEqual(bundle.config, config);
-    assert.isFalse(bundle.opts.cache);
     assert.isFalse(bundle.opts.watchConfig);
     assert.isFalse(bundle.opts.watch);
     assert.isNull(bundle.opts.bundleDir);
   });
-  it('can accept a string as a config option and the file will be required', function(done) {
+  it('should accept a string as a config option and import the file specified', function(done) {
     var bundle = new Bundle({
       config: path.join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js')
     });
@@ -52,7 +53,7 @@ describe('Bundle', function() {
       done();
     });
   });
-  it('can compile a basic bundle', function(done) {
+  it('should compile a basic bundle', function(done) {
     var bundle = new Bundle({}, require('./test_bundles/basic_bundle/webpack.config'));
 
     bundle.compile(function(err, stats) {
@@ -70,7 +71,7 @@ describe('Bundle', function() {
       });
     });
   });
-  it('can expose the webpack config on the stats object', function(done) {
+  it('should expose the webpack config on the stats object', function(done) {
     var bundle = new Bundle({}, require('./test_bundles/basic_bundle/webpack.config'));
 
     bundle.compile(function(err, stats) {
@@ -80,197 +81,180 @@ describe('Bundle', function() {
       done();
     });
   });
-  it('tracks compilation state', function(done) {
-    var bundle = new Bundle({}, require('./test_bundles/basic_bundle/webpack.config'));
+  describe('#watchFile', function() {
+    it('should be able to detect changes to a particular file', function(done) {
+      var testFile = path.join(TEST_OUTPUT_DIR, 'watch_test', 'test.js');
 
-    assert.isFalse(bundle.isCompiling);
-    assert.isFalse(bundle.hasCompiled);
-    assert.isNull(bundle.compiler);
+      mkdirp.sync(path.dirname(testFile));
 
-    bundle.compile(function(err, stats) {
-      assert.isFalse(bundle.isCompiling);
-      assert.isTrue(bundle.hasCompiled);
+      var bundle = new Bundle();
 
-      assert.isNull(err);
-      assert.isObject(stats);
+      fs.writeFileSync(testFile, 'test 1');
 
-      var existsAt = stats.pathsToAssets['output.js'];
-
-      assert.isString(existsAt);
-      fs.readFile(existsAt, function(err, contents) {
-        assert.isNull(err);
-        var compiledBundle = contents.toString();
-        assert.include(compiledBundle, '__BASIC_BUNDLE_ENTRY_TEST__');
-        assert.include(compiledBundle, '__BASIC_BUNDLE_REQUIRE_TEST__');
-        done();
+      assert.isUndefined(Bundle._watchedFiles[testFile]);
+      var changesDetected = 0;
+      bundle.watchFile(testFile, function() {
+        changesDetected++;
       });
+
+      setTimeout(function() {
+        assert.isArray(Bundle._watchedFiles[testFile]);
+        assert.equal(Bundle._watchedFiles[testFile].length, 1);
+        assert.equal(changesDetected, 0);
+
+        fs.writeFileSync(testFile, 'test 2');
+        assert.equal(Bundle._watchedFiles[testFile].length, 1);
+
+        bundle.watchFile(testFile, _.once(function() {
+          assert.equal(changesDetected, 1);
+          bundle.watchFile(testFile, _.once(function() {
+            assert.equal(changesDetected, 2);
+            done();
+          }));
+          assert.equal(Bundle._watchedFiles[testFile].length, 3);
+          fs.writeFileSync(testFile, 'test 3');
+        }));
+
+        assert.equal(Bundle._watchedFiles[testFile].length, 2);
+      }, utils.watcherWarmUpWait);
     });
-
-    assert.isTrue(bundle.isCompiling);
-    assert.isFalse(bundle.hasCompiled);
   });
-  it('records the output of the last compilation', function(done) {
-    var bundle = new Bundle({
-      cache: true
-    }, require('./test_bundles/basic_bundle/webpack.config'));
+  describe('#getCompiler', function() {
+    it('should not preserved the compiler', function(done) {
+      var bundle = new Bundle({}, {});
 
-    assert.isNull(bundle.err);
-    assert.isNull(bundle.stats);
-
-    bundle.compile(function(err, stats) {
-      assert.isNull(bundle.err);
-      assert.isObject(bundle.stats);
-      assert.strictEqual(err, bundle.err);
-      assert.strictEqual(stats, bundle.stats);
-
-      var existsAt = stats.pathsToAssets['output.js'];
-
-      assert.isString(existsAt);
-      fs.readFile(existsAt, function(err, contents) {
+      bundle.getCompiler(function(err, compiler1) {
         assert.isNull(err);
-        var compiledBundle = contents.toString();
-        assert.include(compiledBundle, '__BASIC_BUNDLE_ENTRY_TEST__');
-        assert.include(compiledBundle, '__BASIC_BUNDLE_REQUIRE_TEST__');
-        done();
-      });
-    });
-
-    assert.isNull(bundle.err);
-    assert.isNull(bundle.stats);
-  });
-  it('can defer concurrent compilation requests until done', function(done) {
-    var bundle = new Bundle({
-      cache: true
-    }, require('./test_bundles/basic_bundle/webpack.config'));
-
-    assert.isFalse(bundle.isCompiling);
-    assert.isFalse(bundle.hasCompiled);
-    assert.isArray(bundle._onceDone);
-    assert.equal(bundle._onceDone.length, 0);
-
-    var cb1 = function(err, stats) {
-      assert.isFalse(bundle.isCompiling);
-      assert.isTrue(bundle.hasCompiled);
-      assert.equal(bundle._onceDone.length, 0);
-      assert.strictEqual(err, bundle.err);
-      assert.strictEqual(stats, bundle.stats);
-    };
-
-    bundle.onceDone(cb1);
-    assert.isTrue(bundle.isCompiling);
-    assert.isFalse(bundle.hasCompiled);
-    assert.equal(bundle._onceDone.length, 1);
-    assert.strictEqual(bundle._onceDone[0], cb1);
-
-    var cb2 = function(err, stats) {
-      assert.isFalse(bundle.isCompiling);
-      assert.isTrue(bundle.hasCompiled);
-      assert.equal(bundle._onceDone.length, 0);
-      assert.strictEqual(err, bundle.err);
-      assert.strictEqual(stats, bundle.stats);
-
-      done();
-    };
-
-    bundle.onceDone(cb2);
-    assert.isTrue(bundle.isCompiling);
-    assert.isFalse(bundle.hasCompiled);
-    assert.equal(bundle._onceDone.length, 2);
-    assert.strictEqual(bundle._onceDone[0], cb1);
-    assert.strictEqual(bundle._onceDone[1], cb2);
-  });
-  it('can cache compilation output', function(done) {
-    var bundle = new Bundle({
-      cache: true
-    }, require('./test_bundles/basic_bundle/webpack.config'));
-
-    bundle.onceDone(function(err, stats) {
-      assert.isNull(err);
-      assert.isObject(stats);
-
-      bundle.onceDone(function(_err, _stats) {
-        assert.strictEqual(err, _err);
-        assert.strictEqual(stats, _stats);
-
-        bundle.onceDone(function(__err, __stats) {
-          assert.strictEqual(_err, __err);
-          assert.strictEqual(_stats, __stats);
-
+        assert.isObject(compiler1);
+        bundle.getCompiler(function(err, compiler2) {
+          assert.isNull(err);
+          assert.isObject(compiler2);
+          assert.notStrictEqual(compiler1, compiler2);
           done();
         });
       });
     });
   });
-  it('can invalidate cached compilation output', function(done) {
-    var bundle = new Bundle({
-      cache: true
-    }, require('./test_bundles/basic_bundle/webpack.config'));
+  describe('#getWatcher', function() {
+    it('should provide an instance of Watcher', function(done) {
+      var bundle = new Bundle({watch: true}, {});
 
-    bundle.onceDone(function(err, stats) {
-      assert.isNull(err);
-      assert.isObject(stats);
+      bundle.getWatcher(function(err, watcher) {
+        assert.isNull(err);
+        assert.instanceOf(watcher, Watcher);
+        done();
+      });
+    });
+    it('should preserve the watcher', function(done) {
+      var bundle = new Bundle({watch: true}, {});
 
-      bundle.invalidate();
+      bundle.getWatcher(function(err, watcher1) {
+        assert.isNull(err);
+        assert.isObject(watcher1);
 
-      bundle.onceDone(function(_err, _stats) {
-        assert.isNull(_err);
-        assert.notStrictEqual(stats, _stats);
-        assert.isObject(_stats);
+        bundle.getWatcher(function(err, watcher2) {
+          assert.isNull(err);
+          assert.isObject(watcher2);
 
-        bundle.onceDone(function(__err, __stats) {
-          assert.strictEqual(_err, __err);
-          assert.strictEqual(_stats, __stats);
-
+          assert.strictEqual(watcher2, watcher1);
           done();
         });
       });
     });
   });
-  it('can detect changes to a particular file', function(done) {
-    var testFile = path.join(TEST_OUTPUT_DIR, 'watch_test', 'test.js');
+  describe('#onceDone', function() {
+    it('should not preserve errors and stats from the compilation, if not watching', function(done) {
+      var bundle = new Bundle({
+        watch: false,
+        config: path.join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js')
+      });
 
-    mkdirp.sync(path.dirname(testFile));
+      bundle.onceDone(function(err1, stats1) {
+        assert.isNull(err1);
+        assert.isObject(stats1);
 
-    var bundle = new Bundle();
-
-    fs.writeFileSync(testFile, 'test 1');
-
-    assert.isUndefined(Bundle._watchedFiles[testFile]);
-    var changesDetected = 0;
-    bundle.watchFile(testFile, function() {
-      changesDetected++;
+        bundle.onceDone(function(err2, stats2) {
+          assert.isNull(err2);
+          assert.isObject(stats2);
+          assert.notStrictEqual(stats2, stats1);
+          done();
+        });
+      });
     });
+    it('should preserve errors and stats from the compilation, if watching', function(done) {
+      var bundle = new Bundle({
+        watch: true,
+        config: path.join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js')
+      });
 
-    assert.isArray(Bundle._watchedFiles[testFile]);
-    assert.equal(Bundle._watchedFiles[testFile].length, 1);
-    assert.equal(changesDetected, 0);
+      bundle.onceDone(function(err1, stats1) {
+        assert.isNull(err1);
+        assert.isObject(stats1);
 
-    fs.writeFileSync(testFile, 'test 2');
-    assert.equal(Bundle._watchedFiles[testFile].length, 1);
+        bundle.onceDone(function(err2, stats2) {
+          assert.isNull(err2);
+          assert.isObject(stats2);
+          assert.strictEqual(stats2, stats1);
+          done();
+        });
+      });
+    });
+    it('should rebuild bundles when onceDone is called', function(done) {
+      var entry = path.join(TEST_OUTPUT_DIR, 'rebuilt_bundles', 'entry.js');
+      var output = path.join(TEST_OUTPUT_DIR, 'rebuilt_bundles', 'output.js');
 
-    bundle.watchFile(testFile, _.once(function() {
-      assert.equal(changesDetected, 1);
-      bundle.watchFile(testFile, _.once(function() {
-        assert.equal(changesDetected, 2);
-        done();
-      }));
-      assert.equal(Bundle._watchedFiles[testFile].length, 3);
-      fs.writeFileSync(testFile, 'test 3');
-    }));
+      var bundle = new Bundle({}, {
+        context: path.dirname(entry),
+        entry: './' + path.basename(entry),
+        output: {
+          path: path.dirname(output),
+          filename: path.basename(output)
+        }
+      });
 
-    assert.equal(Bundle._watchedFiles[testFile].length, 2);
+      mkdirp.sync(path.dirname(entry));
+      fs.writeFileSync(entry, 'module.exports = "__REBUILT_TEST_ONE__";');
+
+      bundle.onceDone(function(err, stats) {
+        assert.isNull(err);
+        assert.isObject(stats);
+        assert.equal(output, stats.pathsToAssets['output.js']);
+        var contents = fs.readFileSync(output);
+        assert.include(contents.toString(), '__REBUILT_TEST_ONE__');
+
+        fs.writeFileSync(entry, 'module.exports = "__REBUILT_TEST_TWO__";');
+        bundle.onceDone(function(err, stats) {
+          assert.isNull(err);
+          assert.isObject(stats);
+          assert.equal(output, stats.pathsToAssets['output.js']);
+          contents = fs.readFileSync(output);
+          assert.include(contents.toString(), '__REBUILT_TEST_TWO__');
+
+          fs.writeFileSync(entry, 'module.exports = "__REBUILT_TEST_THREE__";');
+          bundle.onceDone(function(err, stats) {
+            assert.isNull(err);
+            assert.isObject(stats);
+            assert.equal(output, stats.pathsToAssets['output.js']);
+            contents = fs.readFileSync(output);
+            assert.include(contents.toString(), '__REBUILT_TEST_THREE__');
+            done();
+          });
+        });
+      });
+    });
   });
   describe('#opts.watchConfig', function() {
-    it('defaults to false', function() {
+    it('should default to false', function() {
       var bundle = new Bundle();
       assert.isFalse(bundle.opts.watchConfig);
 
       bundle = new Bundle({
         watchConfig: true
       });
+
       assert.isTrue(bundle.opts.watchConfig);
     });
-    it('can detect changes to the config file', function(done) {
+    it('should cause config files changes to be detected', function(done) {
       var opts = {
         config: path.join(TEST_OUTPUT_DIR, 'detect_changes_to_config_watch_test', 'webpack.config.js'),
         watchConfig: true
@@ -284,29 +268,36 @@ describe('Bundle', function() {
       };
 
       mkdirp.sync(path.dirname(opts.config));
+      fs.writeFileSync(opts.config, 'module.exports = {test:1}');
 
-      fs.writeFileSync(opts.config, '{}');
       assert.isUndefined(Bundle._watchedFiles[opts.config]);
+
       bundle.getConfig(function(err) {
         assert.isNull(err);
         assert.isArray(Bundle._watchedFiles[opts.config]);
         assert.equal(Bundle._watchedFiles[opts.config].length, 1);
         assert.equal(invalidatedConfigCount, 0);
+
         bundle.watchFile(opts.config, _.once(function() {
           assert.equal(invalidatedConfigCount, 1);
           assert.equal(Bundle._watchedFiles[opts.config].length, 2);
+
           bundle.watchFile(opts.config, _.once(function() {
             assert.equal(invalidatedConfigCount, 2);
             done();
           }));
           assert.equal(Bundle._watchedFiles[opts.config].length, 3);
-          fs.writeFileSync(opts.config, '  {}');
+
+          fs.writeFileSync(opts.config, 'module.exports = {test:2}');
         }));
-        assert.equal(Bundle._watchedFiles[opts.config].length, 2);
-        fs.writeFileSync(opts.config, ' {}');
+
+        setTimeout(function() {
+          assert.equal(Bundle._watchedFiles[opts.config].length, 2);
+          fs.writeFileSync(opts.config, 'module.exports = {test:3}');
+        }, utils.watcherWarmUpWait);
       });
     });
-    it('can detect changes to the config file and invalidate the config', function(done) {
+    it('should cause config file changes to invalidate the config', function(done) {
       var opts = {
         config: path.join(TEST_OUTPUT_DIR, 'invalidate_config_watch_test', 'webpack.config.js'),
         watchConfig: true
@@ -314,13 +305,14 @@ describe('Bundle', function() {
       var bundle = new Bundle(opts);
 
       mkdirp.sync(path.dirname(opts.config));
-
       fs.writeFileSync(opts.config, 'module.exports = {test:1};');
+
       bundle.getConfig(function(err, config) {
         assert.isNull(err);
         assert.isObject(config);
         assert.strictEqual(bundle.config, config);
         assert.equal(config.test, 1);
+
         bundle.watchFile(opts.config, _.once(function() {
           assert.isNull(bundle.config);
           bundle.getConfig(function(err, config) {
@@ -328,6 +320,7 @@ describe('Bundle', function() {
             assert.isObject(config);
             assert.strictEqual(bundle.config, config);
             assert.equal(config.test, 2);
+
             bundle.watchFile(opts.config, _.once(function() {
               assert.isNull(bundle.config);
               bundle.getConfig(function(err, config) {
@@ -338,17 +331,22 @@ describe('Bundle', function() {
                 done();
               });
             }));
+
             fs.writeFileSync(opts.config, 'module.exports = {test:3};');
           });
         }));
-        fs.writeFileSync(opts.config, 'module.exports = {test:2};');
+
+        setTimeout(function() {
+          fs.writeFileSync(opts.config, 'module.exports = {test:2};');
+        }, utils.watcherWarmUpWait);
       });
     });
-    it('can detect changes to a config file and rebuild the bundle whenever the config has been invalidated', function(done) {
+    it('should cause config file changes to rebuild the bundle', function(done) {
       var opts = {
         config: path.join(TEST_OUTPUT_DIR, 'watch_config_to_invalidate_bundle', 'webpack.config.js'),
         watchConfig: true
       };
+
       var config_1 = {
         context: path.join(__dirname, 'test_bundles', 'watched_config_bundle'),
         entry: './entry_1.js',
@@ -367,8 +365,8 @@ describe('Bundle', function() {
       var bundle = new Bundle(opts);
 
       mkdirp.sync(path.dirname(opts.config));
-
       fs.writeFileSync(opts.config, 'module.exports = ' + JSON.stringify(config_1));
+
       bundle.onceDone(function(err, stats) {
         assert.isNull(err);
         assert.isObject(stats);
@@ -376,12 +374,14 @@ describe('Bundle', function() {
         assert.isString(existsAt);
         var contents = fs.readFileSync(existsAt);
         assert.include(contents.toString(), '__WATCHED_CONFIG_ONE__');
+
         bundle.watchFile(opts.config, _.once(function() {
           bundle.onceDone(function(err, stats) {
             var existsAt = stats.pathsToAssets['output.js'];
             assert.isString(existsAt);
             contents = fs.readFileSync(existsAt);
             assert.include(contents.toString(), '__WATCHED_CONFIG_TWO__');
+
             bundle.watchFile(opts.config, _.once(function() {
               bundle.onceDone(function(err, stats) {
                 var existsAt = stats.pathsToAssets['output.js'];
@@ -391,13 +391,17 @@ describe('Bundle', function() {
                 done();
               });
             }));
+
             fs.writeFileSync(opts.config, 'module.exports = ' + JSON.stringify(config_3));
           });
         }));
-        fs.writeFileSync(opts.config, 'module.exports = ' + JSON.stringify(config_2));
+
+        setTimeout(function() {
+          fs.writeFileSync(opts.config, 'module.exports = ' + JSON.stringify(config_2));
+        }, utils.watcherWarmUpWait);
       });
     });
-    it('can detect changes to a config file and invalidate the watcher', function(done) {
+    it('should cause config file changes to invalidate the watcher', function(done) {
       var opts = {
         config: path.join(TEST_OUTPUT_DIR, 'watched_source_and_config_bundle', 'webpack.config.js'),
         watchConfig: true,
@@ -425,8 +429,8 @@ describe('Bundle', function() {
       assert.isNull(bundle.watcher);
 
       mkdirp.sync(path.dirname(opts.config));
-
       fs.writeFileSync(opts.config, 'module.exports = ' + JSON.stringify(config_1));
+
       bundle.onceDone(function(err, stats) {
         assert.isNull(err);
         assert.isObject(stats);
@@ -437,10 +441,12 @@ describe('Bundle', function() {
         assert.isString(existsAt);
         var contents = fs.readFileSync(existsAt);
         assert.include(contents.toString(), '__WATCHED_SOURCE_AND_CONFIG_ONE__');
+
         bundle.watchFile(opts.config, _.once(function() {
           assert.isTrue(bundle.watchingConfig);
           assert.isFalse(bundle.watching);
           assert.isNull(bundle.watcher);
+
           bundle.onceDone(function(err, stats) {
             assert.isTrue(bundle.watchingConfig);
             assert.isTrue(bundle.watching);
@@ -449,10 +455,12 @@ describe('Bundle', function() {
             assert.isString(existsAt);
             contents = fs.readFileSync(existsAt);
             assert.include(contents.toString(), '__WATCHED_SOURCE_AND_CONFIG_TWO__');
+
             bundle.watchFile(opts.config, _.once(function() {
               assert.isTrue(bundle.watchingConfig);
               assert.isFalse(bundle.watching);
               assert.isNull(bundle.watcher);
+
               bundle.onceDone(function(err, stats) {
                 assert.isTrue(bundle.watchingConfig);
                 assert.isTrue(bundle.watching);
@@ -464,24 +472,29 @@ describe('Bundle', function() {
                 done();
               });
             }));
+
             fs.writeFileSync(opts.config, 'module.exports = ' + JSON.stringify(config_3));
           });
         }));
-        fs.writeFileSync(opts.config, 'module.exports = ' + JSON.stringify(config_2));
+
+        setTimeout(function() {
+          fs.writeFileSync(opts.config, 'module.exports = ' + JSON.stringify(config_2));
+        }, utils.watcherWarmUpWait);
       });
     });
   });
   describe('#opts.watchDelay', function() {
-    it('defaults to 200', function () {
+    it('should default to 200', function () {
       var bundle = new Bundle();
       assert.equal(bundle.opts.watchDelay, 200);
 
       bundle = new Bundle({
         watchDelay: 300
       });
+
       assert.equal(bundle.opts.watchDelay, 300);
     });
-    it('is passed to the watcher', function(done) {
+    it('should be passed to the watcher', function(done) {
       var bundle = new Bundle({}, {});
       bundle.getWatcher(function(err, watcher) {
         assert.isNull(err);
@@ -490,6 +503,7 @@ describe('Bundle', function() {
         bundle = new Bundle({
           watchDelay: 300
         }, {});
+
         bundle.getWatcher(function(err, watcher) {
           assert.isNull(err);
           assert.equal(watcher.opts.watchDelay, 300);
@@ -499,20 +513,24 @@ describe('Bundle', function() {
     });
   });
   describe('#opts.watch', function() {
-    it('defaults to false', function() {
+    it('should default to false', function() {
       var bundle = new Bundle();
       assert.isFalse(bundle.opts.watch);
 
       bundle = new Bundle({
         watch: true
       });
+
       assert.isTrue(bundle.opts.watch);
     });
-    it('can cause file changes to be detected and cause bundle rebuilds', function(done) {
+    it('should cause file changes to trigger bundle rebuilds', function(done) {
       var entry = path.join(TEST_OUTPUT_DIR, 'watch_source', 'entry.js');
       var output = path.join(TEST_OUTPUT_DIR, 'watch_source', 'output.js');
 
-      var bundle = new Bundle({watch: true}, {
+      var bundle = new Bundle({
+        watch: true,
+        watchDelay: utils.watchDelay
+      }, {
         context: path.dirname(entry),
         entry: './' + path.basename(entry),
         output: {
@@ -522,44 +540,51 @@ describe('Bundle', function() {
       });
 
       mkdirp.sync(path.dirname(entry));
-
       fs.writeFileSync(entry, 'module.exports = "__WATCH_TEST_ONE__";');
+
       bundle.onceDone(function(err, stats) {
         assert.isNull(err);
         assert.isObject(stats);
         assert.equal(output, stats.pathsToAssets['output.js']);
         var contents = fs.readFileSync(output);
         assert.include(contents.toString(), '__WATCH_TEST_ONE__');
-        fs.writeFileSync(entry, 'module.exports = "__WATCH_TEST_TWO__";');
+
         setTimeout(function() {
-          bundle.onceDone(function(err, stats) {
-            assert.isNull(err);
-            assert.isObject(stats);
-            assert.property(stats.pathsToAssets, 'output.js');
-            assert.equal(output, stats.pathsToAssets['output.js']);
-            contents = fs.readFileSync(output);
-            assert.include(contents.toString(), '__WATCH_TEST_TWO__');
-            fs.writeFileSync(entry, 'module.exports = "__WATCH_TEST_THREE__";');
-            setTimeout(function() {
-              bundle.onceDone(function(err, stats) {
-                assert.isNull(err);
-                assert.isObject(stats);
-                assert.equal(output, stats.pathsToAssets['output.js']);
-                contents = fs.readFileSync(output);
-                assert.include(contents.toString(), '__WATCH_TEST_THREE__');
-                done();
-              });
-            }, 200);
-          });
-        }, 200);
+          fs.writeFileSync(entry, 'module.exports = "__WATCH_TEST_TWO__";');
+
+          setTimeout(function() {
+            bundle.onceDone(function(err, stats) {
+              assert.isNull(err);
+              assert.isObject(stats);
+              assert.property(stats.pathsToAssets, 'output.js');
+              assert.equal(output, stats.pathsToAssets['output.js']);
+              contents = fs.readFileSync(output);
+              assert.include(contents.toString(), '__WATCH_TEST_TWO__');
+
+              fs.writeFileSync(entry, 'module.exports = "__WATCH_TEST_THREE__";');
+
+              setTimeout(function() {
+                bundle.onceDone(function(err, stats) {
+                  assert.isNull(err);
+                  assert.isObject(stats);
+                  assert.equal(output, stats.pathsToAssets['output.js']);
+                  contents = fs.readFileSync(output);
+                  assert.include(contents.toString(), '__WATCH_TEST_THREE__');
+                  done();
+                });
+              }, utils.watcherWait);
+            });
+          }, utils.watcherWait);
+        }, utils.watcherWarmUpWait);
       });
     });
-    it('can indicate errors produced during compilation', function(done) {
+    it('should indicate any errors which occurred during background compilation', function(done) {
       var entry = path.join(TEST_OUTPUT_DIR, 'watched_file_error', 'entry.js');
       var output = path.join(TEST_OUTPUT_DIR, 'watched_file_error', 'output.js');
 
       var bundle = new Bundle({
         watch: true,
+        watchDelay: utils.watchDelay,
         logger: SILENT_LOGGER
       }, {
         context: path.dirname(entry),
@@ -567,40 +592,47 @@ describe('Bundle', function() {
         output: {
           path: path.dirname(output),
           filename: path.basename(output)
-        },
-        logger: SILENT_LOGGER
+        }
       });
 
       mkdirp.sync(path.dirname(entry));
-
       fs.writeFileSync(entry, 'module.exports = "__WATCHED_FILE_ERROR_ONE__";');
-      bundle.onceDone(function(err, stats) {
-        assert.isNull(err);
-        assert.isObject(stats);
-        assert.equal(output, stats.pathsToAssets['output.js']);
+
+      bundle.onceDone(function(err1, stats1) {
+        assert.isNull(err1);
+        assert.isObject(stats1);
+        assert.equal(output, stats1.pathsToAssets['output.js']);
         var contents = fs.readFileSync(output);
         assert.include(contents.toString(), '__WATCHED_FILE_ERROR_ONE__');
 
-        fs.writeFileSync(entry, '+?');
         setTimeout(function() {
-          bundle.onceDone(function(err, stats) {
-            assert.instanceOf(err, Error);
-            assert.isNull(stats);
-            bundle.onceDone(function(err, stats) {
-              assert.instanceOf(err, Error);
-              assert.isNull(stats);
-              done();
+          fs.writeFileSync(entry, '+?');
+
+          setTimeout(function() {
+            bundle.onceDone(function(err2, stats2) {
+              assert.instanceOf(err2, Error);
+              assert.isObject(stats2);
+
+              bundle.onceDone(function(err3, stats3) {
+                assert.instanceOf(err3, Error);
+                assert.isObject(stats3);
+                assert.strictEqual(err3, err2);
+                assert.strictEqual(stats3, stats2);
+
+                done();
+              });
             });
-          });
-        }, 200);
+          }, utils.watcherWait);
+        }, utils.watcherWarmUpWait);
       });
     });
-    it('can continue to compile if a file change introduces an error', function(done) {
+    it('should continue to compile if a file change introduces an error', function(done) {
       var entry = path.join(TEST_OUTPUT_DIR, 'watched_file_continues_to_compile', 'entry.js');
       var output = path.join(TEST_OUTPUT_DIR, 'watched_file_continues_to_compile', 'output.js');
 
       var bundle = new Bundle({
         watch: true,
+        watchDelay: utils.watchDelay,
         logger: SILENT_LOGGER
       }, {
         context: path.dirname(entry),
@@ -612,8 +644,8 @@ describe('Bundle', function() {
       });
 
       mkdirp.sync(path.dirname(entry));
-
       fs.writeFileSync(entry, 'module.exports = "__WATCHED_FILE_ERROR_ONE__";');
+
       bundle.onceDone(function(err, stats) {
         assert.isNull(err);
         assert.isObject(stats);
@@ -621,231 +653,44 @@ describe('Bundle', function() {
         var contents = fs.readFileSync(output);
         assert.include(contents.toString(), '__WATCHED_FILE_ERROR_ONE__');
 
-        fs.writeFileSync(entry, '+?');
         setTimeout(function() {
-          bundle.onceDone(function(err, stats) {
-            assert.instanceOf(err, Error);
-            assert.isNull(stats);
+          fs.writeFileSync(entry, '+?');
 
-            fs.writeFileSync(entry, '__WATCHED_FILE_ERROR_TWO__');
-            setTimeout(function() {
-              bundle.onceDone(function(err, stats) {
-                assert.isNull(err);
-                assert.isObject(stats);
-                assert.equal(output, stats.pathsToAssets['output.js']);
-                var contents = fs.readFileSync(output);
-                assert.include(contents.toString(), '__WATCHED_FILE_ERROR_TWO__');
-                done();
-              });
-            }, 200);
-          });
-        }, 200);
-      });
-    });
-  });
-  describe('#opts.cache', function() {
-    it('defaults to false', function() {
-      var bundle = new Bundle();
-      assert.isFalse(bundle.opts.cache);
+          setTimeout(function() {
+            bundle.onceDone(function(err, stats) {
+              assert.instanceOf(err, Error);
+              assert.isObject(stats);
 
-      bundle = new Bundle({
-        cache: true
-      });
-      assert.isTrue(bundle.opts.cache);
-    });
-    it('if false, the compiler is not preserved', function(done) {
-      var bundle = new Bundle({}, {});
-      bundle.getCompiler(function(err, compiler) {
-        assert.isNull(err);
-        assert.isObject(compiler);
-        assert.isNull(bundle.compiler);
-        bundle.getCompiler(function(err, _compiler) {
-          assert.isNull(err);
-          assert.isObject(_compiler);
-          assert.notStrictEqual(_compiler, compiler);
-          assert.isNull(bundle.compiler);
-          done();
-        });
-      });
-    });
-    it('if true, the compiler is preserved', function(done) {
-      var bundle = new Bundle({
-        cache: true
-      }, {});
-      bundle.getCompiler(function(err, compiler) {
-        assert.isNull(err);
-        assert.isObject(compiler);
-        assert.strictEqual(bundle.compiler, compiler);
-        bundle.getCompiler(function(err, _compiler) {
-          assert.isNull(err);
-          assert.isObject(_compiler);
-          assert.strictEqual(_compiler, compiler);
-          assert.strictEqual(bundle.compiler, _compiler);
-          done();
-        });
-      });
-    });
-    it('if true, the compiler can be invalidated', function(done) {
-      var bundle = new Bundle({
-        cache: true
-      }, {});
-      bundle.getCompiler(function(err, compiler) {
-        assert.isNull(err);
-        assert.isObject(compiler);
-        assert.strictEqual(bundle.compiler, compiler);
-        bundle.invalidate();
-        assert.isNull(bundle.compiler);
-        done();
-      });
-    });
-    it('if false, errors and stats are not preserved from the compilation', function(done) {
-      var bundle = new Bundle({}, require('./test_bundles/basic_bundle/webpack.config'));
-      bundle.onceDone(function(err, stats) {
-        assert.isNull(err);
-        assert.isObject(stats);
-        assert.isNull(bundle.err);
-        assert.isNull(bundle.stats);
-        bundle.onceDone(function(_err, _stats) {
-          assert.isNull(err);
-          assert.isObject(stats);
-          assert.notStrictEqual(_stats, stats);
-          assert.isNull(bundle.err);
-          assert.isNull(bundle.stats);
-          done();
-        });
-      });
-    });
-    it('if true, errors and stats are preserved from the compilation', function(done) {
-      var bundle = new Bundle({
-        cache: true
-      }, require('./test_bundles/basic_bundle/webpack.config'));
-      bundle.onceDone(function(err, stats) {
-        assert.isNull(err);
-        assert.isObject(stats);
-        assert.isNull(bundle.err);
-        assert.strictEqual(bundle.stats, stats);
-        bundle.onceDone(function(_err, _stats) {
-          assert.isNull(err);
-          assert.isObject(stats);
-          assert.strictEqual(_stats, stats);
-          assert.isNull(bundle.err);
-          assert.strictEqual(bundle.stats, _stats);
-          done();
-        });
-      });
-    });
-    it('if true, the errors and stats can be invalidated', function(done) {
-      var bundle = new Bundle({
-        cache: true
-      }, require('./test_bundles/basic_bundle/webpack.config'));
-      bundle.onceDone(function(err, stats) {
-        assert.isNull(err);
-        assert.isObject(stats);
-        bundle.invalidate();
-        assert.isNull(bundle.err);
-        assert.isNull(bundle.stats);
-        done();
-      });
-    });
-    it('if false, bundles are rebuilt when onceDone is called', function(done) {
-      var entry = path.join(TEST_OUTPUT_DIR, 'uncached_bundles', 'entry.js');
-      var output = path.join(TEST_OUTPUT_DIR, 'uncached_bundles', 'output.js');
+              fs.writeFileSync(entry, '__WATCHED_FILE_ERROR_TWO__');
 
-      var bundle = new Bundle({}, {
-        context: path.dirname(entry),
-        entry: './' + path.basename(entry),
-        output: {
-          path: path.dirname(output),
-          filename: path.basename(output)
-        }
-      });
-
-      mkdirp.sync(path.dirname(entry));
-
-      fs.writeFileSync(entry, 'module.exports = "__UNCACHED_TEST_ONE__";');
-      bundle.onceDone(function(err, stats) {
-        assert.isNull(err);
-        assert.isObject(stats);
-        assert.equal(output, stats.pathsToAssets['output.js']);
-        var contents = fs.readFileSync(output);
-        assert.include(contents.toString(), '__UNCACHED_TEST_ONE__');
-        fs.writeFileSync(entry, 'module.exports = "__UNCACHED_TEST_TWO__";');
-        bundle.onceDone(function(err, stats) {
-          assert.isNull(err);
-          assert.isObject(stats);
-          assert.equal(output, stats.pathsToAssets['output.js']);
-          contents = fs.readFileSync(output);
-          assert.include(contents.toString(), '__UNCACHED_TEST_TWO__');
-          fs.writeFileSync(entry, 'module.exports = "__UNCACHED_TEST_THREE__";');
-          bundle.onceDone(function(err, stats) {
-            assert.isNull(err);
-            assert.isObject(stats);
-            assert.equal(output, stats.pathsToAssets['output.js']);
-            contents = fs.readFileSync(output);
-            assert.include(contents.toString(), '__UNCACHED_TEST_THREE__');
-            done();
-          });
-        });
-      });
-    });
-    it('if true, bundles are not rebuilt when onceDone is called', function(done) {
-      var entry = path.join(TEST_OUTPUT_DIR, 'cached_bundles', 'entry.js');
-      var output = path.join(TEST_OUTPUT_DIR, 'cached_bundles', 'output.js');
-
-      var bundle = new Bundle({
-        cache: true
-      }, {
-        context: path.dirname(entry),
-        entry: './' + path.basename(entry),
-        output: {
-          path: path.dirname(output),
-          filename: path.basename(output)
-        }
-      });
-
-      mkdirp.sync(path.dirname(entry));
-
-      fs.writeFileSync(entry, 'module.exports = "__CACHED_TEST_ONE__";');
-      bundle.onceDone(function(err, stats) {
-        assert.isNull(err);
-        assert.isObject(stats);
-        assert.equal(output, stats.pathsToAssets['output.js']);
-        var contents = fs.readFileSync(output);
-        assert.include(contents.toString(), '__CACHED_TEST_ONE__');
-        fs.writeFileSync(entry, 'module.exports = "__CACHED_TEST_TWO__";');
-        bundle.onceDone(function(err, stats) {
-          assert.isNull(err);
-          assert.isObject(stats);
-          assert.equal(output, stats.pathsToAssets['output.js']);
-          contents = fs.readFileSync(output);
-          assert.include(contents.toString(), '__CACHED_TEST_ONE__');
-          assert.notInclude(contents.toString(), '__CACHED_TEST_TWO__');
-          fs.writeFileSync(entry, 'module.exports = "__CACHED_TEST_THREE__";');
-          bundle.onceDone(function(err, stats) {
-            assert.isNull(err);
-            assert.isObject(stats);
-            assert.equal(output, stats.pathsToAssets['output.js']);
-            contents = fs.readFileSync(output);
-            assert.include(contents.toString(), '__CACHED_TEST_ONE__');
-            assert.notInclude(contents.toString(), '__CACHED_TEST_TWO__');
-            assert.notInclude(contents.toString(), '__CACHED_TEST_THREE__');
-            done();
-          });
-        });
+              setTimeout(function() {
+                bundle.onceDone(function(err, stats) {
+                  assert.isNull(err);
+                  assert.isObject(stats);
+                  assert.equal(output, stats.pathsToAssets['output.js']);
+                  var contents = fs.readFileSync(output);
+                  assert.include(contents.toString(), '__WATCHED_FILE_ERROR_TWO__');
+                  done();
+                });
+              }, utils.watcherWait);
+            });
+          }, utils.watcherWait);
+        }, utils.watcherWarmUpWait);
       });
     });
   });
   describe('#opts.bundleDir', function() {
-    it('defaults to null', function() {
+    it('should default to null', function() {
       var bundle = new Bundle();
       assert.isNull(bundle.opts.bundleDir);
 
       bundle = new Bundle({
         bundleDir: '/foo/bar'
       });
+
       assert.equal(bundle.opts.bundleDir, '/foo/bar');
     });
-    it('can replace [bundle_dir] tokens in a config\'s output path', function(done) {
+    it('should replace [bundle_dir] tokens in a config\'s output path', function(done) {
       var bundle = new Bundle({
         config: path.join(__dirname, 'test_bundles', 'bundle_dir_bundle', 'webpack.config.js'),
         bundleDir: '/some/path/'
