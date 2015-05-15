@@ -220,7 +220,7 @@ describe('Watcher', function() {
       });
     });
     it('should handle errors during compilation and preserve them', function(done) {
-      this.timeout(5000);
+      this.timeout(utils.watcherTimeout);
 
       var entry = path.join(TEST_OUTPUT_DIR, 'watcher_caches_errors', 'entry.js');
       var output = path.join(TEST_OUTPUT_DIR, 'watcher_caches_errors', 'output.js');
@@ -317,84 +317,6 @@ describe('Watcher', function() {
             });
           }, utils.watcherWait);
         }, utils.watcherWarmUpWait);
-      });
-    });
-  });
-  describe('#invalidate', function() {
-    it('should force the compiler to rebuild', function(done) {
-      this.timeout(utils.watcherTimeout);
-
-      var entry = path.join(TEST_OUTPUT_DIR, 'watcher_invalidate', 'entry.js');
-      var output = path.join(TEST_OUTPUT_DIR, 'watcher_invalidate', 'output.js');
-
-      mkdirp.sync(path.dirname(entry));
-      fs.writeFileSync(entry, 'module.exports = "__INVALID_TEST_ONE__";');
-
-      var compiler = webpack({
-        context: path.dirname(entry),
-        entry: './' + path.basename(entry),
-        output: {
-          path: path.dirname(output),
-          filename: path.basename(output)
-        }
-      });
-
-      var watcher = new Watcher(compiler);
-
-      var invalidCount = 0;
-      watcher.onInvalid(function() {
-        invalidCount++;
-      });
-
-      watcher.onceDone(function(err, stats) {
-        assert.isNull(err);
-        assert.isObject(stats);
-
-        assert.equal(output, stats.compilation.assets['output.js'].existsAt);
-        assert.equal(invalidCount, 0);
-        var contents = watcher.fs.readFileSync(output);
-        assert.include(contents.toString(), '__INVALID_TEST_ONE__');
-
-        setTimeout(function() {
-          assert.equal(invalidCount, 1); // Weird bug where webpack immediately invalidates a bundle
-
-          fs.writeFileSync(entry, 'module.exports = "__INVALID_TEST_TWO__";');
-
-          watcher.invalidate();
-          assert.equal(invalidCount, 2);
-          assert.isNull(watcher.err);
-          assert.isNull(watcher.stats);
-
-          watcher.onceDone(function(err, stats) {
-            assert.isNull(err);
-            assert.isObject(stats);
-
-            assert.equal(invalidCount, 3);
-
-            var contents = watcher.fs.readFileSync(output);
-            assert.include(contents.toString(), '__INVALID_TEST_TWO__');
-
-            fs.writeFileSync(entry, 'module.exports = "__INVALID_TEST_THREE__";');
-
-            watcher.invalidate();
-
-            assert.isNull(watcher.err);
-            assert.isNull(watcher.stats);
-            assert.equal(invalidCount, 4);
-
-            setTimeout(function() {
-              watcher.onceDone(function(err, stats) {
-                assert.isNull(err);
-                assert.isObject(stats);
-
-                var contents = watcher.fs.readFileSync(output);
-                assert.include(contents.toString(), '__INVALID_TEST_THREE__');
-
-                done();
-              });
-            }, utils.watcherWait);
-          });
-        }, utils.watcherWait);
       });
     });
   });
