@@ -95,6 +95,8 @@ describe('webpack-wrapper', function() {
       assert.isObject(stats);
 
       assert.isObject(stats.pathsToAssets);
+      assert.isObject(stats.webpackConfig);
+
       var existsAt = stats.pathsToAssets['output.js'];
       assert.isString(existsAt);
 
