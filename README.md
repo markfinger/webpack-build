@@ -36,7 +36,10 @@ webpackWrapper({
   // Should webpack watch the source files for changes and rebuild in the background
   watch: false,
   // The delay between a change being detected and webpack starting the rebuild process
-  watchDelay: 200,
+  aggregateTimeout: 200,
+  // Indicates if the watcher should poll for changes, rather than relying on the OS
+  // for notifications
+  poll: undefined,
   // Indicates that the config file should be watched for changes. Any changes will cause
   // webpack to completely rebuild the bundle
   watchConfig: false,

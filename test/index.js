@@ -21,16 +21,16 @@ afterEach(function() {
 });
 
 describe('webpack-wrapper', function() {
-  it('is a function', function() {
+  it('should be a function', function() {
     assert.isFunction(webpackWrapper);
   });
-  it('can accept options and callback arguments', function() {
+  it('should accept options and callback arguments', function() {
     var opts = {
       config: require('./test_bundles/basic_bundle/webpack.config')
     };
     webpackWrapper(opts, function() {});
   });
-  it('populates the bundle list', function() {
+  it('should populate the bundle list', function() {
     var pathToConfig = path.join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config');
     var opts1 = {
       config: pathToConfig,
@@ -87,7 +87,7 @@ describe('webpack-wrapper', function() {
     webpackWrapper(opts6, function() {});
     assert.equal(webpackWrapper._bundles.bundles.length, 3);
   });
-  it('can generate a bundle', function(done) {
+  it('should be able to generate a bundle', function(done) {
     webpackWrapper({
       config: path.join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config')
     }, function(err, stats) {
@@ -109,7 +109,7 @@ describe('webpack-wrapper', function() {
       });
     });
   });
-  it('can pass the `this.host.logger` prop to bundles', function() {
+  it('should pass the `this.host.logger` prop to bundles', function() {
     var logger = {};
 
     var bundle = webpackWrapper.call(

@@ -125,7 +125,7 @@ describe('Watcher', function() {
       mkdirp.sync(path.dirname(entry));
       fs.writeFileSync(entry, 'module.exports = "__INVALIDATED_BUNDLE_ONE__";');
       var watcher = new Watcher(webpack(config), {
-        watchDelay: 10
+        aggregateTimeout: 10
       });
       watcher.onceDone(function(err, stats) {
         assert.isNull(err);
@@ -238,7 +238,7 @@ describe('Watcher', function() {
       });
 
       var watcher = new Watcher(compiler, {
-        watchDelay: utils.watchDelay
+        aggregateTimeout: utils.aggregateTimeout
       });
 
       //watcher.onDone(function(err, stats) {
@@ -337,7 +337,7 @@ describe('Watcher', function() {
       });
 
       var watcher = new Watcher(compiler, {
-        watchDelay: 200
+        aggregateTimeout: 200
       });
 
       mkdirp.sync(path.dirname(entry));
@@ -399,7 +399,7 @@ describe('Watcher', function() {
       });
 
       var watcher = new Watcher(compiler, {
-        watchDelay: utils.watchDelay
+        aggregateTimeout: utils.aggregateTimeout
       });
 
       mkdirp.sync(path.dirname(entry));

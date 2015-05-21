@@ -446,30 +446,30 @@ describe('Bundle', function() {
       });
     });
   });
-  describe('#opts.watchDelay', function() {
+  describe('#opts.aggregateTimeout', function() {
     it('should default to 200', function () {
       var bundle = new Bundle();
-      assert.equal(bundle.opts.watchDelay, 200);
+      assert.equal(bundle.opts.aggregateTimeout, 200);
 
       bundle = new Bundle({
-        watchDelay: 300
+        aggregateTimeout: 300
       });
 
-      assert.equal(bundle.opts.watchDelay, 300);
+      assert.equal(bundle.opts.aggregateTimeout, 300);
     });
     it('should be passed to the watcher', function(done) {
       var bundle = new Bundle({}, {});
       bundle.getWatcher(function(err, watcher) {
         assert.isNull(err);
-        assert.equal(watcher.opts.watchDelay, 200);
+        assert.equal(watcher.opts.aggregateTimeout, 200);
 
         bundle = new Bundle({
-          watchDelay: 300
+          aggregateTimeout: 300
         }, {});
 
         bundle.getWatcher(function(err, watcher) {
           assert.isNull(err);
-          assert.equal(watcher.opts.watchDelay, 300);
+          assert.equal(watcher.opts.aggregateTimeout, 300);
           done();
         });
       });
@@ -494,7 +494,7 @@ describe('Bundle', function() {
 
       var bundle = new Bundle({
         watch: true,
-        watchDelay: utils.watchDelay
+        aggregateTimeout: utils.aggregateTimeout
       }, {
         context: path.dirname(entry),
         entry: './' + path.basename(entry),
@@ -551,7 +551,7 @@ describe('Bundle', function() {
 
       var bundle = new Bundle({
         watch: true,
-        watchDelay: utils.watchDelay,
+        aggregateTimeout: utils.aggregateTimeout,
         logger: SILENT_LOGGER
       }, {
         context: path.dirname(entry),
@@ -601,7 +601,7 @@ describe('Bundle', function() {
 
       var bundle = new Bundle({
         watch: true,
-        watchDelay: utils.watchDelay,
+        aggregateTimeout: utils.aggregateTimeout,
         logger: SILENT_LOGGER
       }, {
         context: path.dirname(entry),

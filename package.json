@@ -21,7 +21,7 @@
     "mkdirp": "^0.5.1"
   },
   "peerDependencies": {
-    "webpack": "*"
+    "webpack": ">= 1.9"
   },
   "devDependencies": {
     "chai": "^2.3.0",

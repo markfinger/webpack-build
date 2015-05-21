@@ -1,5 +1,6 @@
 'use strict';
 
+var fs = require('fs');
 var path = require('path');
 var chai = require('chai');
 var spawnSync = require('spawn-sync');
@@ -21,7 +22,7 @@ module.exports = {
   cleanTestOutputDir: function() {
     spawnSync('rm', ['-rf', TEST_OUTPUT_DIR]);
   },
-  watchDelay: 10,
+  aggregateTimeout: 10,
   watcherWarmUpWait: CI ? 1000 : 50,
   watcherWait: CI ? 1000 : 400,
   watcherTimeout: CI ? 10000 : 2000
