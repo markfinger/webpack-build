@@ -667,7 +667,7 @@ describe('Bundle', function() {
       });
     });
   });
-  describe('#opts.bundleDir', function() {
+  describe('#opts.outputPath', function() {
     it('should default to null', function() {
       var bundle = new Bundle();
       assert.isNull(bundle.opts.bundleDir);
@@ -678,17 +678,17 @@ describe('Bundle', function() {
 
       assert.equal(bundle.opts.bundleDir, '/foo/bar');
     });
-    it('should replace [bundle_dir] tokens in a config\'s output path', function(done) {
+    it('should set a config\'s output.path prop', function(done) {
       var bundle = new Bundle({
-        config: path.join(__dirname, 'test_bundles', 'bundle_dir_bundle', 'webpack.config.js'),
-        bundleDir: '/some/path/'
+        config: path.join(__dirname, 'test_bundles', 'output_path_bundle', 'webpack.config.js'),
+        outputPath: '/some/path/'
       });
 
       bundle.getConfig(function(err, config) {
         assert.isNull(err);
         assert.equal(config.context, 'context');
         assert.equal(config.entry, 'entry');
-        assert.equal(config.output.path, '/some/path/bar');
+        assert.equal(config.output.path, '/some/path/');
         assert.equal(config.output.filename, 'test.js');
         done();
       });
