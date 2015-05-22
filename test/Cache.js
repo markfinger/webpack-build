@@ -1,0 +1,167 @@
+'use strict';
+
+var fs = require('fs');
+var path = require('path');
+var mkdirp = require('mkdirp');
+var _ = require('lodash');
+var Cache = require('../lib/Cache');
+var utils = require('./utils');
+
+var assert = utils.assert;
+var TEST_OUTPUT_DIR = utils.TEST_OUTPUT_DIR;
+
+// Ensure we have a clean slate before and after each test
+beforeEach(function() {
+  utils.cleanTestOutputDir();
+});
+afterEach(function() {
+  utils.cleanTestOutputDir();
+});
+
+describe('Cache', function() {
+  it('should be a function', function() {
+    assert.isFunction(Cache);
+  });
+  it('should accept a filename argument', function() {
+    var cache = new Cache('foo.bar');
+    assert.equal(cache.filename, 'foo.bar');
+    assert.deepEqual(cache.cache, {});
+  });
+  it('should be able to persist an entry to a file', function() {
+    var cache = new Cache(path.join(TEST_OUTPUT_DIR, 'cache_persist.json'));
+    cache.set('foo', {bar: 'woz'});
+    var json = require(TEST_OUTPUT_DIR + '/cache_persist.json');
+    assert.deepEqual(json, {foo: {bar: 'woz'}});
+  });
+  it('should be able to read an entry from a file', function() {
+    var filename = path.join(TEST_OUTPUT_DIR, 'cache_read.json');
+    var testFile = path.join(TEST_OUTPUT_DIR, 'cache_read_test_file.js');
+    var startTime = +new Date() + 2000;
+
+    mkdirp.sync(path.dirname(filename));
+
+    var obj = {};
+    obj[testFile] = {
+      startTime: startTime,
+      fileDependencies: [filename],
+      stats: {test: 'bar'}
+    };
+
+    fs.writeFileSync(filename, JSON.stringify(obj));
+    fs.writeFileSync(testFile, '{}');
+
+    var cache = new Cache(filename);
+
+    var entry = cache.cache[testFile];
+
+    assert.equal(entry.startTime, startTime);
+    assert.deepEqual(entry.fileDependencies, [filename]);
+    assert.deepEqual(entry.stats, {test: 'bar'});
+  });
+  describe('#get', function() {
+    it('should validate an entry\'s props', function(done) {
+      var filename = path.join(TEST_OUTPUT_DIR, 'cache_prop_validate.json');
+      var testFile = path.join(TEST_OUTPUT_DIR, 'cache_prop_validate_test_file.js');
+
+      var startTime = +new Date();
+
+      mkdirp.sync(path.dirname(filename));
+
+      fs.writeFileSync(filename, '{}');
+      fs.writeFileSync(testFile, '{}');
+
+      var cache = new Cache('test');
+
+      cache.get(testFile, function(err, entry) {
+        assert.isNull(err);
+        assert.isNull(entry);
+
+        cache.cache[testFile] = {};
+        cache.get(testFile, function(err, entry) {
+          assert.isNull(err);
+          assert.isNull(entry);
+
+          cache.cache[testFile].startTime = startTime;
+          cache.get(testFile, function(err, entry) {
+            assert.isNull(err);
+            assert.isNull(entry);
+
+            cache.cache[testFile].fileDependencies = [];
+            cache.get(testFile, function(err, entry) {
+              assert.isNull(err);
+              assert.isNull(entry);
+
+              cache.cache[testFile].stats = {};
+              cache.get(testFile, function(err, entry) {
+                assert.isNull(err);
+                assert.isObject(entry);
+
+                assert.strictEqual(entry, cache.cache[testFile]);
+
+                done();
+              });
+            });
+          });
+        });
+      });
+    });
+    it('should validate a config file\'s mtime', function(done) {
+      var filename1 = path.join(TEST_OUTPUT_DIR, 'cache_file_mtime1.json');
+      var filename2 = path.join(TEST_OUTPUT_DIR, 'cache_file_mtime2.json');
+      var testFile = path.join(TEST_OUTPUT_DIR, 'cache_file_mtime_test_file.js');
+
+      mkdirp.sync(path.dirname(filename1));
+
+      var obj1 = {};
+      obj1[testFile] = {
+        startTime: +new Date() - 1000,
+        fileDependencies: [filename1],
+        stats: {test: 1}
+      };
+      fs.writeFileSync(filename1, JSON.stringify(obj1));
+
+      var obj2 = {};
+      obj2[testFile] = {
+        startTime: +new Date() + 1000,
+        fileDependencies: [filename2],
+        stats: {test: 2}
+      };
+      fs.writeFileSync(filename2, JSON.stringify(obj2));
+
+      fs.writeFileSync(testFile, '{}');
+
+      var cache1 = new Cache(filename1);
+      var cache2 = new Cache(filename2);
+
+      cache1.get(testFile, function(err, entry) {
+        assert.instanceOf(err, Error);
+        assert.include(err.message, 'Stale config file');
+        assert.isUndefined(entry);
+
+        cache2.get(testFile, function(err, entry) {
+          assert.isNull(err);
+          assert.isObject(entry);
+
+          assert.strictEqual(entry, cache2.cache[testFile]);
+          assert.equal(entry.stats.test, 2);
+
+          done();
+        });
+      });
+    });
+  });
+  describe('#set', function() {
+    it('should persist to file', function() {
+      var filename = path.join(TEST_OUTPUT_DIR, 'cache_set.json');
+      mkdirp.sync(path.dirname(filename));
+
+      var cache = new Cache(filename);
+
+      cache.set('foo', {bar: 'woz'});
+
+      var contents = fs.readFileSync(filename).toString();
+
+      assert.deepEqual(JSON.parse(contents), {foo: {bar: 'woz'}});
+    });
+  })
+});

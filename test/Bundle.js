@@ -6,6 +6,7 @@ var _ = require('lodash');
 var mkdirp = require('mkdirp');
 var Bundle = require('../lib/Bundle');
 var Watcher = require('../lib/Watcher');
+var Cache = require('../lib/Cache');
 var utils = require('./utils');
 var assert = utils.assert;
 
@@ -158,6 +159,34 @@ describe('Bundle', function() {
       });
     });
   });
+  describe('#processStats', function() {
+    it('should produce a serializable form of the stats', function (done) {
+      var bundle = new Bundle({
+        watch: false,
+        config: path.join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js')
+      });
+
+      bundle.getCompiler(function(err, compiler) {
+        assert.isNull(err);
+        assert.isObject(compiler);
+
+        compiler.run(function(err, stats) {
+          assert.isNull(err);
+          assert.isObject(stats);
+
+          var processed = bundle.processStats(stats);
+
+          // webpack inserts regexes which can't be serialized
+          processed.webpackConfig.module = null;
+
+          var serialized = JSON.stringify(processed);
+          assert.deepEqual(JSON.parse(serialized), processed);
+
+          done();
+        });
+      });
+    });
+  });
   describe('#onceDone', function() {
     it('should not preserve errors and stats from the compilation, if not watching', function(done) {
       var bundle = new Bundle({
@@ -190,7 +219,7 @@ describe('Bundle', function() {
         bundle.onceDone(function(err2, stats2) {
           assert.isNull(err2);
           assert.isObject(stats2);
-          assert.strictEqual(stats2, stats1);
+          assert.deepEqual(stats2, stats1);
           done();
         });
       });
@@ -672,6 +701,41 @@ describe('Bundle', function() {
         assert.equal(config.output.path, '/some/path/bar');
         assert.equal(config.output.filename, 'test.js');
         done();
+      });
+    });
+  });
+  describe('#cache', function() {
+    it('should be able to populate a cache', function(done) {
+      var cache = new Cache(path.join(TEST_OUTPUT_DIR, 'bundle_test_cache.json'));
+      assert.deepEqual(cache.cache, {});
+
+      var bundle = new Bundle({
+        config: path.join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js')
+      }, null, cache);
+
+      assert.strictEqual(bundle.cache, cache);
+      assert.isString(bundle.opts.config);
+
+      bundle.onceDone(function(err, stats) {
+        assert.isNull(err);
+        assert.isObject(stats);
+
+        setTimeout(function() {
+          assert.equal(Object.keys(cache.cache).length, 1);
+          assert.property(cache.cache, bundle.opts.config);
+          assert.isObject(cache.cache[bundle.opts.config]);
+
+          cache.get(bundle.opts.config, function(err, entry) {
+            assert.isNull(err);
+            assert.isObject(entry);
+
+            assert.isNumber(entry.startTime);
+            assert.isArray(entry.fileDependencies);
+            assert.isObject(entry.stats);
+
+            done();
+          });
+        }, 10);
       });
     });
   });

@@ -2,6 +2,7 @@
 
 var path = require('path');
 var fs = require('fs');
+var mkdirp = require('mkdirp');
 var webpackWrapper = require('..');
 var Bundle = require('../lib/Bundle');
 var utils = require('./utils');
@@ -11,11 +12,13 @@ var assert = utils.assert;
 // Ensure we have a clean slate before and after each test
 beforeEach(function() {
   webpackWrapper._bundles.clear();
+  webpackWrapper._caches.clear();
   Bundle._resetFileWatcher();
   utils.cleanTestOutputDir();
 });
 afterEach(function() {
   webpackWrapper._bundles.clear();
+  webpackWrapper._caches.clear();
   Bundle._resetFileWatcher();
   utils.cleanTestOutputDir();
 });
@@ -119,5 +122,126 @@ describe('webpack-wrapper', function() {
     );
 
     assert.strictEqual(bundle.opts.logger, logger);
+  });
+  describe('cache', function() {
+    it('should respect the cacheFile option', function(done) {
+      var cacheFile = path.join(utils.TEST_OUTPUT_DIR, 'test_cacheFile.json');
+      var configFile = path.join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js');
+
+      mkdirp.sync(path.dirname(cacheFile));
+
+      var obj = {};
+      obj[configFile] = {
+        startTime: +new Date() + 2000,
+        fileDependencies: [],
+        stats: {
+          test: {foo: 'bar'}
+        }
+      };
+      fs.writeFileSync(cacheFile, JSON.stringify(obj));
+
+      webpackWrapper({
+        config: configFile,
+        cacheFile: cacheFile
+      }, function(err, stats){
+        assert.isNull(err);
+        assert.isObject(stats);
+
+        assert.deepEqual(stats, {test: {foo: 'bar'}});
+        done();
+      });
+    });
+    it('should set a ttl on the cache', function(done) {
+      var cacheFile = path.join(utils.TEST_OUTPUT_DIR, 'test_cacheTtl.json');
+      var configFile = path.join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js');
+
+      mkdirp.sync(path.dirname(cacheFile));
+
+      var obj = {
+        foo: {
+          startTime: +new Date() - webpackWrapper._defaultCacheTTL - 1000
+        }
+      };
+      obj[configFile] = {
+        startTime: +new Date() + 2000,
+        fileDependencies: [],
+        stats: {
+          test: {foo: 'bar'}
+        }
+      };
+      fs.writeFileSync(cacheFile, JSON.stringify(obj));
+
+      webpackWrapper({
+        config: configFile,
+        cacheFile: cacheFile
+      }, function(err, stats) {
+        assert.isNull(err);
+        assert.isObject(stats);
+
+        assert.deepEqual(stats, {test: {foo: 'bar'}});
+
+        var cache = webpackWrapper._caches.get(cacheFile);
+        assert.equal(cache.ttl, webpackWrapper._defaultCacheTTL);
+        assert.isObject(cache.cache[configFile]);
+        assert.isUndefined(cache.cache.foo);
+
+        done();
+      });
+    });
+    it('should stop using the cache once a watched bundle has been built', function(done) {
+      var cacheFile = path.join(utils.TEST_OUTPUT_DIR, 'test_cache_stops_once_watcher_done.json');
+      var configFile = path.join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js');
+
+      mkdirp.sync(path.dirname(cacheFile));
+
+      var obj = {
+      };
+      obj[configFile] = {
+        startTime: +new Date() + 2000,
+        fileDependencies: [],
+        stats: {
+          test: {foo: 'bar'}
+        }
+      };
+      fs.writeFileSync(cacheFile, JSON.stringify(obj));
+
+      var opts = {
+        config: configFile,
+        cacheFile: cacheFile,
+        watch: true
+      };
+
+      var bundle = webpackWrapper(opts, function(err, stats1) {
+        assert.isNull(err);
+        assert.isObject(stats1);
+        assert.deepEqual(stats1, {test: {foo: 'bar'}});
+
+        webpackWrapper(opts, function(err, stats2) {
+          assert.isNull(err);
+          assert.isObject(stats2);
+          assert.strictEqual(stats2, stats1);
+          assert.deepEqual(stats2, {test: {foo: 'bar'}});
+
+          var cache = webpackWrapper._caches.get(cacheFile);
+          assert.strictEqual(bundle.cache, cache);
+
+          bundle.onceDone(function(err, stats3) {
+            assert.isNull(err);
+            assert.isObject(stats3);
+            assert.notStrictEqual(stats3, stats2);
+
+            assert.isTrue(cache.updated[configFile]);
+
+            webpackWrapper(opts, function(err, stats4) {
+              assert.isNull(err);
+              assert.isObject(stats4);
+              assert.deepEqual(stats4, stats3);
+
+              done();
+            });
+          });
+        });
+      });
+    });
   });
 });
