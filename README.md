@@ -5,18 +5,18 @@ webpack-wrapper
 [![Dependency Status](https://david-dm.org/markfinger/webpack-wrapper.svg)](https://david-dm.org/markfinger/webpack-wrapper)
 [![devDependency Status](https://david-dm.org/markfinger/webpack-wrapper/dev-status.svg)](https://david-dm.org/markfinger/webpack-wrapper#info=devDependencies)
 
-A wrapper around webpack's API which provides a simpler interface with a variety of optimisations
+A wrapper around webpack's API which provides a simple interface with a variety of optimisations
 and utilities typically required for a build process.
 
-Provides:
+Features:
 - Change detection for your config files
 - Toggleable source file watching
 - File-based caching of compilation output, which massively reduces the initial build time
-- Optimisation of the background compilation performed by webpack's watcher. It initially writes assets 
-  to memory and emitting them to disk when required
-- Pre-processessing of the compilation output so that it can be easily passed between processes
-- A config helper to map your bundle's output path to a particular directory
-- Directly exposed paths from the entry files to the generated assets
+- Optimises the background compilation of webpack's watcher by initially writing assets 
+  to memory and emitting them to disk only when required
+- Pre-processes the compilation output so that it can be easily serialized and passed between processes
+- Provides a config helper to map your bundle's output path to a particular directory
+- Directly exposes paths from the entry files to the generated assets
 
 
 Installation
@@ -84,13 +84,13 @@ webpack({
 Caching
 -------
 
-When a request comes in and the compilation output has been cached from a previous build, the 
-following actions will be performed:
+When a request comes in and the compilation output has been cached from a previous build, the following 
+actions will be performed:
 - the modified time for the config file is compared to the compilation's start time
 - the modified time for every file dependency is compared to the compilation's start time
 
-If any of the above actions produce errors or the modified times are later than the compilation's
-start time, the cached output will be ignored and the wrapper will wait for webpack to complete.
+If the modified times are later than the cached compilation's start time - or any of the above actions 
+produced errors - the cached output is ignored and the wrapper waits for webpack to recompile.
 
-If the cached output is deemed as stale, or the watcher is has rebuilt the bundle, the cache will
-be updated as soon as the compilation has completed.
+If the cached output is stale or a watcher has rebuilt the bundle, the cache will be updated as soon 
+as the compilation has completed.
