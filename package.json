@@ -14,7 +14,7 @@
     "url": "https://github.com/markfinger/webpack-wrapper.git"
   },
   "dependencies": {
-    "async": "^0.9.2",
+    "async": "^1.0.0",
     "chokidar": "^1.0.1",
     "lodash": "^3.9.1",
     "memory-fs": "^0.2.0",
