@@ -12,14 +12,6 @@ var assert = utils.assert;
 
 var TEST_OUTPUT_DIR = utils.TEST_OUTPUT_DIR;
 
-var NOOP = function(){};
-var SILENT_LOGGER = {
-  log: NOOP,
-  info: NOOP,
-  warn: NOOP,
-  error: NOOP
-};
-
 // Ensure we have a clean slate before and after each test
 beforeEach(function() {
   Bundle._resetFileWatcher();
@@ -580,8 +572,7 @@ describe('Bundle', function() {
 
       var bundle = new Bundle({
         watch: true,
-        aggregateTimeout: utils.aggregateTimeout,
-        logger: SILENT_LOGGER
+        aggregateTimeout: utils.aggregateTimeout
       }, {
         context: path.dirname(entry),
         entry: './' + path.basename(entry),
@@ -630,8 +621,7 @@ describe('Bundle', function() {
 
       var bundle = new Bundle({
         watch: true,
-        aggregateTimeout: utils.aggregateTimeout,
-        logger: SILENT_LOGGER
+        aggregateTimeout: utils.aggregateTimeout
       }, {
         context: path.dirname(entry),
         entry: './' + path.basename(entry),

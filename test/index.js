@@ -112,17 +112,6 @@ describe('webpack-wrapper', function() {
       });
     });
   });
-  it('should pass the `this.host.logger` prop to bundles', function() {
-    var logger = {};
-
-    var bundle = webpackWrapper.call(
-      {host: {logger: logger}},
-      {},
-      function(){}
-    );
-
-    assert.strictEqual(bundle.opts.logger, logger);
-  });
   describe('cache', function() {
     it('should respect the cacheFile option', function(done) {
       var cacheFile = path.join(utils.TEST_OUTPUT_DIR, 'test_cacheFile.json');
