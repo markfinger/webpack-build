@@ -68,6 +68,7 @@ webpack({
   // If defined, a config's `output.path` prop will have any
   // `[bundle_dir]` substrings replaced with the value of `bundleDir`
   bundleDir: null,
+  
 }), function(err, stats) {
   // Besides the usual stats data produced by webpack, the wrapper adds 
   // some extra props...
@@ -91,5 +92,5 @@ following actions will be performed:
 If any of the above actions produce errors or the modified times are later than the compilation's
 start time, the cached output will be ignored and the wrapper will wait for webpack to complete.
 
-If webpack is watching the source files, the compilation output will only be used until the build
-has completed and/or the above conditions still pass.
+If the cached output is deemed as stale, or the watcher is has rebuilt the bundle, the cache will
+be updated as soon as the compilation has completed.
