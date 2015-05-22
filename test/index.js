@@ -194,8 +194,7 @@ describe('webpack-wrapper', function() {
 
       mkdirp.sync(path.dirname(cacheFile));
 
-      var obj = {
-      };
+      var obj = {};
       obj[configFile] = {
         startTime: +new Date() + 2000,
         fileDependencies: [],

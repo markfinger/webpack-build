@@ -23,9 +23,11 @@ describe('Cache', function() {
     assert.isFunction(Cache);
   });
   it('should accept a filename argument', function() {
-    var cache = new Cache('foo.bar');
-    assert.equal(cache.filename, 'foo.bar');
+    var filename = path.join(TEST_OUTPUT_DIR, 'cache_init_test.json');
+    var cache = new Cache(filename);
+    assert.equal(cache.filename, filename);
     assert.deepEqual(cache.cache, {});
+    assert.equal(fs.readFileSync(filename).toString(), '{}');
   });
   it('should be able to persist an entry to a file', function() {
     var cache = new Cache(path.join(TEST_OUTPUT_DIR, 'cache_persist.json'));
@@ -70,7 +72,7 @@ describe('Cache', function() {
       fs.writeFileSync(filename, '{}');
       fs.writeFileSync(testFile, '{}');
 
-      var cache = new Cache('test');
+      var cache = new Cache(filename);
 
       cache.get(testFile, function(err, entry) {
         assert.isNull(err);
