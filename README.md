@@ -41,23 +41,30 @@ webpack({
   // Indicates that webpack should watch the source files for changes 
   // and rebuild in the background
   watch: false,
+  
   // The delay between a change being detected and webpack starting 
   // the rebuild process
   aggregateTimeout: 200,
+  
   // Indicates if the watcher should poll for changes, rather than 
-  // relying on the OSfor notifications
+  // relying on the OS for notifications
   poll: undefined,
+  
   // Indicates that the config file should be watched for changes. 
   // Any changes will cause webpack to completely rebuild the bundle
   watchConfig: false,
+  
   // An absolute path to a file that will be used to store compilation 
   // output
   cacheFile: null,
+  
   // The maximum time that compilation output will be stored for
   cacheTTL: 1000 * 60 * 60 * 24 * 30, // 30 days
+  
   // Indicates that webpack's watcher should emit rebuilt files to 
   // memory until they are required to be on disk
   useMemoryFS: true
+  
   // If defined, a config's `output.path` prop will have any
   // `[bundle_dir]` substrings replaced with the value of `bundleDir`
   bundleDir: null,
