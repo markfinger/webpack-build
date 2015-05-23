@@ -3,7 +3,6 @@
 var fs = require('fs');
 var path = require('path');
 var mkdirp = require('mkdirp');
-var _ = require('lodash');
 var Cache = require('../lib/Cache');
 var utils = require('./utils');
 
@@ -26,7 +25,7 @@ describe('Cache', function() {
     var filename = path.join(TEST_OUTPUT_DIR, 'cache_init_test.json');
     var cache = new Cache(filename);
     assert.equal(cache.filename, filename);
-    assert.deepEqual(cache.cache, {});
+    assert.deepEqual(cache.data, {});
     assert.equal(fs.readFileSync(filename).toString(), '{}');
   });
   it('should be able to persist an entry to a file', function() {
@@ -54,7 +53,7 @@ describe('Cache', function() {
 
     var cache = new Cache(filename);
 
-    var entry = cache.cache[testFile];
+    var entry = cache.data[testFile];
 
     assert.equal(entry.startTime, startTime);
     assert.deepEqual(entry.fileDependencies, [filename]);
@@ -78,27 +77,27 @@ describe('Cache', function() {
         assert.isNull(err);
         assert.isNull(entry);
 
-        cache.cache[testFile] = {};
+        cache.data[testFile] = {};
         cache.get(testFile, function(err, entry) {
           assert.isNull(err);
           assert.isNull(entry);
 
-          cache.cache[testFile].startTime = startTime;
+          cache.data[testFile].startTime = startTime;
           cache.get(testFile, function(err, entry) {
             assert.isNull(err);
             assert.isNull(entry);
 
-            cache.cache[testFile].fileDependencies = [];
+            cache.data[testFile].fileDependencies = [];
             cache.get(testFile, function(err, entry) {
               assert.isNull(err);
               assert.isNull(entry);
 
-              cache.cache[testFile].stats = {};
+              cache.data[testFile].stats = {};
               cache.get(testFile, function(err, entry) {
                 assert.isNull(err);
                 assert.isObject(entry);
 
-                assert.strictEqual(entry, cache.cache[testFile]);
+                assert.strictEqual(entry, cache.data[testFile]);
 
                 done();
               });
@@ -144,7 +143,7 @@ describe('Cache', function() {
           assert.isNull(err);
           assert.isObject(entry);
 
-          assert.strictEqual(entry, cache2.cache[testFile]);
+          assert.strictEqual(entry, cache2.data[testFile]);
           assert.equal(entry.stats.test, 2);
 
           done();

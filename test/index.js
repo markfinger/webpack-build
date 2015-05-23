@@ -3,36 +3,36 @@
 var path = require('path');
 var fs = require('fs');
 var mkdirp = require('mkdirp');
-var wrapper = require('../lib');
-var Bundle = require('../lib/Bundle');
+var webpack = require('../lib');
+var Wrapper = require('../lib/Wrapper');
 var utils = require('./utils');
 
 var assert = utils.assert;
 
 // Ensure we have a clean slate before and after each test
 beforeEach(function() {
-  wrapper._bundles.clear();
-  wrapper._caches.clear();
-  Bundle._resetFileWatcher();
+  webpack._wrappers.clear();
+  webpack._caches.clear();
+  Wrapper._resetFileWatcher();
   utils.cleanTestOutputDir();
 });
 afterEach(function() {
-  wrapper._bundles.clear();
-  wrapper._caches.clear();
-  Bundle._resetFileWatcher();
+  webpack._wrappers.clear();
+  webpack._caches.clear();
+  Wrapper._resetFileWatcher();
   utils.cleanTestOutputDir();
 });
 
 describe('webpack-wrapper', function() {
   it('should be a function', function() {
-    assert.isFunction(wrapper);
+    assert.isFunction(webpack);
   });
   it('should accept options and callback arguments', function() {
     var opts = {
       config: path.join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config'),
       logger: null
     };
-    wrapper(opts, function() {});
+    webpack(opts, function() {});
   });
   it('should populate the bundle list', function() {
     var pathToConfig = path.join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config');
@@ -41,64 +41,64 @@ describe('webpack-wrapper', function() {
       watch: true,
       logger: null
     };
-    assert.equal(wrapper._bundles.bundles.length, 0);
-    wrapper(opts1, function() {});
-    assert.equal(wrapper._bundles.bundles.length, 1);
-    assert.instanceOf(wrapper._bundles.bundles[0], Bundle);
-    assert.strictEqual(wrapper._bundles.bundles[0].opts, opts1);
-    assert.strictEqual(wrapper._bundles.bundles[0].config, require(pathToConfig));
+    assert.equal(webpack._wrappers.wrappers.length, 0);
+    webpack(opts1, function() {});
+    assert.equal(webpack._wrappers.wrappers.length, 1);
+    assert.instanceOf(webpack._wrappers.wrappers[0], Wrapper);
+    assert.strictEqual(webpack._wrappers.wrappers[0].opts, opts1);
+    assert.strictEqual(webpack._wrappers.wrappers[0].config, require(pathToConfig));
 
     var opts2 = {
       config: pathToConfig,
       watch: true,
       logger: null
     };
-    wrapper(opts2, function() {});
-    assert.equal(wrapper._bundles.bundles.length, 1);
-    assert.instanceOf(wrapper._bundles.bundles[0], Bundle);
-    assert.strictEqual(wrapper._bundles.bundles[0].opts, opts1);
-    assert.strictEqual(wrapper._bundles.bundles[0].config, require(pathToConfig));
+    webpack(opts2, function() {});
+    assert.equal(webpack._wrappers.wrappers.length, 1);
+    assert.instanceOf(webpack._wrappers.wrappers[0], Wrapper);
+    assert.strictEqual(webpack._wrappers.wrappers[0].opts, opts1);
+    assert.strictEqual(webpack._wrappers.wrappers[0].config, require(pathToConfig));
 
     var opts3 = {
       config: pathToConfig,
       watch: false,
       logger: null
     };
-    wrapper(opts3, function() {});
-    assert.equal(wrapper._bundles.bundles.length, 2);
-    assert.instanceOf(wrapper._bundles.bundles[1], Bundle);
-    assert.strictEqual(wrapper._bundles.bundles[1].opts, opts3);
-    assert.strictEqual(wrapper._bundles.bundles[1].config, require(pathToConfig));
+    webpack(opts3, function() {});
+    assert.equal(webpack._wrappers.wrappers.length, 2);
+    assert.instanceOf(webpack._wrappers.wrappers[1], Wrapper);
+    assert.strictEqual(webpack._wrappers.wrappers[1].opts, opts3);
+    assert.strictEqual(webpack._wrappers.wrappers[1].config, require(pathToConfig));
 
     var opts4 = {
       config: pathToConfig + 'test',
       watch: false,
       logger: null
     };
-    wrapper(opts4, function() {});
-    assert.equal(wrapper._bundles.bundles.length, 3);
-    assert.instanceOf(wrapper._bundles.bundles[2], Bundle);
-    assert.strictEqual(wrapper._bundles.bundles[2].opts, opts4);
-    assert.strictEqual(wrapper._bundles.bundles[2].config, null);
+    webpack(opts4, function() {});
+    assert.equal(webpack._wrappers.wrappers.length, 3);
+    assert.instanceOf(webpack._wrappers.wrappers[2], Wrapper);
+    assert.strictEqual(webpack._wrappers.wrappers[2].opts, opts4);
+    assert.strictEqual(webpack._wrappers.wrappers[2].config, null);
 
     var opts5 = {
       config: pathToConfig + 'test',
       watch: false,
       logger: null
     };
-    wrapper(opts5, function() {});
-    assert.equal(wrapper._bundles.bundles.length, 3);
+    webpack(opts5, function() {});
+    assert.equal(webpack._wrappers.wrappers.length, 3);
 
     var opts6 = {
       config: pathToConfig,
       watch: true,
       logger: null
     };
-    wrapper(opts6, function() {});
-    assert.equal(wrapper._bundles.bundles.length, 3);
+    webpack(opts6, function() {});
+    assert.equal(webpack._wrappers.wrappers.length, 3);
   });
   it('should be able to generate a bundle', function(done) {
-    wrapper({
+    webpack({
       config: path.join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config'),
       logger: null
     }, function(err, stats) {
@@ -137,7 +137,7 @@ describe('webpack-wrapper', function() {
       };
       fs.writeFileSync(cacheFile, JSON.stringify(obj));
 
-      wrapper({
+      webpack({
         config: configFile,
         cacheFile: cacheFile,
         logger: null
@@ -157,7 +157,7 @@ describe('webpack-wrapper', function() {
 
       var obj = {
         foo: {
-          startTime: +new Date() - wrapper._defaultCacheTTL - 1000
+          startTime: +new Date() - webpack._defaultCacheTTL - 1000
         }
       };
       obj[configFile] = {
@@ -169,7 +169,7 @@ describe('webpack-wrapper', function() {
       };
       fs.writeFileSync(cacheFile, JSON.stringify(obj));
 
-      wrapper({
+      webpack({
         config: configFile,
         cacheFile: cacheFile,
         logger: null
@@ -179,10 +179,10 @@ describe('webpack-wrapper', function() {
 
         assert.deepEqual(stats, {test: {foo: 'bar'}});
 
-        var cache = wrapper._caches.get(cacheFile);
-        assert.equal(cache.ttl, wrapper._defaultCacheTTL);
-        assert.isObject(cache.cache[configFile]);
-        assert.isUndefined(cache.cache.foo);
+        var cache = webpack._caches.get(cacheFile);
+        assert.equal(cache.ttl, webpack._defaultCacheTTL);
+        assert.isObject(cache.data[configFile]);
+        assert.isUndefined(cache.data.foo);
 
         done();
       });
@@ -210,29 +210,29 @@ describe('webpack-wrapper', function() {
         logger: null
       };
 
-      var bundle = wrapper(opts, function(err, stats1) {
+      var wrapper = webpack(opts, function(err, stats1) {
         assert.isNull(err);
         assert.isObject(stats1);
         assert.deepEqual(stats1, {test: {foo: 'bar'}});
 
-        wrapper(opts, function(err, stats2) {
+        webpack(opts, function(err, stats2) {
           assert.isNull(err);
           assert.isObject(stats2);
           assert.strictEqual(stats2, stats1);
           assert.deepEqual(stats2, {test: {foo: 'bar'}});
 
-          var cache = wrapper._caches.get(cacheFile);
-          assert.strictEqual(bundle.cache, cache);
+          var cache = webpack._caches.get(cacheFile);
+          assert.strictEqual(wrapper.cache, cache);
 
           setTimeout(function() {
-            bundle.onceDone(function(err, stats3) {
+            wrapper.onceDone(function(err, stats3) {
               assert.isNull(err);
               assert.isObject(stats3);
               assert.notStrictEqual(stats3, stats2);
 
               assert.isTrue(cache.updated[configFile]);
 
-              wrapper(opts, function(err, stats4) {
+              webpack(opts, function(err, stats4) {
                 assert.isNull(err);
                 assert.isObject(stats4);
                 assert.deepEqual(stats4, stats3);

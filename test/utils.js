@@ -4,7 +4,6 @@ var fs = require('fs');
 var path = require('path');
 var chai = require('chai');
 var spawnSync = require('spawn-sync');
-var Bundle = require('../lib/Bundle');
 
 var TEST_OUTPUT_DIR = path.join(__dirname, 'test_output');
 
@@ -20,7 +19,9 @@ module.exports = {
   assert: chai.assert,
   TEST_OUTPUT_DIR: TEST_OUTPUT_DIR,
   cleanTestOutputDir: function() {
-    spawnSync('rm', ['-rf', TEST_OUTPUT_DIR]);
+    try {
+      spawnSync('rm', ['-rf', TEST_OUTPUT_DIR]);
+    } catch(err) {}
   },
   aggregateTimeout: 10,
   watcherWarmUpWait: CI ? 1000 : 50,
