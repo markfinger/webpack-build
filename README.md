@@ -117,9 +117,13 @@ webpack({
 Caching
 -------
 
+The wrapper uses a mixture of file and memory caches to improve build times. Setting the `cacheFile`
+option will allow the wrapper to persist the cache to disk, which can massively boost build times for 
+larger codebases.
+
 When a request comes in and the cache has a record matching a particular config file, the cached data
 is compared against the current timestamps on both the config file and the source files. If the file system indicates that the cached data may be out of date, the wrapper will wait for webpack to rebuild, before 
-responding. 
+responding.
 
-Whenever a compiler successfully builds (either in the foreground or background), the cache is updated 
-with the output from the build process.
+Whenever a compiler successfully builds (either in the foreground or background), the cache is immediately 
+updated with the output from the build process.
