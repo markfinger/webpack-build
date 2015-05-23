@@ -118,7 +118,8 @@ Caching
 -------
 
 When a request comes in and the cache has a record matching a particular config file, the cached data
-is compared against the current timestamps on both the config file and the source files. If the file 
-system reports more recent timestamps than the cached data, the wrapper waits for webpack to recompile. 
+is compared against the current timestamps on both the config file and the source files. If the file system indicates that the cached data may be out of date, the wrapper will wait for webpack to rebuild, before 
+responding. 
+
 Whenever a compiler successfully builds (either in the foreground or background), the cache is updated 
 with the output from the build process.
