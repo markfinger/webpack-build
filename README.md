@@ -122,8 +122,8 @@ option will allow the wrapper to persist the cache to disk, which can massively 
 larger codebases.
 
 When a request comes in and the cache has a record matching a particular config file, the cached data
-is compared against the current timestamps on both the config file and the source files. If the file system indicates that the cached data may be out of date, the wrapper will wait for webpack to rebuild, before 
-responding.
+is compared against the current timestamps on both the config file and the source files. If the file system indicates that the cached data may be out of date, the wrapper will ignore the cached data and then wait for 
+webpack to complete a fresh build.
 
 Whenever a compiler successfully builds (either in the foreground or background), the cache is immediately 
 updated with the output from the build process.
