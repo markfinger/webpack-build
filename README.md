@@ -5,24 +5,16 @@ webpack-wrapper
 [![Dependency Status](https://david-dm.org/markfinger/webpack-wrapper.svg)](https://david-dm.org/markfinger/webpack-wrapper)
 [![devDependency Status](https://david-dm.org/markfinger/webpack-wrapper/dev-status.svg)](https://david-dm.org/markfinger/webpack-wrapper#info=devDependencies)
 
-A wrapper around webpack which provides a variety of optimisations and utilities intended to assist
-with integrating webpack into a build process.
-
-Typical applications include:
-- As part of a request cycle for a development server. If a compiler is watching, the wrapper 
-  blocks requests whenever a rebuild is underway
-- As a caching layer to speed up your build times
-- As an abstraction layer to keep logic out of your config files
-- As part of a tool chain, ex: [python-webpack](https://github.com/markfinger/python-webpack)
+A wrapper library which provides a variety of optimisations and utilities intended to assist with 
+integrating webpack into a build process.
 
 Features:
-- Supports multiple concurrent compilers
-- Change detection for config files
+- Support for multiple concurrent compilers
 - File-based caching of compilation output, which massively reduces the initial build time
-- Toggleable source file watching
+- Change detection for config files
 - Pre-processes compiler output so that it can be easily serialized and passed between processes
-- Provides a config helper to map the output path to a particular directory, which helps to keep 
-  config files portable and easily integrated into larger systems
+- Provides a config helper to map the output path to a particular directory, which helps config 
+  files to be both more portable and more easily integrated into larger systems
 - Optimises the background compilation of webpack's watcher by writing assets to memory and 
   emitting them to disk when required
 
