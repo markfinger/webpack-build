@@ -34,7 +34,11 @@ describe('Wrapper', function() {
     assert.strictEqual(wrapper.config, config);
     assert.isFalse(wrapper.opts.watchConfig);
     assert.isFalse(wrapper.opts.watch);
+    assert.isNumber(wrapper.opts.aggregateTimeout);
+    assert.isUndefined(wrapper.opts.poll);
     assert.isNull(wrapper.opts.outputPath);
+    assert.isNull(wrapper.opts.staticRoot);
+    assert.isNull(wrapper.opts.staticUrl);
   });
   it('should accept a string as a config option and import the file specified', function(done) {
     var wrapper = new Wrapper({
@@ -726,6 +730,44 @@ describe('Wrapper', function() {
             done();
           });
         }, 10);
+      });
+    });
+  });
+  describe('#urlsToAssets', function() {
+    it('should create urls relative to staticRoot', function(done) {
+      var wrapper = new Wrapper({
+        config: path.join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js'),
+        outputPath: path.join(TEST_OUTPUT_DIR, 'url', 'test'),
+        staticRoot: TEST_OUTPUT_DIR,
+        staticUrl: '/static/'
+      });
+
+      wrapper.compile(function(err, stats) {
+        assert.isNull(err);
+        assert.isObject(stats);
+
+        assert.isObject(stats.urlsToAssets);
+        assert.equal(stats.urlsToAssets['output.js'], '/static/url/test/output.js');
+
+        done();
+      });
+    });
+    it('should handle staticUrl without a trailing slash', function(done) {
+      var wrapper = new Wrapper({
+        config: path.join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js'),
+        outputPath: path.join(TEST_OUTPUT_DIR, 'url', 'test'),
+        staticRoot: TEST_OUTPUT_DIR,
+        staticUrl: '/static'
+      });
+
+      wrapper.compile(function(err, stats) {
+        assert.isNull(err);
+        assert.isObject(stats);
+
+        assert.isObject(stats.urlsToAssets);
+        assert.equal(stats.urlsToAssets['output.js'], '/static/url/test/output.js');
+
+        done();
       });
     });
   });
