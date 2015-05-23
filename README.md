@@ -6,9 +6,22 @@ webpack-wrapper
 [![devDependency Status](https://david-dm.org/markfinger/webpack-wrapper/dev-status.svg)](https://david-dm.org/markfinger/webpack-wrapper#info=devDependencies)
 
 A wrapper library which provides a variety of optimisations and utilities intended to assist with 
-integrating webpack into a build process.
+integrating webpack into build processes.
 
-Features:
+
+Documentation
+-------------
+
+- [Features](#features)
+- [Installation](#installation)
+- [Basic usage](#basic-usage)
+- [Configuration](#configuration)
+- [Caching](#caching)
+
+
+Features
+--------
+
 - Supports multiple concurrent compilers
 - File-based caching of compilation output, which massively reduces initial and repeated build times
 - Change detection for config files
@@ -18,11 +31,6 @@ Features:
 - Optimises the background compilation of webpack's watcher by writing assets to memory and 
   emitting them to disk when required
 
-Documentation:
-- [Installation](#installation)
-- [Basic usage](#basic-usage)
-- [Configuration](#configuration)
-- [Caching](#caching)
 
 Installation
 ------------
@@ -30,6 +38,7 @@ Installation
 ```bash
 npm install webpack-wrapper
 ```
+
 
 Basic usage
 -----------
@@ -48,6 +57,7 @@ webpack({config: '/path/to/webpack.config.js'}), function(err, stats) {
   stats.pathsToAssets
 });
 ```
+
 
 Configuration
 -------------
@@ -99,6 +109,7 @@ Configuration
   
 }
 ```
+
 
 Caching
 -------
