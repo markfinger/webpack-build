@@ -54,6 +54,10 @@ webpack({config: '/path/to/webpack.config.js'}), function(err, stats) {
   
   // An object mapping asset names to the full path of the generated asset
   stats.pathsToAssets
+  
+  // An object mapping asset names to the full url of the generated asset.
+  // Requires the `staticRoot` and `staticUrl` settings to be defined
+  stats.urlsToAssets
 });
 ```
 
@@ -84,6 +88,15 @@ webpack({
   // output
   cacheFile: null,
   
+  // An override for the config's `output.path` property
+  outputPath: null,
+  
+  // An absolute path to your static root, used to calculate `urlsToAssets`
+  staticRoot: null,
+  
+  // The url that your static assets are served from, used to calculate `urlsToAssets`
+  staticUrl: null,
+  
   // The delay between the detection of a change in your source files and 
   // the start of a watcher's rebuild process
   aggregateTimeout: 200,
@@ -99,9 +112,6 @@ webpack({
   // memory until they are required to be on disk. If `cacheFile` is
   // defined, this is set to false
   useMemoryFS: true
-  
-  // An override for the config's `output.path` property
-  outputPath: null,
   
   // A console-like object which is written to when the wrapper's state
   // changes, mostly of use for debugging. To suppress all output, set 
