@@ -62,7 +62,9 @@ Configuration
 -------------
 
 ```javascript
-{
+var webpack = require('webpack-wrapper');
+
+webpack({
 
   // An absolute path to a config file
   config: '/path/to/webpack.config.js',
@@ -106,7 +108,9 @@ Configuration
   // it to `null`
   logger: console
   
-}
+}, function(err, stats) {
+  // ...
+});
 ```
 
 
