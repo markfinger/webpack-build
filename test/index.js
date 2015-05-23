@@ -187,6 +187,34 @@ describe('webpack-wrapper', function() {
         done();
       });
     });
+    it('should accept a falsey value for the ttl', function(done) {
+      var cacheFile = path.join(utils.TEST_OUTPUT_DIR, 'test_falsey_cacheTtl.json');
+      var configFile = path.join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js');
+
+      mkdirp.sync(path.dirname(cacheFile));
+
+      fs.writeFileSync(cacheFile, JSON.stringify({
+        foo: {
+          startTime: 1
+        }
+      }));
+
+      webpack({
+        config: configFile,
+        cacheFile: cacheFile,
+        cacheTTL: null,
+        logger: null
+      }, function(err, stats) {
+        assert.isNull(err);
+        assert.isObject(stats);
+
+        var cache = webpack._caches.get(cacheFile);
+        assert.equal(cache.ttl, null);
+        assert.isObject(cache.data.foo);
+
+        done();
+      });
+    });
     it('should stop using the cache once a watched bundle has been built', function(done) {
       var cacheFile = path.join(utils.TEST_OUTPUT_DIR, 'test_cache_stops_once_watcher_done.json');
       var configFile = path.join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js');
