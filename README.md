@@ -5,8 +5,8 @@ webpack-wrapper
 [![Dependency Status](https://david-dm.org/markfinger/webpack-wrapper.svg)](https://david-dm.org/markfinger/webpack-wrapper)
 [![devDependency Status](https://david-dm.org/markfinger/webpack-wrapper/dev-status.svg)](https://david-dm.org/markfinger/webpack-wrapper#info=devDependencies)
 
-A wrapper around webpack's API which provides a variety of optimisations and utilities which 
-make it easier to integrate webpack into a build process.
+A wrapper around webpack which provides a variety of optimisations and utilities intended to assist
+with integrating webpack into a build process.
 
 Typical applications include:
 - As part of a request cycle for a development server. If a compiler is watching, the wrapper 
@@ -23,8 +23,8 @@ Features:
 - Optimises the background compilation of webpack's watcher by writing assets to memory and 
   emitting them to disk when required
 - Pre-processes compiler output so that it can be easily serialized and passed between processes
-- Provides a config helper to map the output path to a particular directory which helps to keep 
-  logic out of your config files, making them more portable
+- Provides a config helper to map the output path to a particular directory, which helps to keep 
+  config files portable and easily integrated into larger systems
 
 
 Installation
@@ -41,7 +41,7 @@ Basic usage
 var webpack = require('webpack-wrapper');
 
 webpack({
-  // An object contaning your webpack config, or a string denoting an 
+  // An object containing your webpack config, or a string denoting an 
   // absolute path to a config file
   config: '/path/to/webpack.config.js',
   
@@ -73,12 +73,10 @@ webpack({
   
   // Indicates that webpack's watcher should emit rebuilt files to 
   // memory until they are required to be on disk. If `cacheFile` is
-  // specified, this is set to false
+  // defined, this is set to false
   useMemoryFS: true
   
-  // If defined, the config `output.path` prop will be set to the value
-  // of `outputPath`. This assists with making config files more portable
-  // and more easily integrated into larger systems
+  // An override for the config's `output.path` property
   outputPath: null,
   
   // A console-like object which is written to when the wrapper's state
