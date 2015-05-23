@@ -94,7 +94,8 @@ webpack({
   // An absolute path to your static root, used to calculate `urlsToAssets`
   staticRoot: null,
   
-  // The url that your static assets are served from, used to calculate `urlsToAssets`
+  // The url that your static assets are served from, used to 
+  // calculate `urlsToAssets`
   staticUrl: null,
   
   // The delay between the detection of a change in your source files and 
