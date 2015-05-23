@@ -13,11 +13,11 @@ Features
 --------
 
 - Supports multiple concurrent compilers
-- A persistent caching layer which massively reduces initial and repeated build times
-- Change detection for config files
-- Pre-processes compiler output so that it can be serialized and passed between processes
-- Provides a config helper to map the output path to a particular directory, which helps config 
-  files to be both more portable and more easily integrated into larger systems
+- Uses a persistent caching layer to massively reduces initial and repeated build times
+- Provides watchers to detect changes in your config files
+- Pre-processes compilation output so that it can be serialized and passed between processes
+- Provides a config helper to direct the compiler's output to a particular directory, which helps 
+  configfiles to be both more portable and more easily integrated into larger systems
 - Optimises the background compilation of webpack's watcher by writing assets to memory and 
   emitting them to disk when required
 
@@ -113,10 +113,8 @@ Configuration
 Caching
 -------
 
-When a request comes in and the compilation output has been cached from a previous build, the modified 
-times of the config file and the file dependencies are compared against the compilation's start time.
-If the modified times are later than the cached compilation's start time - or any errors are 
-encountered - the cached output is ignored and the wrapper waits for webpack to recompile.
-
-Caches are updated whenever a compilation process completes. Watchers will updated the cache whenever
-a background compilation has completed.
+When a request comes in and the cache has a record matching a particular config file, the cached data
+is compared against the current timestamps on both the config file and the source files. If the file 
+system reports more recent timestamps than the cached data, the wrapper waits for webpack to recompile. 
+Whenever a compiler successfully builds (either in the foreground or background), the cache is updated 
+with the output from the build process.
