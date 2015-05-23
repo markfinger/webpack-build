@@ -41,8 +41,7 @@ Basic usage
 var webpack = require('webpack-wrapper');
 
 webpack({
-  // An object containing your webpack config, or a string denoting an 
-  // absolute path to a config file
+  // An absolute path to a config file
   config: '/path/to/webpack.config.js',
   
   // The following options are the default values...
