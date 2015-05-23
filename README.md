@@ -61,9 +61,7 @@ Configuration
 -------------
 
 ```javascript
-var webpack = require('webpack-wrapper');
-
-webpack({
+{
 
   // An absolute path to a config file
   config: '/path/to/webpack.config.js',
@@ -103,13 +101,11 @@ webpack({
   outputPath: null,
   
   // A console-like object which is written to when the wrapper's state
-  // changes, mostly of use for debugging. Set it `null`, to suppress 
-  // all output
+  // changes, mostly of use for debugging. To suppress all output, set 
+  // it to `null`
   logger: console
   
-}), function(err, stats) {
-  // ...
-});
+}
 ```
 
 Caching
