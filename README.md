@@ -5,35 +5,44 @@ webpack-wrapper
 [![Dependency Status](https://david-dm.org/markfinger/webpack-wrapper.svg)](https://david-dm.org/markfinger/webpack-wrapper)
 [![devDependency Status](https://david-dm.org/markfinger/webpack-wrapper/dev-status.svg)](https://david-dm.org/markfinger/webpack-wrapper#info=devDependencies)
 
-A wrapper around webpack's API which provides a simpler interface with a variety of optimisations
-and utilities typically required for a build process.
+A wrapper around webpack which provides a variety of optimisations and utilities intended to assist
+with integrating webpack into a build process.
 
-Provides:
-- Change detection for your config files
+Typical applications include:
+- As part of a request cycle for a development server. If a compiler is watching, the wrapper 
+  blocks requests whenever a rebuild is occurring
+- As part of a tool chain, ex: [python-webpack](https://github.com/markfinger/python-webpack)
+- As a caching layer to speed up your build times
+- As an abstraction layer to keep logic out of your config files
+
+Features:
+- Support for multiple concurrent compilers
+- Change detection for config files
 - Toggleable source file watching
 - File-based caching of compilation output, which massively reduces the initial build time
-- Optimisation of the background compilation performed by webpack's watcher. It initially writes assets 
-  to memory and emitting them to disk when required
-- Pre-processessing of the compilation output so that it can be easily passed between processes
-- A config helper to map your bundle's output path to a particular directory
-- Directly exposed paths from the entry files to the generated assets
+- Optimises the background compilation of webpack's watcher by writing assets to memory and 
+  emitting them to disk when required
+- Pre-processes compiler output so that it can be easily serialized and passed between processes
+- Provides a config helper to map the output path to a particular directory, which helps to keep 
+  config files portable and easily integrated into larger systems
 
 
 Installation
 ------------
 
 ```bash
-npm install webpack webpack-wrapper
+npm install webpack-wrapper
 ```
 
-Usage
------
+Basic usage
+-----------
 
 ```javascript
 var webpack = require('webpack-wrapper');
 
 webpack({
-  // An absolute path to a webpack config file.
+  // An object containing your webpack config, or a string denoting an 
+  // absolute path to a config file
   config: '/path/to/webpack.config.js',
   
   // The following options are the default values...
@@ -42,32 +51,39 @@ webpack({
   // and rebuild in the background
   watch: false,
   
-  // The delay between a change being detected and webpack starting 
-  // the rebuild process
-  aggregateTimeout: 200,
-  
-  // Indicates if the watcher should poll for changes, rather than 
-  // relying on the OS for notifications
-  poll: undefined,
-  
   // Indicates that the config file should be watched for changes. 
   // Any changes will cause webpack to completely rebuild the bundle
+  // on the next request
   watchConfig: false,
   
   // An absolute path to a file that will be used to store compilation 
   // output
   cacheFile: null,
   
+  // A delay between the detection of a change in you source files, and 
+  // the start of the rebuild process
+  aggregateTimeout: 200,
+  
+  // Indicates if the watcher should poll for changes, rather than 
+  // relying on the OS for notifications
+  poll: undefined,
+  
   // The maximum time that compilation output will be stored for
   cacheTTL: 1000 * 60 * 60 * 24 * 30, // 30 days
   
   // Indicates that webpack's watcher should emit rebuilt files to 
-  // memory until they are required to be on disk
+  // memory until they are required to be on disk. If `cacheFile` is
+  // defined, this is set to false
   useMemoryFS: true
   
-  // If defined, a config's `output.path` prop will have any
-  // `[bundle_dir]` substrings replaced with the value of `bundleDir`
-  bundleDir: null,
+  // An override for the config's `output.path` property
+  outputPath: null,
+  
+  // A console-like object which is written to when the wrapper's state
+  // changes, mostly of use for debugging. Set it `null`, to suppress 
+  // all output
+  logger: console
+  
 }), function(err, stats) {
   // Besides the usual stats data produced by webpack, the wrapper adds 
   // some extra props...
@@ -83,13 +99,13 @@ webpack({
 Caching
 -------
 
-When a request comes in and the compilation output has been cached from a previous build, the 
-following actions will be performed:
+When a request comes in and the compilation output has been cached from a previous build, the following 
+actions are performed:
 - the modified time for the config file is compared to the compilation's start time
 - the modified time for every file dependency is compared to the compilation's start time
 
-If any of the above actions produce errors or the modified times are later than the compilation's
-start time, the cached output will be ignored and the wrapper will wait for webpack to complete.
+If the modified times are later than the cached compilation's start time - or any of the above actions 
+produced errors - the cached output is ignored and the wrapper waits for webpack to recompile.
 
-If webpack is watching the source files, the compilation output will only be used until the build
-has completed and/or the above conditions still pass.
+If the cached output is stale or a watcher has rebuilt the bundle, the file cache will be updated as soon 
+as the compilation has completed.
