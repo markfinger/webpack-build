@@ -9,8 +9,8 @@ A wrapper library which provides a variety of optimisations and utilities intend
 integrating webpack into a build process.
 
 Features:
-- Support for multiple concurrent compilers
-- File-based caching of compilation output, which massively reduces the initial build time
+- Supports multiple concurrent compilers
+- File-based caching of compilation output, which massively reduces initial and repeated build times
 - Change detection for config files
 - Pre-processes compiler output so that it can be easily serialized and passed between processes
 - Provides a config helper to map the output path to a particular directory, which helps config 
