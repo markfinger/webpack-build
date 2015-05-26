@@ -84,9 +84,11 @@ webpack({
   // on the next request
   watchConfig: false,
   
-  // An absolute path to a file that will be used to store compilation 
-  // output
+  // An absolute path to a file that will be used to store cached data
   cacheFile: null,
+
+  // The cache key used to distinguish the current request's compilation
+  cacheKey: null,
   
   // An override for the config's `output.path` property
   outputPath: null,
