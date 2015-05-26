@@ -45,7 +45,8 @@ describe('Cache', function() {
     obj[testFile] = {
       startTime: startTime,
       fileDependencies: [filename],
-      stats: {test: 'bar'}
+      stats: {test: 'bar'},
+      config: '/foo/bar'
     };
 
     fs.writeFileSync(filename, JSON.stringify(obj));
@@ -58,6 +59,7 @@ describe('Cache', function() {
     assert.equal(entry.startTime, startTime);
     assert.deepEqual(entry.fileDependencies, [filename]);
     assert.deepEqual(entry.stats, {test: 'bar'});
+    assert.equal(entry.config, '/foo/bar');
   });
   describe('#get', function() {
     it('should validate an entry\'s props', function(done) {
@@ -73,33 +75,39 @@ describe('Cache', function() {
 
       var cache = new Cache(filename);
 
-      cache.get(testFile, function(err, entry) {
+      cache.get('test', function(err, entry) {
         assert.isNull(err);
         assert.isNull(entry);
 
-        cache.data[testFile] = {};
-        cache.get(testFile, function(err, entry) {
+        cache.data['test'] = {};
+        cache.get('test', function(err, entry) {
           assert.isNull(err);
           assert.isNull(entry);
 
-          cache.data[testFile].startTime = startTime;
-          cache.get(testFile, function(err, entry) {
+          cache.data['test'].startTime = startTime;
+          cache.get('test', function(err, entry) {
             assert.isNull(err);
             assert.isNull(entry);
 
-            cache.data[testFile].fileDependencies = [];
-            cache.get(testFile, function(err, entry) {
+            cache.data['test'].fileDependencies = [];
+            cache.get('test', function(err, entry) {
               assert.isNull(err);
               assert.isNull(entry);
 
-              cache.data[testFile].stats = {};
-              cache.get(testFile, function(err, entry) {
+              cache.data['test'].stats = {};
+              cache.get('test', function(err, entry) {
                 assert.isNull(err);
-                assert.isObject(entry);
+                assert.isNull(entry);
 
-                assert.strictEqual(entry, cache.data[testFile]);
+                cache.data['test'].config = testFile;
+                cache.get('test', function(err, entry) {
+                  assert.isNull(err);
+                  assert.isObject(entry);
 
-                done();
+                  assert.strictEqual(entry, cache.data['test']);
+
+                  done();
+                });
               });
             });
           });
@@ -113,37 +121,39 @@ describe('Cache', function() {
 
       mkdirp.sync(path.dirname(filename1));
 
-      var obj1 = {};
-      obj1[testFile] = {
-        startTime: +new Date() - 1000,
-        fileDependencies: [filename1],
-        stats: {test: 1}
-      };
-      fs.writeFileSync(filename1, JSON.stringify(obj1));
+      fs.writeFileSync(filename1, JSON.stringify({
+        test1: {
+          startTime: +new Date() - 1000,
+          fileDependencies: [filename1],
+          stats: {test: 1},
+          config: testFile
+        }
+      }));
 
-      var obj2 = {};
-      obj2[testFile] = {
-        startTime: +new Date() + 1000,
-        fileDependencies: [filename2],
-        stats: {test: 2}
-      };
-      fs.writeFileSync(filename2, JSON.stringify(obj2));
+      fs.writeFileSync(filename2, JSON.stringify({
+        test2: {
+          startTime: +new Date() + 1000,
+          fileDependencies: [filename2],
+          stats: {test: 2},
+          config: testFile
+        }
+      }));
 
       fs.writeFileSync(testFile, '{}');
 
       var cache1 = new Cache(filename1);
       var cache2 = new Cache(filename2);
 
-      cache1.get(testFile, function(err, entry) {
+      cache1.get('test1', function(err, entry) {
         assert.instanceOf(err, Error);
         assert.include(err.message, 'Stale config file');
         assert.isUndefined(entry);
 
-        cache2.get(testFile, function(err, entry) {
+        cache2.get('test2', function(err, entry) {
           assert.isNull(err);
           assert.isObject(entry);
 
-          assert.strictEqual(entry, cache2.data[testFile]);
+          assert.strictEqual(entry, cache2.data['test2']);
           assert.equal(entry.stats.test, 2);
 
           done();

@@ -121,25 +121,27 @@ describe('webpack-wrapper', function() {
     });
   });
   describe('cache', function() {
-    it('should respect the cacheFile option', function(done) {
+    it('should respect the cacheFile and cacheKey options', function(done) {
       var cacheFile = path.join(utils.TEST_OUTPUT_DIR, 'test_cacheFile.json');
       var configFile = path.join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js');
 
       mkdirp.sync(path.dirname(cacheFile));
 
-      var obj = {};
-      obj[configFile] = {
-        startTime: +new Date() + 2000,
-        fileDependencies: [],
-        stats: {
-          test: {foo: 'bar'}
+      fs.writeFileSync(cacheFile, JSON.stringify({
+        testKey: {
+          startTime: +new Date() + 2000,
+          fileDependencies: [],
+          stats: {
+            test: {foo: 'bar'}
+          },
+          config: configFile
         }
-      };
-      fs.writeFileSync(cacheFile, JSON.stringify(obj));
+      }));
 
       webpack({
         config: configFile,
         cacheFile: cacheFile,
+        cacheKey: 'testKey',
         logger: null
       }, function(err, stats){
         assert.isNull(err);
@@ -155,23 +157,24 @@ describe('webpack-wrapper', function() {
 
       mkdirp.sync(path.dirname(cacheFile));
 
-      var obj = {
+      fs.writeFileSync(cacheFile, JSON.stringify({
         foo: {
           startTime: +new Date() - webpack._defaultCacheTTL - 1000
+        },
+        bar: {
+          startTime: +new Date() + 2000,
+          fileDependencies: [],
+          stats: {
+            test: {foo: 'bar'}
+          },
+          config: configFile
         }
-      };
-      obj[configFile] = {
-        startTime: +new Date() + 2000,
-        fileDependencies: [],
-        stats: {
-          test: {foo: 'bar'}
-        }
-      };
-      fs.writeFileSync(cacheFile, JSON.stringify(obj));
+      }));
 
       webpack({
         config: configFile,
         cacheFile: cacheFile,
+        cacheKey: 'bar',
         logger: null
       }, function(err, stats) {
         assert.isNull(err);
@@ -181,8 +184,9 @@ describe('webpack-wrapper', function() {
 
         var cache = webpack._caches.get(cacheFile);
         assert.equal(cache.ttl, webpack._defaultCacheTTL);
-        assert.isObject(cache.data[configFile]);
         assert.isUndefined(cache.data.foo);
+        assert.isObject(cache.data.bar);
+        assert.strictEqual(cache.data.bar.stats, stats);
 
         done();
       });
@@ -202,6 +206,7 @@ describe('webpack-wrapper', function() {
       webpack({
         config: configFile,
         cacheFile: cacheFile,
+        cacheKey: 'foo',
         cacheTTL: null,
         logger: null
       }, function(err, stats) {
@@ -221,19 +226,21 @@ describe('webpack-wrapper', function() {
 
       mkdirp.sync(path.dirname(cacheFile));
 
-      var obj = {};
-      obj[configFile] = {
-        startTime: +new Date() + 2000,
-        fileDependencies: [],
-        stats: {
-          test: {foo: 'bar'}
+      fs.writeFileSync(cacheFile, JSON.stringify({
+        testKey: {
+          startTime: +new Date() + 2000,
+          fileDependencies: [],
+          stats: {
+            test: {foo: 'bar'}
+          },
+          config: configFile
         }
-      };
-      fs.writeFileSync(cacheFile, JSON.stringify(obj));
+      }));
 
       var opts = {
         config: configFile,
         cacheFile: cacheFile,
+        cacheKey: 'testKey',
         watch: true,
         logger: null
       };
@@ -243,14 +250,21 @@ describe('webpack-wrapper', function() {
         assert.isObject(stats1);
         assert.deepEqual(stats1, {test: {foo: 'bar'}});
 
+        var cache = webpack._caches.get(cacheFile);
+        assert.strictEqual(wrapper.cache, cache);
+        assert.strictEqual(wrapper.cacheKey, 'testKey');
+        assert.strictEqual(stats1, cache.data.testKey.stats);
+        assert.isUndefined(cache.updated.testKey);
+
         webpack(opts, function(err, stats2) {
           assert.isNull(err);
           assert.isObject(stats2);
+
+          debugger
+
           assert.strictEqual(stats2, stats1);
           assert.deepEqual(stats2, {test: {foo: 'bar'}});
-
-          var cache = webpack._caches.get(cacheFile);
-          assert.strictEqual(wrapper.cache, cache);
+          assert.isUndefined(cache.updated.testKey);
 
           setTimeout(function() {
             wrapper.onceDone(function(err, stats3) {
@@ -258,7 +272,7 @@ describe('webpack-wrapper', function() {
               assert.isObject(stats3);
               assert.notStrictEqual(stats3, stats2);
 
-              assert.isTrue(cache.updated[configFile]);
+              assert.isTrue(cache.updated['testKey']);
 
               webpack(opts, function(err, stats4) {
                 assert.isNull(err);

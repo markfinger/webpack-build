@@ -705,7 +705,7 @@ describe('Wrapper', function() {
 
       var wrapper = new Wrapper({
         config: path.join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js')
-      }, null, cache);
+      }, null, cache, 'test');
 
       assert.strictEqual(wrapper.cache, cache);
       assert.isString(wrapper.opts.config);
@@ -714,22 +714,21 @@ describe('Wrapper', function() {
         assert.isNull(err);
         assert.isObject(stats);
 
-        setTimeout(function() {
-          assert.equal(Object.keys(cache.data).length, 1);
-          assert.property(cache.data, wrapper.opts.config);
-          assert.isObject(cache.data[wrapper.opts.config]);
+        assert.equal(Object.keys(cache.data).length, 1);
+        assert.property(cache.data, 'test');
+        assert.isObject(cache.data.test);
 
-          cache.get(wrapper.opts.config, function(err, entry) {
-            assert.isNull(err);
-            assert.isObject(entry);
+        cache.get('test', function(err, entry) {
+          assert.isNull(err);
+          assert.isObject(entry);
 
-            assert.isNumber(entry.startTime);
-            assert.isArray(entry.fileDependencies);
-            assert.isObject(entry.stats);
+          assert.isNumber(entry.startTime);
+          assert.isArray(entry.fileDependencies);
+          assert.isObject(entry.stats);
+          assert.equal(entry.config, wrapper.opts.config);
 
-            done();
-          });
-        }, 10);
+          done();
+        });
       });
     });
   });
