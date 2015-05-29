@@ -108,7 +108,7 @@ webpack({
   // relying on the OS for notifications
   poll: undefined,
   
-  // The maximum time that compilation output will be stored for
+  // The maximum time that compilation output will be cached for
   cacheTTL: 1000 * 60 * 60 * 24 * 30, // 30 days
   
   // Indicates that webpack's watcher should emit rebuilt files to 
@@ -130,13 +130,14 @@ webpack({
 Caching
 -------
 
-The wrapper uses a mixture of file and memory caches to improve build times. Setting the `cacheFile`
-option will allow the wrapper to persist the cache to disk, which can massively boost build times for 
-larger codebases.
+The wrapper uses a mixture of file and memory caches to improve build times. Specifying the `cacheFile`
+and `cacheKey` options will allow the wrapper to persist the cache to disk, which can massively boost 
+build times for larger codebases.
 
-When a request comes in and the cache has a record matching a particular config file, the cached data
-is compared against the current timestamps on both the config file and the source files. If the file system indicates that the cached data may be out of date, the wrapper will ignore the cached data and then wait for 
-webpack to complete a fresh build.
+When a request comes in and the cache has a record the `cacheKey` option, the cached data is compared 
+against the current timestamps on both the config file and the source files. If the file system 
+indicates that the cached data may be out of date, the wrapper will ignore the cached data and then 
+wait for webpack to complete a fresh build.
 
 Whenever a compiler successfully builds (either in the foreground or background), the cache is immediately 
 updated with the output from the build process.
