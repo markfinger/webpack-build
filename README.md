@@ -108,7 +108,7 @@ webpack({
   // relying on the OS for notifications
   poll: undefined,
   
-  // The maximum time that compilation output will be stored for
+  // The maximum time that compilation output will be cached for
   cacheTTL: 1000 * 60 * 60 * 24 * 30, // 30 days
   
   // Indicates that webpack's watcher should emit rebuilt files to 
