@@ -704,8 +704,9 @@ describe('Wrapper', function() {
       assert.deepEqual(cache.data, {});
 
       var wrapper = new Wrapper({
-        config: path.join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js')
-      }, null, cache, 'test');
+        config: path.join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js'),
+        cacheKey: 'test'
+      }, null, cache);
 
       assert.strictEqual(wrapper.cache, cache);
       assert.isString(wrapper.opts.config);
@@ -765,6 +766,30 @@ describe('Wrapper', function() {
 
         assert.isObject(stats.urlsToAssets);
         assert.equal(stats.urlsToAssets['output.js'], '/static/url/test/output.js');
+
+        done();
+      });
+    });
+  });
+  describe('#rendered', function() {
+    it('should create rendered elements using staticRoot and staticUrl', function(done) {
+      var wrapper = new Wrapper({
+        config: path.join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js'),
+        outputPath: path.join(TEST_OUTPUT_DIR, 'url', 'test'),
+        staticRoot: TEST_OUTPUT_DIR,
+        staticUrl: '/static/'
+      });
+
+      wrapper.compile(function(err, stats) {
+        assert.isNull(err);
+        assert.isObject(stats);
+
+        assert.isObject(stats.urlsToAssets);
+        assert.isObject(stats.rendered);
+        assert.isArray(stats.rendered.styleSheets);
+        assert.isArray(stats.rendered.scripts);
+        assert.equal(stats.rendered.scripts.length, 1);
+        assert.equal(stats.rendered.scripts[0], '<script src="/static/url/test/output.js"></script>');
 
         done();
       });

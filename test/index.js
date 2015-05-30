@@ -23,7 +23,7 @@ afterEach(function() {
   utils.cleanTestOutputDir();
 });
 
-describe('webpack-wrapper', function() {
+describe('index', function() {
   it('should be a function', function() {
     assert.isFunction(webpack);
   });
@@ -159,7 +159,7 @@ describe('webpack-wrapper', function() {
 
       fs.writeFileSync(cacheFile, JSON.stringify({
         foo: {
-          startTime: +new Date() - webpack._defaultCacheTTL - 1000
+          startTime: +new Date() - Wrapper.prototype.defaultOptions.cacheTTL - 1000
         },
         bar: {
           startTime: +new Date() + 2000,
@@ -183,7 +183,7 @@ describe('webpack-wrapper', function() {
         assert.deepEqual(stats, {test: {foo: 'bar'}});
 
         var cache = webpack._caches.get(cacheFile);
-        assert.equal(cache.ttl, webpack._defaultCacheTTL);
+        assert.equal(cache.ttl, Wrapper.prototype.defaultOptions.cacheTTL);
         assert.isUndefined(cache.data.foo);
         assert.isObject(cache.data.bar);
         assert.strictEqual(cache.data.bar.stats, stats);
@@ -220,6 +220,34 @@ describe('webpack-wrapper', function() {
         done();
       });
     });
+    it('should generate a cache key from the config file and options hash', function(done) {
+      var cacheFile = path.join(utils.TEST_OUTPUT_DIR, 'test_default_cache_key_default_generation.json');
+      var configFile = path.join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js');
+
+      var opts = {
+        config: configFile,
+        cacheFile: cacheFile,
+        logger: null
+      };
+
+      var wrapper = webpack(opts, function(err, stats) {
+        assert.isNull(err);
+        assert.isObject(stats);
+
+        assert.strictEqual(wrapper.opts, opts);
+
+        var cache = webpack._caches.get(cacheFile);
+
+        assert.isString(opts.config);
+        assert.isString(opts.cacheKey);
+        assert.isString(opts.hash);
+        assert.equal(opts.cacheKey, configFile + '__' + opts.hash);
+
+        assert.isObject(cache.data[wrapper.opts.cacheKey]);
+
+        done();
+      });
+    });
     it('should stop using the cache once a watched bundle has been built', function(done) {
       var cacheFile = path.join(utils.TEST_OUTPUT_DIR, 'test_cache_stops_once_watcher_done.json');
       var configFile = path.join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js');
@@ -252,15 +280,13 @@ describe('webpack-wrapper', function() {
 
         var cache = webpack._caches.get(cacheFile);
         assert.strictEqual(wrapper.cache, cache);
-        assert.strictEqual(wrapper.cacheKey, 'testKey');
+        assert.strictEqual(wrapper.opts.cacheKey, 'testKey');
         assert.strictEqual(stats1, cache.data.testKey.stats);
         assert.isUndefined(cache.updated.testKey);
 
         webpack(opts, function(err, stats2) {
           assert.isNull(err);
           assert.isObject(stats2);
-
-          debugger
 
           assert.strictEqual(stats2, stats1);
           assert.deepEqual(stats2, {test: {foo: 'bar'}});
@@ -271,6 +297,10 @@ describe('webpack-wrapper', function() {
               assert.isNull(err);
               assert.isObject(stats3);
               assert.notStrictEqual(stats3, stats2);
+
+              assert.isString(cache.data.testKey.optsHash);
+              assert.equal(cache.data.testKey.optsHash, opts.hash);
+              assert.equal(cache.data.testKey.optsHash, wrapper.opts.hash);
 
               assert.isTrue(cache.updated['testKey']);
 
