@@ -17,7 +17,6 @@
     "async": "^1.0.0",
     "chokidar": "^1.0.2",
     "lodash": "^3.9.1",
-    "memory-fs": "^0.2.0",
     "mkdirp": "^0.5.1"
   },
   "peerDependencies": {
