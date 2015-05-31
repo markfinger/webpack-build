@@ -79,7 +79,9 @@ webpack({
   
   // Indicates that the config file should be watched for changes. 
   // Any changes will cause webpack to completely rebuild the bundle
-  // on the next request
+  // on the next request. Note: this relies on hacks to circumvent Node's
+  // module cache and has been known to cause seg faults in long-running
+  // processes
   watchConfig: false,
   
   // An absolute path to a file that will be used to store cached data
