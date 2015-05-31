@@ -30,18 +30,6 @@ describe('Watcher', function() {
     assert.strictEqual(watcher.compiler, compiler);
     assert.strictEqual(watcher.opts, opts);
   });
-  it('should respect the useMemoryFS option', function() {
-    var watcher = new Watcher(webpack({}), {
-      useMemoryFS: false
-    });
-    assert.strictEqual(watcher.fs, fs);
-
-    watcher = new Watcher(webpack({}), {
-      useMemoryFS: true
-    });
-    assert.instanceOf(watcher.fs, MemoryFileSystem);
-    assert.instanceOf(watcher.compiler.outputFileSystem, MemoryFileSystem);
-  });
   describe('#onInvalid & #onDone', function() {
     it('should provide hooks into the compilation process', function(done) {
       var entry = path.join(TEST_OUTPUT_DIR, 'hook_test', 'entry.js');
@@ -104,7 +92,7 @@ describe('Watcher', function() {
         assert.isObject(stats);
         var outputPath = path.join(TEST_OUTPUT_DIR, 'basic_bundle', 'output.js');
         assert.equal(stats.compilation.assets['output.js'].existsAt, outputPath);
-        var content = watcher.fs.readFileSync(outputPath);
+        var content = fs.readFileSync(outputPath);
         content = content.toString();
         assert.include(content, '__BASIC_BUNDLE_ENTRY_TEST__');
         assert.include(content, '__BASIC_BUNDLE_REQUIRE_TEST__');
@@ -131,7 +119,7 @@ describe('Watcher', function() {
         assert.isNull(err);
         assert.isObject(stats);
         assert.equal(stats.compilation.assets['output.js'].existsAt, output);
-        var content = watcher.fs.readFileSync(output);
+        var content = fs.readFileSync(output);
         assert.include(content.toString(), '__INVALIDATED_BUNDLE_ONE__');
         setTimeout(function() {
           watcher.onInvalid(_.once(function() {
@@ -140,7 +128,7 @@ describe('Watcher', function() {
             watcher.onceDone(function(err, stats) {
               assert.isNull(err);
               assert.isObject(stats);
-              content = watcher.fs.readFileSync(output);
+              content = fs.readFileSync(output);
               assert.include(content.toString(), '__INVALIDATED_BUNDLE_TWO__');
               done();
             });
@@ -162,8 +150,6 @@ describe('Watcher', function() {
 
       watcher.onceDone(function(err) {
         assert.instanceOf(err, Error);
-        assert.include(err.stack, './some_file.js');
-        assert.include(err.stack, '/path/does/not/exist/');
         done();
       });
     });
@@ -191,7 +177,7 @@ describe('Watcher', function() {
         assert.isNull(err);
         assert.isObject(stats);
         assert.equal(output, stats.compilation.assets['output.js'].existsAt);
-        var contents = watcher.fs.readFileSync(output);
+        var contents = fs.readFileSync(output);
         var compiledBundle = contents.toString();
         assert.include(compiledBundle, '__WATCH_TEST_ONE__');
         setTimeout(function() {
@@ -201,7 +187,7 @@ describe('Watcher', function() {
               assert.isNull(err);
               assert.isObject(stats);
               assert.equal(output, stats.compilation.assets['output.js'].existsAt);
-              contents = watcher.fs.readFileSync(output);
+              contents = fs.readFileSync(output);
               assert.include(contents.toString(), '__WATCH_TEST_TWO__');
               fs.writeFileSync(entry, 'module.exports = "__WATCH_TEST_THREE__";');
               setTimeout(function() {
@@ -209,7 +195,7 @@ describe('Watcher', function() {
                   assert.isNull(err);
                   assert.isObject(stats);
                   assert.equal(output, stats.compilation.assets['output.js'].existsAt);
-                  contents = watcher.fs.readFileSync(output);
+                  contents = fs.readFileSync(output);
                   assert.include(contents.toString(), '__WATCH_TEST_THREE__');
                   done();
                 });
@@ -252,7 +238,7 @@ describe('Watcher', function() {
       watcher.onceDone(function(err, stats) {
         assert.isNull(err);
         assert.isObject(stats);
-        var contents = watcher.fs.readFileSync(output);
+        var contents = fs.readFileSync(output);
         assert.include(contents.toString(), '__ERROR_TEST_ONE__');
 
         setTimeout(function() {
@@ -277,7 +263,7 @@ describe('Watcher', function() {
                     assert.isNull(err3);
                     assert.notStrictEqual(stats3, stats1);
                     assert.isObject(stats3);
-                    var contents = watcher.fs.readFileSync(output);
+                    var contents = fs.readFileSync(output);
                     assert.include(contents.toString(), '__ERROR_TEST_TWO__');
 
                     fs.writeFileSync(entry, '+?;');
@@ -303,7 +289,7 @@ describe('Watcher', function() {
                               assert.isObject(stats6);
                               assert.strictEqual(err6, watcher.err);
                               assert.strictEqual(stats6, watcher.stats);
-                              var contents = watcher.fs.readFileSync(output);
+                              var contents = fs.readFileSync(output);
                               assert.include(contents.toString(), '__ERROR_TEST_THREE__');
                               done();
                             });
@@ -347,7 +333,7 @@ describe('Watcher', function() {
         assert.isNull(err);
         assert.isObject(stats);
         assert.equal(output, stats.compilation.assets['output.js'].existsAt);
-        var contents = watcher.fs.readFileSync(output);
+        var contents = fs.readFileSync(output);
         fs.writeFileSync(output, contents);
         contents = fs.readFileSync(output);
         assert.include(contents.toString(), '__RW_TEST_ONE__');
@@ -359,7 +345,7 @@ describe('Watcher', function() {
               assert.isNull(err);
               assert.isObject(stats);
               assert.equal(output, stats.compilation.assets['output.js'].existsAt);
-              contents = watcher.fs.readFileSync(output);
+              contents = fs.readFileSync(output);
               fs.writeFileSync(output, contents);
               contents = fs.readFileSync(output);
               assert.include(contents.toString(), '__RW_TEST_TWO__');
@@ -369,7 +355,7 @@ describe('Watcher', function() {
                 watcher.onceDone(function(err, stats) {
                   assert.isNull(err);
                   assert.isObject(stats);
-                  contents = watcher.fs.readFileSync(output);
+                  contents = fs.readFileSync(output);
                   fs.writeFileSync(output, contents);
                   contents = fs.readFileSync(output);
                   assert.include(contents.toString(), '__RW_TEST_THREE__');

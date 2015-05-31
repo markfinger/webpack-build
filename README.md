@@ -18,8 +18,6 @@ Features
 - Pre-processes compilation output so that it can be serialized and passed between processes
 - Provides a config helper to direct the compiler's output to a particular directory, which helps 
   configfiles to be both more portable and more easily integrated into larger systems
-- Optimises the background compilation of webpack's watcher by writing assets to memory and 
-  emitting them to disk when required
 
 
 Documentation
@@ -110,11 +108,6 @@ webpack({
   
   // The maximum time that compilation output will be cached for
   cacheTTL: 1000 * 60 * 60 * 24 * 30, // 30 days
-  
-  // Indicates that webpack's watcher should emit rebuilt files to 
-  // memory until they are required to be on disk. If `cacheFile` is
-  // defined, this is set to false
-  useMemoryFS: true
   
   // A console-like object which is written to when the wrapper's state
   // changes, mostly of use for debugging. To suppress all output, set 
