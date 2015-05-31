@@ -5,6 +5,7 @@ var fs = require('fs');
 var mkdirp = require('mkdirp');
 var webpack = require('../lib');
 var Wrapper = require('../lib/Wrapper');
+var options = require('../lib/options');
 var utils = require('./utils');
 
 var assert = utils.assert;
@@ -160,7 +161,7 @@ describe('index', function() {
 
       fs.writeFileSync(cacheFile, JSON.stringify({
         foo: {
-          startTime: +new Date() - Wrapper.prototype.defaultOptions.cacheTTL - 1000
+          startTime: +new Date() - options.defaults.cacheTTL - 1000
         },
         bar: {
           startTime: +new Date() + 2000,
@@ -184,7 +185,7 @@ describe('index', function() {
         assert.deepEqual(stats, {test: {foo: 'bar'}});
 
         var cache = webpack._caches.get(cacheFile);
-        assert.equal(cache.ttl, Wrapper.prototype.defaultOptions.cacheTTL);
+        assert.equal(cache.ttl, options.defaults.cacheTTL);
         assert.isUndefined(cache.data.foo);
         assert.isObject(cache.data.bar);
         assert.strictEqual(cache.data.bar.stats, stats);
