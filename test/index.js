@@ -48,7 +48,6 @@ describe('index', function() {
     assert.equal(Object.keys(webpack._wrappers.wrappers).length, 1);
     assert.strictEqual(webpack._wrappers.wrappers[opts1.hash], wrapper1);
     assert.strictEqual(webpack._wrappers.wrappers[opts1.hash].opts, opts1);
-    assert.strictEqual(webpack._wrappers.wrappers[opts1.hash].config, require(pathToConfig));
 
     var opts2 = {
       config: pathToConfig,
@@ -60,7 +59,6 @@ describe('index', function() {
     assert.equal(Object.keys(webpack._wrappers.wrappers).length, 1);
     assert.strictEqual(webpack._wrappers.wrappers[opts2.hash], wrapper2);
     assert.strictEqual(webpack._wrappers.wrappers[opts2.hash].opts, opts1);
-    assert.strictEqual(webpack._wrappers.wrappers[opts2.hash].config, require(pathToConfig));
 
     var opts3 = {
       config: pathToConfig,
@@ -71,7 +69,6 @@ describe('index', function() {
     assert.equal(Object.keys(webpack._wrappers.wrappers).length, 2);
     assert.strictEqual(webpack._wrappers.wrappers[opts3.hash], wrapper3);
     assert.strictEqual(webpack._wrappers.wrappers[opts3.hash].opts, opts3);
-    assert.strictEqual(webpack._wrappers.wrappers[opts3.hash].config, require(pathToConfig));
 
     var opts4 = {
       config: pathToConfig + 'test',
