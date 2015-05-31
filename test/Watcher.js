@@ -5,7 +5,6 @@ var path = require('path');
 var _ = require('lodash');
 var mkdirp = require('mkdirp');
 var webpack = require('webpack');
-var MemoryFileSystem = require('memory-fs');
 var Watcher = require('../lib/Watcher');
 var utils = require('./utils');
 var assert = utils.assert;
