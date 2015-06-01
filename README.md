@@ -13,11 +13,14 @@ Features
 --------
 
 - Supports multiple concurrent compilers
-- Uses a persistent caching layer to massively reduces initial and repeated build times
-- Provides watchers to detect changes in your config files
-- Pre-processes compilation output so that it can be serialized and passed between processes
-- Provides a config helper to direct the compiler's output to a particular directory, which helps 
-  configfiles to be both more portable and more easily integrated into larger systems
+- Uses a persistent caching layer to reduces initial and repeated build times
+- Provides a simple hook to extend a server for HMR support
+- Provides pre-packaged builds and config hooks to easily change your config files for
+  different environments - dev/prod/etc
+- Pre-processes compilation output so that it can be serialized and efficiently passed
+  between processes
+- Provides a helper to redirect the compiler's output to a particular directory
+- Provides watchers to detect changes to your config files
 
 
 Documentation
@@ -27,6 +30,9 @@ Documentation
 - [Basic usage](#basic-usage)
 - [Configuration](#configuration)
 - [Caching](#caching)
+- [Builds](#builds)
+- [HMR](#hmr)
+- [Colophon](#colophon)
 
 
 Installation
@@ -56,6 +62,12 @@ webpack({config: '/path/to/webpack.config.js'}), function(err, stats) {
   // An object mapping asset names to the full url of the generated asset.
   // Requires the `staticRoot` and `staticUrl` settings to be defined
   stats.urlsToAssets
+
+  // An array of rendered <script> elements pointing to the JS assets
+  stats.rendered.scripts
+
+  // An array of rendered <link> elements pointing to the CSS assets
+  stats.rendered.styleSheets
 });
 ```
 
@@ -77,28 +89,51 @@ webpack({
   // and rebuild in the background
   watch: false,
   
-  // Indicates that the config file should be watched for changes. 
-  // Any changes will cause webpack to completely rebuild the bundle
-  // on the next request. Note: this relies on hacks to circumvent Node's
-  // module cache and has been known to cause seg faults in long-running
-  // processes
-  watchConfig: false,
-  
   // An absolute path to a file that will be used to store cached data
   cacheFile: null,
 
-  // The cache key used to distinguish the current request's compilation
+  // The cache key used to distinguish the current request's compilation.
+  // If not defined, it is set to `config + '__' + hash`
   cacheKey: null,
-  
+
+  // A hash value used to distinguish requests and cached values. If not
+  // defined, the wrapper serializes the options provided and generates a
+  // md5 hash
+  hash: null,
+
+  // Can be defined as an array of strings which match particular build
+  // environments
+  builds: null,
+
+  // The base address that hot module replacement requests should be sent
+  // to, for example: 'http://127.0.0.1:9008'
+  hmrRoot: null,
+
+  // The path on hmrRoot that socket connections are made to
+  hmrPath: '/__webpack_wrapper_hmr__',
+
+  // The socket.io namespace that is used by the generated assets. If not
+  // defined, it is set to `'/' + hash`
+  hmrNamespace: null,
+
   // An override for the config's `output.path` property
   outputPath: null,
   
-  // An absolute path to your static root, used to calculate `urlsToAssets`
+  // An absolute path to the root directory of your static assets,
+  // used to calculate `urlsToAssets`
   staticRoot: null,
   
   // The url that your static assets are served from, used to 
-  // calculate `urlsToAssets`
+  // calculate `urlsToAssets` and configure HMR support
   staticUrl: null,
+
+  // Indicates that the config file should be watched for changes.
+  // Any changes will cause webpack to completely rebuild the bundle
+  // on the next request. Note: this relies on hacks to circumvent Node's
+  // module cache and has been known to cause seg faults in long-running
+  // processes. It is offered purely as a convenience and should be
+  // considered purely experimental
+  watchConfig: false,
   
   // The delay between the detection of a change in your source files and 
   // the start of a watcher's rebuild process
@@ -126,13 +161,193 @@ Caching
 -------
 
 The wrapper uses a mixture of file and memory caches to improve build times. Specifying the `cacheFile`
-and `cacheKey` options will allow the wrapper to persist the cache to disk, which can massively boost 
-build times for larger codebases.
+option will allow the wrapper to persist the cache to disk, which can boost build times.
 
-When a request comes in and the cache has a record the `cacheKey` option, the cached data is compared 
-against the current timestamps on both the config file and the source files. If the file system 
+When a request comes in and the cache has a record matching the `cacheKey` option, the cached data is
+compared against the current timestamps on both the config file and the source files. If the file system
 indicates that the cached data may be out of date, the wrapper will ignore the cached data and then 
 wait for webpack to complete a fresh build.
 
+If the `watch` option is set to true, as soon as the cached data is served, the watcher is started in
+the background.
+
 Whenever a compiler successfully builds (either in the foreground or background), the cache is immediately 
 updated with the output from the build process.
+
+If you want to read cache files from another process, you can define the `cacheKey` or `hash` properties
+to ensure that the data is written in a form that you can read.
+
+
+Builds
+------
+
+Builds are functions which mutate a config file to reflect varying environments. The `builds` option
+can be set to a array of build names which are sequentially provided with the config object and the
+wrapper's options. Builds should return an object which is used as the webpack config for the compiler.
+
+```javascript
+// In your config file
+
+var builds = require('webpack-wrapper/lib/builds');
+
+module.exports = {
+  // ...
+  builds: {
+    dev: function(config, opts) {
+      // Apply the wrapper's dev build
+      config = builds.dev(config, opts);
+
+      // Apply the wrapper's hmr build
+      config = builds.hmr(config, opts);
+
+      // Add your own dev-specific loader
+      config.loaders.push({
+        // ...
+      });
+
+      return config;
+    }
+  }
+};
+```
+
+To apply any builds, simply pass in the `builds` option to the wrapper
+
+```javascript
+var webpack = require('webpack-wrapper');
+
+webpack({
+  // ...
+  builds: ['dev']
+}, function(err, stats) {
+  // ...
+});
+```
+
+The wrapper comes with some typical builds that you can apply to handle common situations.
+
+
+### improve
+
+Adds `new webpack.optimize.OccurrenceOrderPlugin()`
+
+Adds `new webpack.NoErrorsPlugin()`
+
+
+### dev
+
+Applies the `improve` build
+
+Sets `devtool` to `eval-source-maps`
+
+Sets `output.pathinfo` to `true`
+
+Adds
+
+```
+new webpack.DefinePlugin({
+  'process.env': {
+    NODE_ENV: JSON.stringify('development')
+  }
+})
+```
+
+
+### hmr
+
+Applies the `improve` build
+
+Adds `webpack-wrapper/lib/hmr/client?...` and `webpack/hot/only-dev-server` to the config's entries.
+These enable the client-side to talk to the HMR server.
+
+Adds `new webpack.HotModuleReplacementPlugin()`
+
+Sets `output.publicPath` to the value of the `staticUrl` option
+
+Sets `recordsPath` to `path.join(opts.outputPath, 'webpack.records-' + opts.hash + '.json');`
+
+
+### prod
+
+Applies the `improve` build
+
+Sets `devtool` to `source-map`
+
+Adds `new webpack.optimize.DedupePlugin()`
+
+Adds `new webpack.optimize.UglifyJsPlugin()`
+
+Adds
+```
+new webpack.DefinePlugin({
+  'process.env': {
+    NODE_ENV: JSON.stringify('production')
+  }
+})
+```
+
+
+HMR
+---
+
+The wrapper includes hooks to add HMR functionality to both your front-end and back-end.
+
+```javascript
+// To use it with express
+
+var http = require('http');
+var express = require('express');
+var webpack = require('webpack-wrapper');
+
+var app = express();
+var server = http.Server(app);
+
+webpack.hmr.bindServer(server);
+
+server.listen(8000);
+```
+
+The `bindServer` method adds a socket.io handler to the endpoint defined by the `hmrPath`
+option, which defaults to `/__webpack_wrapper_hmr__`. You can provide a second argument to
+`bindServer` to change the path, but you'll need to provide that same value as the `hmrPath`
+option whenever you call the wrapper.
+
+To ensure that your assets can talk to the hmr endpoint, add the `hmr` build to your config file
+
+```javascript
+var builds = require('webpack-wrapper/lib/builds');
+
+module.exports = {
+  // ...
+  builds: {
+    dev: function(config, opts) {
+      builds.hmr(config);
+
+      // ...
+
+      return config;
+    }
+  }
+}
+```
+
+And ensure that the build is specified when you call the wrapper
+
+```javascript
+var webpack = require('webpack-wrapper');
+
+webpack({
+  // ...
+  build: 'dev',
+}, function(err, stats) {
+  // ...
+});
+```
+
+Colophon
+--------
+
+Large portions of this codebase are heavily indebted to
+[webpack-dev-middleware](https://github.com/webpack/webpack-dev-middleware) and
+[webpack-dev-server](https://github.com/webpack/webpack-dev-server). This project stands on the shoulders
+of giants - specifically, Tobias Koppers and the webpack ecosystem's vast number of contributors.
