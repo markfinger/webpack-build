@@ -15,11 +15,11 @@ Features
 - Supports multiple concurrent compilers
 - Uses a persistent caching layer to reduces initial and repeated build times
 - Provides a simple hook to extend a server for HMR support
-- Provides pre-packaged builds and config hooks to easily change your config files for
-  different environments - dev/prod/hmr
+- Provides config hooks to ensure that your config files reflect the current environment
 - Pre-processes compilation output so that it can be serialized and efficiently passed
   between processes
 - Provides a helper to redirect the compiler's output to a particular directory
+- Provides convenience builds to easily add typical dev/hmr/prod features to your config files
 - Provides watchers to detect changes to your config files
 
 
