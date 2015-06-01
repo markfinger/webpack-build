@@ -16,7 +16,7 @@ Features
 - Uses a persistent caching layer to reduces initial and repeated build times
 - Provides a simple hook to extend a server for HMR support
 - Provides pre-packaged builds and config hooks to easily change your config files for
-  different environments - dev/prod/etc
+  different environments - dev/prod/hmr
 - Pre-processes compilation output so that it can be serialized and efficiently passed
   between processes
 - Provides a helper to redirect the compiler's output to a particular directory
