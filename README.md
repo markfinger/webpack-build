@@ -248,12 +248,20 @@ module.exports = {
 
 ### improve
 
+```javascript
+require('webpack-wrapper/lib/builds').improve;
+```
+
 Adds `new webpack.optimize.OccurrenceOrderPlugin()`
 
 Adds `new webpack.NoErrorsPlugin()`
 
 
 ### dev
+
+```javascript
+require('webpack-wrapper/lib/builds').dev;
+```
 
 Applies the `improve` build
 
@@ -274,6 +282,10 @@ new webpack.DefinePlugin({
 
 ### hmr
 
+```javascript
+require('webpack-wrapper/lib/builds').hmr;
+```
+
 Applies the `improve` build
 
 Adds `webpack-wrapper/lib/hmr/client?...` and `webpack/hot/only-dev-server` to the config's entries.
@@ -287,6 +299,10 @@ Sets `recordsPath` to `path.join(opts.outputPath, 'webpack.records-' + opts.hash
 
 
 ### prod
+
+```javascript
+require('webpack-wrapper/lib/builds').prod;
+```
 
 Applies the `improve` build
 
