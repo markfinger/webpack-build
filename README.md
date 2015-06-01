@@ -93,7 +93,7 @@ webpack({
   cacheFile: null,
 
   // The cache key used to distinguish the current request's compilation.
-  // If not defined, it is set to `config + '__' + hash`
+  // If not defined, it is set to `<config> + '__' + <hash>`
   cacheKey: null,
 
   // A hash value used to distinguish requests and cached values. If not
@@ -101,20 +101,12 @@ webpack({
   // md5 hash
   hash: null,
 
-  // Can be defined as an array of strings which match particular build
-  // environments
-  builds: null,
+  // A string denoting the build to apply to the config file
+  build: null,
 
   // The base address that hot module replacement requests should be sent
-  // to, for example: 'http://127.0.0.1:9008'
+  // to. Example: 'http://127.0.0.1:8000'
   hmrRoot: null,
-
-  // The path on hmrRoot that socket connections are made to
-  hmrPath: '/__webpack_wrapper_hmr__',
-
-  // The socket.io namespace that is used by the generated assets. If not
-  // defined, it is set to `'/' + hash`
-  hmrNamespace: null,
 
   // An override for the config's `output.path` property
   outputPath: null,
@@ -146,6 +138,13 @@ webpack({
   // The maximum time that compilation output will be cached for
   cacheTTL: 1000 * 60 * 60 * 24 * 30, // 30 days
   
+  // The path on hmrRoot that socket connections are made to
+  hmrPath: '/__webpack_wrapper_hmr__',
+
+  // The socket.io namespace that is used by the generated assets. If not
+  // defined, it is set to `'/' + hash`
+  hmrNamespace: null,
+  
   // A console-like object which is written to when the wrapper's state
   // changes, mostly of use for debugging. To suppress all output, set 
   // it to `null`
@@ -171,19 +170,61 @@ wait for webpack to complete a fresh build.
 If the `watch` option is set to true, as soon as the cached data is served, the watcher is started in
 the background.
 
-Whenever a compiler successfully builds (either in the foreground or background), the cache is immediately 
-updated with the output from the build process.
+Whenever a compiler successfully builds, the cache is immediately updated with the output from the 
+build process.
 
-If you want to read cache files from another process, you can define the `cacheKey` or `hash` properties
-to ensure that the data is written in a form that you can read.
+If you want to read cache files from another process, you should probably define the `cacheKey` or `hash` 
+options to ensure that the cache entries are easily accessible.
 
 
 Builds
 ------
 
-Builds are functions which mutate a config file to reflect varying environments. The `builds` option
-can be set to a array of build names which are sequentially provided with the config object and the
-wrapper's options. Builds should return an object which is used as the webpack config for the compiler.
+Builds are functions which mutate a config file to reflect varying environments. 
+
+Builds should be specified in your config file under a `builds` object which contains functions.
+The functions should return a config object which can be read by webpack's compiler.
+
+```javascript
+// In your config file
+
+var builds = require('webpack-wrapper/lib/builds');
+
+module.exports = {
+  // ...
+  builds: {
+    dev: function(config, opts) {
+      config.devtool = 'eval';
+
+      config.loaders.push({
+        // ...
+      });
+
+      return config;
+    },
+    prod: function(config, opts) {
+      config.devtool = 'source-map';
+      
+      return config
+    }
+  }
+};
+```
+
+To apply any builds, simply pass in the `build` option to the wrapper
+
+```javascript
+var webpack = require('webpack-wrapper');
+
+webpack({
+  // ...
+  build: 'dev'
+}, function(err, stats) {
+  // ...
+});
+```
+
+The wrapper comes with some typical builds that you can apply to handle common situations.
 
 ```javascript
 // In your config file
@@ -200,31 +241,11 @@ module.exports = {
       // Apply the wrapper's hmr build
       config = builds.hmr(config, opts);
 
-      // Add your own dev-specific loader
-      config.loaders.push({
-        // ...
-      });
-
       return config;
     }
   }
 };
 ```
-
-To apply any builds, simply pass in the `builds` option to the wrapper
-
-```javascript
-var webpack = require('webpack-wrapper');
-
-webpack({
-  // ...
-  builds: ['dev']
-}, function(err, stats) {
-  // ...
-});
-```
-
-The wrapper comes with some typical builds that you can apply to handle common situations.
 
 
 ### improve
@@ -258,7 +279,7 @@ new webpack.DefinePlugin({
 Applies the `improve` build
 
 Adds `webpack-wrapper/lib/hmr/client?...` and `webpack/hot/only-dev-server` to the config's entries.
-These enable the client-side to talk to the HMR server.
+These enable the client-side to talk to the HMR endpoint.
 
 Adds `new webpack.HotModuleReplacementPlugin()`
 
