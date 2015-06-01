@@ -733,7 +733,7 @@ describe('Wrapper', function() {
       });
     });
   });
-  describe('#urlsToAssets', function() {
+  describe('#stats.urlsToAssets', function() {
     it('should create urls relative to staticRoot', function(done) {
       var wrapper = new Wrapper({
         config: path.join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js'),
@@ -771,7 +771,7 @@ describe('Wrapper', function() {
       });
     });
   });
-  describe('#rendered', function() {
+  describe('#stats.rendered', function() {
     it('should create rendered elements using staticRoot and staticUrl', function(done) {
       var wrapper = new Wrapper({
         config: path.join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js'),
@@ -793,6 +793,43 @@ describe('Wrapper', function() {
 
         done();
       });
+    });
+  });
+  describe('#opts.build', function() {
+    it('should call the function matched on the config object', function(done) {
+      var wrapper = new Wrapper({
+        config: {
+          builds: {
+            foo: function() {
+              done();
+            }
+          }
+        },
+        build: 'foo'
+      });
+
+      wrapper.getConfig(function(){});
+    });
+    it('should provide the config and opts objects', function(done) {
+      var opts = {
+        build: 'foo'
+      };
+
+      var config = {
+        builds: {
+          foo: function(_config, _opts) {
+            assert.strictEqual(_config, config);
+            assert.strictEqual(_opts, opts);
+            done();
+          }
+        }
+      };
+
+      opts.config = config;
+
+      var wrapper = new Wrapper(opts);
+
+      wrapper.getConfig(function(){});
     });
   });
 });
