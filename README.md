@@ -96,8 +96,8 @@ webpack({
   // If not defined, it is set to `opts.config + '__' + opts.hash`
   cacheKey: null,
 
-  // A hash value used to distinguish requests and cached values. If not
-  // defined, the wrapper serializes the options provided and generates a
+  // A hash value used to distinguish requests, cached values, and hmr connections. 
+  // If not defined, the wrapper serializes the options provided and generates a
   // md5 hash
   hash: null,
 
@@ -112,19 +112,17 @@ webpack({
   outputPath: null,
   
   // An absolute path to the root directory of your static assets,
-  // used to calculate `urlsToAssets`
+  // used to calculate `stats.urlsToAssets`
   staticRoot: null,
   
-  // The url that your static assets are served from, used to 
-  // calculate `urlsToAssets` and configure HMR support
+  // The url that your static assets are served from, used to calculate 
+  // `stats.urlsToAssets` and configure HMR support
   staticUrl: null,
 
   // Indicates that the config file should be watched for changes.
   // Any changes will cause webpack to completely rebuild the bundle
   // on the next request. Note: this relies on hacks to circumvent Node's
-  // module cache and has been known to cause seg faults in long-running
-  // processes. It is offered purely as a convenience and should be
-  // considered purely experimental
+  // module cache and should be considered purely experimental
   watchConfig: false,
   
   // The delay between the detection of a change in your source files and 
@@ -138,11 +136,11 @@ webpack({
   // The maximum time that compilation output will be cached for
   cacheTTL: 1000 * 60 * 60 * 24 * 30, // 30 days
   
-  // The path on hmrRoot that socket connections are made to
+  // The path on `opts.hmrRoot` that socket connections are made to
   hmrPath: '/__webpack_wrapper_hmr__',
 
   // The socket.io namespace that is used by the generated assets. If not
-  // defined, it is set to `'/' + hash`
+  // defined, it is set to `'/' + opts.hash`
   hmrNamespace: null,
   
   // A console-like object which is written to when the wrapper's state
