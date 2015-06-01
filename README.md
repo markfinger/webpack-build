@@ -356,7 +356,7 @@ module.exports = {
   // ...
   builds: {
     dev: function(config, opts) {
-      builds.hmr(config);
+      config = builds.hmr(config, opts);
 
       // ...
 
