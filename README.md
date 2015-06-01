@@ -93,7 +93,7 @@ webpack({
   cacheFile: null,
 
   // The cache key used to distinguish the current request's compilation.
-  // If not defined, it is set to `<config> + '__' + <hash>`
+  // If not defined, it is set to `opts.config + '__' + opts.hash`
   cacheKey: null,
 
   // A hash value used to distinguish requests and cached values. If not
