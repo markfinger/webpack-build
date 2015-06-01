@@ -352,7 +352,7 @@ module.exports = {
 }
 ```
 
-And ensure that the build is specified when you call the wrapper
+And ensure that you inform the wrapper about the build and your server setup
 
 ```javascript
 var webpack = require('webpack-wrapper');
@@ -360,6 +360,8 @@ var webpack = require('webpack-wrapper');
 webpack({
   // ...
   build: 'dev',
+  staticUrl: '/static',
+  hmrRoot: 'http://127.0.0.1:8000'
 }, function(err, stats) {
   // ...
 });
@@ -370,5 +372,7 @@ Colophon
 
 Large portions of this codebase are heavily indebted to
 [webpack-dev-middleware](https://github.com/webpack/webpack-dev-middleware) and
-[webpack-dev-server](https://github.com/webpack/webpack-dev-server). This project stands on the shoulders
-of giants - specifically, Tobias Koppers and the webpack ecosystem's vast number of contributors.
+[webpack-dev-server](https://github.com/webpack/webpack-dev-server).
+
+This project stands on the shoulders of giants - specifically, Tobias Koppers and the webpack 
+ecosystem's vast number of contributors.
