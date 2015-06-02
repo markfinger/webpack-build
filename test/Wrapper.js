@@ -4,6 +4,7 @@ var fs = require('fs');
 var path = require('path');
 var _ = require('lodash');
 var mkdirp = require('mkdirp');
+var webpack = require('webpack');
 var Wrapper = require('../lib/Wrapper');
 var Watcher = require('../lib/Watcher');
 var Cache = require('../lib/Cache');
@@ -830,6 +831,37 @@ describe('Wrapper', function() {
       var wrapper = new Wrapper(opts);
 
       wrapper.getConfig(function(){});
+    });
+  });
+  describe('#opts.hmr', function() {
+    it('should apply the hmr build', function(done) {
+      var staticUrl = '/static';
+
+      var wrapper = new Wrapper({
+        config: {},
+        hmr: true,
+        hmrRoot: 'http://test.com',
+        outputPath: '/foo/bar',
+        staticUrl: staticUrl
+      });
+
+      wrapper.getConfig(function(err, config){
+        assert.isNull(err);
+
+        assert.isArray(config.plugins);
+        assert.isObject(config.output);
+        assert.isArray(config.entry);
+
+        assert.equal(config.plugins.length, 3);
+
+        assert.equal(config.entry[1], 'webpack/hot/only-dev-server');
+
+        assert.equal(config.output.publicPath, staticUrl + '/');
+
+        assert.equal(config.recordsPath, '/foo/bar/webpack.records-' + wrapper.opts.hash + '.json');
+
+        done();
+      });
     });
   });
 });

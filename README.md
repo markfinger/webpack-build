@@ -104,6 +104,10 @@ webpack({
   // A string denoting the build to apply to the config file
   build: null,
 
+  // If true, applies the `hmr` build to the config file. The build injects code to
+  // connect to `opts.hmrRoot` and handle hot module replacement
+  hmr: false
+
   // The base address that hot module replacement requests should be sent
   // to. Example: 'http://127.0.0.1:8000'
   hmrRoot: null,
@@ -137,7 +141,7 @@ webpack({
   cacheTTL: 1000 * 60 * 60 * 24 * 30, // 30 days
   
   // The path on `opts.hmrRoot` that socket connections are made to
-  hmrPath: '/__webpack_wrapper_hmr__',
+  hmrPath: '/__webpack_hmr__',
 
   // The socket.io namespace that is used by the generated assets. If not
   // defined, it is set to `'/' + opts.hash`
@@ -337,45 +341,27 @@ var webpack = require('webpack-wrapper');
 var app = express();
 var server = http.Server(app);
 
-webpack.hmr.bindServer(server);
+webpack.hmr.addTo(server);
 
 server.listen(8000);
 ```
 
-The `bindServer` method adds a socket.io handler to the endpoint defined by the `hmrPath`
-option, which defaults to `/__webpack_wrapper_hmr__`. You can provide a second argument to
-`bindServer` to change the path, but you'll need to provide that same value as the `hmrPath`
-option whenever you call the wrapper.
+The `addTo` method adds a socket.io handler to the endpoint defined by the `hmrPath` option,
+which defaults to `/__webpack_hmr__`. You can provide a second argument to `addTo` to
+change the path, but you'll need to provide that same value as the `hmrPath` option whenever
+you call the wrapper.
 
-To ensure that your assets can talk to the hmr endpoint, add the `hmr` build to your config file
-
-```javascript
-var builds = require('webpack-wrapper/lib/builds');
-
-module.exports = {
-  // ...
-  builds: {
-    dev: function(config, opts) {
-      config = builds.hmr(config, opts);
-
-      // ...
-
-      return config;
-    }
-  }
-}
-```
-
-And ensure that you inform the wrapper about the build and your server setup
+And ensure that you inform the wrapper to apply the hmr build with respect to your server setup
 
 ```javascript
 var webpack = require('webpack-wrapper');
 
 webpack({
   // ...
-  build: 'dev',
+  outputPath: '/path/to/dir',
   staticUrl: '/static',
-  hmrRoot: 'http://127.0.0.1:8000'
+  hmr: true,
+  hmrRoot: 'http://127.0.0.1:8000',
 }, function(err, stats) {
   // ...
 });
