@@ -1,6 +1,6 @@
 {
   "name": "webpack-wrapper",
-  "version": "0.5.1",
+  "version": "0.6.0",
   "description": "A wrapper library around webpack which provides a variety of optimisations and utilities",
   "main": "lib/index.js",
   "author": "Mark Finger <markfinger@gmail.com>",
