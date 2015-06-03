@@ -14,13 +14,11 @@ var assert = utils.assert;
 beforeEach(function() {
   webpack._wrappers.clear();
   webpack._caches.clear();
-  Wrapper._resetFileWatcher();
   utils.cleanTestOutputDir();
 });
 afterEach(function() {
   webpack._wrappers.clear();
   webpack._caches.clear();
-  Wrapper._resetFileWatcher();
   utils.cleanTestOutputDir();
 });
 

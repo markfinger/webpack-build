@@ -15,11 +15,9 @@ var TEST_OUTPUT_DIR = utils.TEST_OUTPUT_DIR;
 
 // Ensure we have a clean slate before and after each test
 beforeEach(function() {
-  Wrapper._resetFileWatcher();
   utils.cleanTestOutputDir();
 });
 afterEach(function() {
-  Wrapper._resetFileWatcher();
   utils.cleanTestOutputDir();
 });
 
@@ -76,40 +74,6 @@ describe('Wrapper', function() {
       assert.isObject(stats);
       assert.strictEqual(stats.webpackConfig, require('./test_bundles/basic_bundle/webpack.config'));
       done();
-    });
-  });
-  describe('#watchFile', function() {
-    it('should be able to detect changes to a particular file', function(done) {
-      this.timeout(utils.watcherTimeout);
-
-      var testFile = path.join(TEST_OUTPUT_DIR, 'watch_test', 'test.js');
-
-      mkdirp.sync(path.dirname(testFile));
-
-      var wrapper = new Wrapper();
-
-      fs.writeFileSync(testFile, 'test 1');
-
-      assert.isUndefined(Wrapper._watchedFiles[testFile]);
-      var changeDetected = false;
-      wrapper.watchFile(testFile, function() {
-        changeDetected = true;
-      });
-
-      setTimeout(function() {
-        assert.isArray(Wrapper._watchedFiles[testFile]);
-        assert.equal(Wrapper._watchedFiles[testFile].length, 1);
-        assert.isFalse(changeDetected);
-
-        wrapper.watchFile(testFile, _.once(function() {
-          assert.isTrue(changeDetected);
-          done();
-        }));
-
-        fs.writeFileSync(testFile, 'test 2');
-
-        assert.equal(Wrapper._watchedFiles[testFile].length, 2);
-      }, utils.watcherWarmUpWait);
     });
   });
   describe('#getCompiler', function() {
