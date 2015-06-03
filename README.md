@@ -136,10 +136,10 @@ webpack({
   // Indicates if the watcher should poll for changes, rather than 
   // relying on the OS for notifications
   poll: undefined,
-  
-  // The maximum time that compilation output will be cached for
-  cacheTTL: 1000 * 60 * 60 * 24 * 30, // 30 days
-  
+
+  // An override for the config's output.publicPath setting
+  publicPath: '...'
+
   // The path on `opts.hmrRoot` that socket connections are made to
   hmrPath: '/__webpack_hmr__',
 

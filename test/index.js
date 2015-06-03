@@ -150,75 +150,6 @@ describe('index', function() {
         done();
       });
     });
-    it('should set a ttl on the cache', function(done) {
-      var cacheFile = path.join(utils.TEST_OUTPUT_DIR, 'test_cacheTtl.json');
-      var configFile = path.join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js');
-
-      mkdirp.sync(path.dirname(cacheFile));
-
-      fs.writeFileSync(cacheFile, JSON.stringify({
-        foo: {
-          startTime: +new Date() - options.defaults.cacheTTL - 1000
-        },
-        bar: {
-          startTime: +new Date() + 2000,
-          fileDependencies: [],
-          stats: {
-            test: {foo: 'bar'}
-          },
-          config: configFile
-        }
-      }));
-
-      webpack({
-        config: configFile,
-        cacheFile: cacheFile,
-        cacheKey: 'bar',
-        logger: null
-      }, function(err, stats) {
-        assert.isNull(err);
-        assert.isObject(stats);
-
-        assert.deepEqual(stats, {test: {foo: 'bar'}});
-
-        var cache = webpack._caches.get(cacheFile);
-        assert.equal(cache.ttl, options.defaults.cacheTTL);
-        assert.isUndefined(cache.data.foo);
-        assert.isObject(cache.data.bar);
-        assert.strictEqual(cache.data.bar.stats, stats);
-
-        done();
-      });
-    });
-    it('should accept a falsey value for the ttl', function(done) {
-      var cacheFile = path.join(utils.TEST_OUTPUT_DIR, 'test_falsey_cacheTtl.json');
-      var configFile = path.join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js');
-
-      mkdirp.sync(path.dirname(cacheFile));
-
-      fs.writeFileSync(cacheFile, JSON.stringify({
-        foo: {
-          startTime: 1
-        }
-      }));
-
-      webpack({
-        config: configFile,
-        cacheFile: cacheFile,
-        cacheKey: 'foo',
-        cacheTTL: null,
-        logger: null
-      }, function(err, stats) {
-        assert.isNull(err);
-        assert.isObject(stats);
-
-        var cache = webpack._caches.get(cacheFile);
-        assert.equal(cache.ttl, null);
-        assert.isObject(cache.data.foo);
-
-        done();
-      });
-    });
     it('should generate a cache key from the config file and options hash', function(done) {
       var cacheFile = path.join(utils.TEST_OUTPUT_DIR, 'test_default_cache_key_default_generation.json');
       var configFile = path.join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js');
@@ -235,7 +166,7 @@ describe('index', function() {
 
         assert.strictEqual(wrapper.opts, opts);
 
-        var cache = webpack._caches.get(cacheFile);
+        var cache = webpack._caches.get(opts);
 
         assert.isString(opts.config);
         assert.isString(opts.cacheKey);
@@ -277,7 +208,7 @@ describe('index', function() {
         assert.isObject(stats1);
         assert.deepEqual(stats1, {test: {foo: 'bar'}});
 
-        var cache = webpack._caches.get(cacheFile);
+        var cache = webpack._caches.get(opts);
         assert.strictEqual(wrapper.cache, cache);
         assert.strictEqual(wrapper.opts.cacheKey, 'testKey');
         assert.strictEqual(stats1, cache.data.testKey.stats);

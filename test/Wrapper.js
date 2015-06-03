@@ -835,14 +835,14 @@ describe('Wrapper', function() {
   });
   describe('#opts.hmr', function() {
     it('should apply the hmr build', function(done) {
-      var staticUrl = '/static';
+      var publicPath = '/static/foo';
 
       var wrapper = new Wrapper({
         config: {},
         hmr: true,
         hmrRoot: 'http://test.com',
         outputPath: '/foo/bar',
-        staticUrl: staticUrl
+        publicPath: publicPath
       });
 
       wrapper.getConfig(function(err, config){
@@ -856,7 +856,7 @@ describe('Wrapper', function() {
 
         assert.equal(config.entry[1], 'webpack/hot/only-dev-server');
 
-        assert.equal(config.output.publicPath, staticUrl + '/');
+        assert.equal(config.output.publicPath, publicPath + '/');
 
         assert.equal(config.recordsPath, '/foo/bar/webpack.records-' + wrapper.opts.hash + '.json');
 
