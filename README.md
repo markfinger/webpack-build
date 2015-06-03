@@ -15,7 +15,7 @@ Features
 - Uses a persistent caching layer to reduce build times
 - Provides a simple hook to extend a server for HMR support
 - Provides config hooks to ensure that your config files reflect the current environment
-- Provides build functions to add typical dev/hmr/prod features to your config files
+- Provides convenience functions to keep typical dev/prod boilerplate out of your config files
 - Pre-processes compilation output so that it can be serialized and efficiently passed
   between processes
 - Provides a helper to redirect the compiler's output to a particular directory
@@ -29,7 +29,7 @@ Documentation
 - [Basic usage](#basic-usage)
 - [Configuration](#configuration)
 - [Caching](#caching)
-- [Builds](#builds)
+- [Environment configuration](#environment-configuration)
 - [HMR](#hmr)
 - [Colophon](#colophon)
 
@@ -168,79 +168,66 @@ If you want to read cache files from another process, you should probably define
 options to ensure that the cache entries are easily accessible.
 
 
-Builds
-------
+Environment configuration
+-------------------------
 
-Builds are functions which mutate a config file to reflect varying environments. 
-
-Builds should be specified in your config file under a `builds` object which contains functions.
-The functions should return a config object which can be read by webpack's compiler.
+You can specify functions in your config file which can be run to generate env-specific configuration.
 
 ```javascript
-// In your config file
-
 module.exports = {
   // ...
-  builds: {
+  env: {
     dev: function(config, opts) {
       config.devtool = 'eval';
 
       config.loaders.push({
         // ...
       });
-
-      return config;
     },
     prod: function(config, opts) {
       config.devtool = 'source-map';
-      
-      return config
     }
   }
 };
 ```
 
-To apply any builds, simply pass in the `build` option to the wrapper
+To apply any environment configuration, pass in the `env` option to the wrapper
 
 ```javascript
 var build = require('webpack-build');
 
 build({
   // ...
-  build: 'dev'
+  env: 'dev'
 }, function(err, stats) {
   // ...
 });
 ```
 
-The wrapper comes with some typical builds that you can apply to handle common situations.
+The wrapper also comes with some convenience functions that apply changes to handle common
+situations and help you avoid boilerplate.
 
 ```javascript
-// In your config file
-
 var build = require('webpack-build');
 
 module.exports = {
   // ...
-  builds: {
+  env: {
     dev: function(config, opts) {
-      // Apply the wrapper's dev build
-      config = build.builds.dev(config, opts);
+      build.env.dev(config, opts);
 
-      // Apply the wrapper's hmr build
-      config = build.builds.hmr(config, opts);
-
-      return config;
+      // ...
     }
   }
 };
 ```
 
+The available env functions are:
 
-### improve
+**improve**
 
 ```javascript
-require('webpack-build').builds.improve;
+require('webpack-build').env.improve;
 ```
 
 Adds `new webpack.optimize.OccurrenceOrderPlugin()`
@@ -248,13 +235,13 @@ Adds `new webpack.optimize.OccurrenceOrderPlugin()`
 Adds `new webpack.NoErrorsPlugin()`
 
 
-### dev
+**dev**
 
 ```javascript
-require('webpack-build').builds.dev;
+require('webpack-build').env.dev;
 ```
 
-Applies the `improve` build
+Applies the `improve` env
 
 Sets `devtool` to `eval-source-maps`
 
@@ -271,13 +258,13 @@ new webpack.DefinePlugin({
 ```
 
 
-### hmr
+**hmr**
 
 ```javascript
-require('webpack-build').builds.hmr;
+require('webpack-build').env.hmr;
 ```
 
-Applies the `improve` build
+Applies the `improve` env
 
 Adds `webpack-wrapper/lib/hmr/client?...` and `webpack/hot/only-dev-server` to the config's entries.
 These enable the client-side to talk to the HMR endpoint.
@@ -292,10 +279,10 @@ Sets `recordsPath` to `path.join(opts.outputPath, 'webpack.records-' + opts.hash
 ### prod
 
 ```javascript
-require('webpack-build').builds.prod;
+require('webpack-build').env.prod;
 ```
 
-Applies the `improve` build
+Applies the `improve` env
 
 Sets `devtool` to `source-map`
 

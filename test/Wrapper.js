@@ -551,28 +551,28 @@ describe('Wrapper', function() {
       });
     });
   });
-  describe('#opts.build', function() {
+  describe('#opts.env', function() {
     it('should call the function matched on the config object', function(done) {
       var wrapper = new Wrapper({
         config: {
-          builds: {
+          env: {
             foo: function() {
               done();
             }
           }
         },
-        build: 'foo'
+        env: 'foo'
       });
 
       wrapper.getConfig(function(){});
     });
     it('should provide the config and opts objects', function(done) {
       var opts = {
-        build: 'foo'
+        env: 'foo'
       };
 
       var config = {
-        builds: {
+        env: {
           foo: function(_config, _opts) {
             assert.strictEqual(_config, config);
             assert.strictEqual(_opts, opts);
@@ -587,9 +587,29 @@ describe('Wrapper', function() {
 
       wrapper.getConfig(function(){});
     });
+    it('should accept mutations to the config object', function(done) {
+      var wrapper = new Wrapper({
+        config: {
+          env: {
+            foo: function(config) {
+              config.devtool = 'eval';
+            }
+          }
+        },
+        env: 'foo'
+      });
+
+      wrapper.getConfig(function(err, config){
+        assert.isNull(err);
+        assert.isObject(config);
+
+        assert.equal(config.devtool, 'eval');
+        done();
+      });
+    });
   });
   describe('#opts.hmr', function() {
-    it('should apply the hmr build', function(done) {
+    it('should add hmr settings and entries', function(done) {
       var publicPath = '/static/foo';
 
       var wrapper = new Wrapper({
@@ -607,8 +627,7 @@ describe('Wrapper', function() {
         assert.isObject(config.output);
         assert.isArray(config.entry);
 
-        assert.equal(config.plugins.length, 3);
-
+        assert.include(config.entry[0], 'webpack-build/lib/hmr/client?{"');
         assert.equal(config.entry[1], 'webpack/hot/only-dev-server');
 
         assert.equal(config.output.publicPath, publicPath + '/');
