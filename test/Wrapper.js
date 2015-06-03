@@ -2,7 +2,6 @@
 
 var fs = require('fs');
 var path = require('path');
-var _ = require('lodash');
 var mkdirp = require('mkdirp');
 var webpack = require('webpack');
 var Wrapper = require('../lib/Wrapper');

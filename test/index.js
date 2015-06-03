@@ -12,13 +12,13 @@ var assert = utils.assert;
 
 // Ensure we have a clean slate before and after each test
 beforeEach(function() {
-  webpack._wrappers.clear();
-  webpack._caches.clear();
+  webpack.wrappers.clear();
+  webpack.caches.clear();
   utils.cleanTestOutputDir();
 });
 afterEach(function() {
-  webpack._wrappers.clear();
-  webpack._caches.clear();
+  webpack.wrappers.clear();
+  webpack.caches.clear();
   utils.cleanTestOutputDir();
 });
 
@@ -40,12 +40,12 @@ describe('index', function() {
       watch: true,
       logger: null
     };
-    assert.equal(Object.keys(webpack._wrappers.wrappers).length, 0);
+    assert.equal(Object.keys(webpack.wrappers.wrappers).length, 0);
 
     var wrapper1 = webpack(opts1, function() {});
-    assert.equal(Object.keys(webpack._wrappers.wrappers).length, 1);
-    assert.strictEqual(webpack._wrappers.wrappers[opts1.hash], wrapper1);
-    assert.strictEqual(webpack._wrappers.wrappers[opts1.hash].opts, opts1);
+    assert.equal(Object.keys(webpack.wrappers.wrappers).length, 1);
+    assert.strictEqual(webpack.wrappers.wrappers[opts1.hash], wrapper1);
+    assert.strictEqual(webpack.wrappers.wrappers[opts1.hash].opts, opts1);
 
     var opts2 = {
       config: pathToConfig,
@@ -54,9 +54,9 @@ describe('index', function() {
     };
     var wrapper2 = webpack(opts2, function() {});
     assert.strictEqual(wrapper2, wrapper1);
-    assert.equal(Object.keys(webpack._wrappers.wrappers).length, 1);
-    assert.strictEqual(webpack._wrappers.wrappers[opts2.hash], wrapper2);
-    assert.strictEqual(webpack._wrappers.wrappers[opts2.hash].opts, opts1);
+    assert.equal(Object.keys(webpack.wrappers.wrappers).length, 1);
+    assert.strictEqual(webpack.wrappers.wrappers[opts2.hash], wrapper2);
+    assert.strictEqual(webpack.wrappers.wrappers[opts2.hash].opts, opts1);
 
     var opts3 = {
       config: pathToConfig,
@@ -64,9 +64,9 @@ describe('index', function() {
       logger: null
     };
     var wrapper3 = webpack(opts3, function() {});
-    assert.equal(Object.keys(webpack._wrappers.wrappers).length, 2);
-    assert.strictEqual(webpack._wrappers.wrappers[opts3.hash], wrapper3);
-    assert.strictEqual(webpack._wrappers.wrappers[opts3.hash].opts, opts3);
+    assert.equal(Object.keys(webpack.wrappers.wrappers).length, 2);
+    assert.strictEqual(webpack.wrappers.wrappers[opts3.hash], wrapper3);
+    assert.strictEqual(webpack.wrappers.wrappers[opts3.hash].opts, opts3);
 
     var opts4 = {
       config: pathToConfig + 'test',
@@ -74,9 +74,9 @@ describe('index', function() {
       logger: null
     };
     var wrapper4 = webpack(opts4, function() {});
-    assert.equal(Object.keys(webpack._wrappers.wrappers).length, 3);
-    assert.strictEqual(webpack._wrappers.wrappers[opts4.hash], wrapper4);
-    assert.strictEqual(webpack._wrappers.wrappers[opts4.hash].opts, opts4);
+    assert.equal(Object.keys(webpack.wrappers.wrappers).length, 3);
+    assert.strictEqual(webpack.wrappers.wrappers[opts4.hash], wrapper4);
+    assert.strictEqual(webpack.wrappers.wrappers[opts4.hash].opts, opts4);
 
     var opts5 = {
       config: pathToConfig + 'test',
@@ -84,7 +84,7 @@ describe('index', function() {
       logger: null
     };
     webpack(opts5, function() {});
-    assert.equal(Object.keys(webpack._wrappers.wrappers).length, 3);
+    assert.equal(Object.keys(webpack.wrappers.wrappers).length, 3);
 
     var opts6 = {
       config: pathToConfig,
@@ -92,7 +92,7 @@ describe('index', function() {
       logger: null
     };
     webpack(opts6, function() {});
-    assert.equal(Object.keys(webpack._wrappers.wrappers).length, 3);
+    assert.equal(Object.keys(webpack.wrappers.wrappers).length, 3);
   });
   it('should be able to generate a bundle', function(done) {
     webpack({
@@ -164,7 +164,7 @@ describe('index', function() {
 
         assert.strictEqual(wrapper.opts, opts);
 
-        var cache = webpack._caches.get(opts);
+        var cache = webpack.caches.get(opts);
 
         assert.isString(opts.config);
         assert.isString(opts.cacheKey);
@@ -206,7 +206,7 @@ describe('index', function() {
         assert.isObject(stats1);
         assert.deepEqual(stats1, {test: {foo: 'bar'}});
 
-        var cache = webpack._caches.get(opts);
+        var cache = webpack.caches.get(opts);
         assert.strictEqual(wrapper.cache, cache);
         assert.strictEqual(wrapper.opts.cacheKey, 'testKey');
         assert.strictEqual(stats1, cache.data.testKey.stats);
