@@ -1,6 +1,5 @@
 'use strict';
 
-var fs = require('fs');
 var path = require('path');
 var chai = require('chai');
 var spawnSync = require('spawn-sync');
