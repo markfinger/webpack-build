@@ -2,6 +2,7 @@
 
 'use strict';
 
+var packageJson = require('../package');
 var argv = require('yargs')
   .option('p', {
     alias: 'port',
@@ -12,7 +13,7 @@ var argv = require('yargs')
     description: 'Set the root directory for the server'
   })
   .version(function() {
-    return require('../package').version;
+    return packageJson.version;
   }).alias('v', 'version')
   .help('h').alias('h', 'help')
   .strict()
@@ -24,7 +25,5 @@ var server = new Server;
 var port = argv.port || 9009;
 
 server.listen(port, function() {
-  console.log(
-    require('../package').name +
-    '-server listening at http://127.0.0.1:' + port + '\n');
+  console.log(packageJson.name + ' listening at http://127.0.0.1:' + port + '\n');
 });

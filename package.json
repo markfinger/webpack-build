@@ -1,17 +1,17 @@
 {
-  "name": "webpack-wrapper",
+  "name": "webpack-build",
   "version": "0.6.1",
-  "description": "A wrapper library around webpack which provides a variety of optimisations and utilities",
+  "description": "A build library which wraps webpack and provides a variety of optimizations and utilities",
   "main": "lib/index.js",
   "author": "Mark Finger <markfinger@gmail.com>",
   "license": "MIT",
-  "homepage": "https://github.com/markfinger/webpack-wrapper",
+  "homepage": "https://github.com/markfinger/webpack-build",
   "bugs": {
-    "url": "https://github.com/markfinger/webpack-wrapper/issues"
+    "url": "https://github.com/markfinger/webpack-build/issues"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/markfinger/webpack-wrapper.git"
+    "url": "https://github.com/markfinger/webpack-build.git"
   },
   "dependencies": {
     "async": "^1.0.0",

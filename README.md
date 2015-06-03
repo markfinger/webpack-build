@@ -1,12 +1,11 @@
-webpack-wrapper
-===============
+webpack-build
+=============
 
-[![Build Status](https://travis-ci.org/markfinger/webpack-wrapper.svg?branch=master)](https://travis-ci.org/markfinger/webpack-wrapper)
-[![Dependency Status](https://david-dm.org/markfinger/webpack-wrapper.svg)](https://david-dm.org/markfinger/webpack-wrapper)
-[![devDependency Status](https://david-dm.org/markfinger/webpack-wrapper/dev-status.svg)](https://david-dm.org/markfinger/webpack-wrapper#info=devDependencies)
+[![Build Status](https://travis-ci.org/markfinger/webpack-build.svg?branch=master)](https://travis-ci.org/markfinger/webpack-build)
+[![Dependency Status](https://david-dm.org/markfinger/webpack-build.svg)](https://david-dm.org/markfinger/webpack-build)
+[![devDependency Status](https://david-dm.org/markfinger/webpack-build/dev-status.svg)](https://david-dm.org/markfinger/webpack-build#info=devDependencies)
 
-A wrapper library which provides a variety of optimisations and utilities intended to assist with 
-integrating webpack into a build process.
+A build library which wraps webpack and provides a variety of optimizations and utilities.
 
 
 Features
@@ -39,7 +38,7 @@ Installation
 ------------
 
 ```bash
-npm install webpack-wrapper
+npm install webpack-build
 ```
 
 
@@ -47,9 +46,9 @@ Basic usage
 -----------
 
 ```javascript
-var webpack = require('webpack-wrapper');
+var build = require('webpack-build');
 
-webpack({config: '/path/to/webpack.config.js'}), function(err, stats) {
+build({config: '/path/to/webpack.config.js'}), function(err, stats) {
   // Besides the usual stats data produced by webpack, the wrapper adds 
   // some extra props...
   
@@ -76,9 +75,7 @@ Configuration
 -------------
 
 ```javascript
-var webpack = require('webpack-wrapper');
-
-webpack({
+{
 
   // An absolute path to a config file
   config: '/path/to/webpack.config.js',
@@ -146,9 +143,7 @@ webpack({
   // it to `null`
   logger: console
   
-}, function(err, stats) {
-  // ...
-});
+}
 ```
 
 
@@ -184,8 +179,6 @@ The functions should return a config object which can be read by webpack's compi
 ```javascript
 // In your config file
 
-var builds = require('webpack-wrapper/lib/builds');
-
 module.exports = {
   // ...
   builds: {
@@ -210,9 +203,9 @@ module.exports = {
 To apply any builds, simply pass in the `build` option to the wrapper
 
 ```javascript
-var webpack = require('webpack-wrapper');
+var build = require('webpack-build');
 
-webpack({
+build({
   // ...
   build: 'dev'
 }, function(err, stats) {
@@ -225,17 +218,17 @@ The wrapper comes with some typical builds that you can apply to handle common s
 ```javascript
 // In your config file
 
-var builds = require('webpack-wrapper/lib/builds');
+var build = require('webpack-build');
 
 module.exports = {
   // ...
   builds: {
     dev: function(config, opts) {
       // Apply the wrapper's dev build
-      config = builds.dev(config, opts);
+      config = build.builds.dev(config, opts);
 
       // Apply the wrapper's hmr build
-      config = builds.hmr(config, opts);
+      config = build.builds.hmr(config, opts);
 
       return config;
     }
@@ -247,7 +240,7 @@ module.exports = {
 ### improve
 
 ```javascript
-require('webpack-wrapper/lib/builds').improve;
+require('webpack-build').builds.improve;
 ```
 
 Adds `new webpack.optimize.OccurrenceOrderPlugin()`
@@ -258,7 +251,7 @@ Adds `new webpack.NoErrorsPlugin()`
 ### dev
 
 ```javascript
-require('webpack-wrapper/lib/builds').dev;
+require('webpack-build').builds.dev;
 ```
 
 Applies the `improve` build
@@ -281,7 +274,7 @@ new webpack.DefinePlugin({
 ### hmr
 
 ```javascript
-require('webpack-wrapper/lib/builds').hmr;
+require('webpack-build').builds.hmr;
 ```
 
 Applies the `improve` build
@@ -299,7 +292,7 @@ Sets `recordsPath` to `path.join(opts.outputPath, 'webpack.records-' + opts.hash
 ### prod
 
 ```javascript
-require('webpack-wrapper/lib/builds').prod;
+require('webpack-build').builds.prod;
 ```
 
 Applies the `improve` build
@@ -330,12 +323,12 @@ The wrapper includes hooks to add HMR functionality to both your front-end and b
 
 var http = require('http');
 var express = require('express');
-var webpack = require('webpack-wrapper');
+var build = require('webpack-build');
 
 var app = express();
 var server = http.Server(app);
 
-webpack.hmr.addTo(server);
+build.hmr.addTo(server);
 
 server.listen(8000);
 ```
@@ -348,14 +341,14 @@ you call the wrapper.
 And ensure that you inform the wrapper to apply the hmr build with respect to your server setup
 
 ```javascript
-var webpack = require('webpack-wrapper');
+var build = require('webpack-build');
 
-webpack({
+build({
   // ...
   outputPath: '/path/to/dir',
-  staticUrl: '/static',
   hmr: true,
   hmrRoot: 'http://127.0.0.1:8000',
+  publicPath: '/static',
 }, function(err, stats) {
   // ...
 });
