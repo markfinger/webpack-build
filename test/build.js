@@ -8,6 +8,7 @@ var Wrapper = require('../lib/Wrapper');
 var utils = require('./utils');
 
 var assert = utils.assert;
+var CACHE_DIR = path.join(utils.TEST_OUTPUT_DIR, 'cache_dir');
 
 // Ensure we have a clean slate before and after each test
 beforeEach(function() {
@@ -28,7 +29,8 @@ describe('build', function() {
   it('should accept options and callback arguments', function() {
     var opts = {
       config: path.join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config'),
-      logger: null
+      logger: null,
+      cacheDir: CACHE_DIR
     };
     build(opts, function() {});
   });
@@ -37,7 +39,8 @@ describe('build', function() {
     var opts1 = {
       config: pathToConfig,
       watch: true,
-      logger: null
+      logger: null,
+      cacheDir: CACHE_DIR
     };
     assert.equal(Object.keys(build.wrappers.wrappers).length, 0);
 
@@ -49,7 +52,8 @@ describe('build', function() {
     var opts2 = {
       config: pathToConfig,
       watch: true,
-      logger: null
+      logger: null,
+      cacheDir: CACHE_DIR
     };
     var wrapper2 = build(opts2, function() {});
     assert.strictEqual(wrapper2, wrapper1);
@@ -60,7 +64,8 @@ describe('build', function() {
     var opts3 = {
       config: pathToConfig,
       watch: false,
-      logger: null
+      logger: null,
+      cacheDir: CACHE_DIR
     };
     var wrapper3 = build(opts3, function() {});
     assert.equal(Object.keys(build.wrappers.wrappers).length, 2);
@@ -70,7 +75,8 @@ describe('build', function() {
     var opts4 = {
       config: pathToConfig + 'test',
       watch: false,
-      logger: null
+      logger: null,
+      cacheDir: CACHE_DIR
     };
     var wrapper4 = build(opts4, function() {});
     assert.equal(Object.keys(build.wrappers.wrappers).length, 3);
@@ -80,7 +86,8 @@ describe('build', function() {
     var opts5 = {
       config: pathToConfig + 'test',
       watch: false,
-      logger: null
+      logger: null,
+      cacheDir: CACHE_DIR
     };
     build(opts5, function() {});
     assert.equal(Object.keys(build.wrappers.wrappers).length, 3);
@@ -88,7 +95,8 @@ describe('build', function() {
     var opts6 = {
       config: pathToConfig,
       watch: true,
-      logger: null
+      logger: null,
+      cacheDir: CACHE_DIR
     };
     build(opts6, function() {});
     assert.equal(Object.keys(build.wrappers.wrappers).length, 3);
@@ -96,7 +104,8 @@ describe('build', function() {
   it('should be able to generate a bundle', function(done) {
     build({
       config: path.join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config'),
-      logger: null
+      logger: null,
+      cacheDir: CACHE_DIR
     }, function(err, stats) {
       assert.isNull(err);
       assert.isObject(stats);
@@ -117,8 +126,8 @@ describe('build', function() {
     });
   });
   describe('cache', function() {
-    it('should respect the cacheFile and cacheKey options', function(done) {
-      var cacheFile = path.join(utils.TEST_OUTPUT_DIR, 'test_cacheFile.json');
+    it('should respect the cacheDir, cacheFile and cacheKey options', function(done) {
+      var cacheFile = path.join(CACHE_DIR, 'test_cacheFile.json');
       var configFile = path.join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js');
 
       mkdirp.sync(path.dirname(cacheFile));
@@ -136,6 +145,7 @@ describe('build', function() {
 
       build({
         config: configFile,
+        cacheDir: CACHE_DIR,
         cacheFile: cacheFile,
         cacheKey: 'testKey',
         logger: null
@@ -147,8 +157,27 @@ describe('build', function() {
         done();
       });
     });
+    it('should generate a cache file in the cache dir', function(done) {
+      var configFile = path.join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js');
+
+      var opts = {
+        config: configFile,
+        cacheDir: CACHE_DIR,
+        logger: null
+      };
+
+      build(opts, function(err, stats) {
+        assert.isNull(err);
+        assert.isObject(stats);
+
+        assert.isString(opts.cacheFile);
+        assert.include(opts.cacheFile, opts.cacheDir);
+
+        done();
+      });
+    });
     it('should generate a cache key from the config file and options hash', function(done) {
-      var cacheFile = path.join(utils.TEST_OUTPUT_DIR, 'test_default_cache_key_default_generation.json');
+      var cacheFile = path.join(CACHE_DIR, 'test_default_cache_key_default_generation.json');
       var configFile = path.join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js');
 
       var opts = {
@@ -176,7 +205,7 @@ describe('build', function() {
       });
     });
     it('should stop using the cache once a watched bundle has been built', function(done) {
-      var cacheFile = path.join(utils.TEST_OUTPUT_DIR, 'test_cache_stops_once_watcher_done.json');
+      var cacheFile = path.join(CACHE_DIR, 'test_cache_stops_once_watcher_done.json');
       var configFile = path.join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js');
 
       mkdirp.sync(path.dirname(cacheFile));
