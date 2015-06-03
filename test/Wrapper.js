@@ -471,11 +471,7 @@ describe('Wrapper', function() {
         assert.isNull(err);
         assert.isObject(stats);
 
-        assert.equal(Object.keys(cache.data).length, 1);
-        assert.property(cache.data, 'test');
-        assert.isObject(cache.data.test);
-
-        cache.get('test', function(err, entry) {
+        cache.get(function(err, entry) {
           assert.isNull(err);
           assert.isObject(entry);
 

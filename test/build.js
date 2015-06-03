@@ -133,21 +133,17 @@ describe('build', function() {
       mkdirp.sync(path.dirname(cacheFile));
 
       fs.writeFileSync(cacheFile, JSON.stringify({
-        testKey: {
-          startTime: +new Date() + 2000,
-          fileDependencies: [],
-          stats: {
-            test: {foo: 'bar'}
-          },
-          config: configFile
-        }
+        startTime: +new Date() + 2000,
+        fileDependencies: [],
+        stats: {
+          test: {foo: 'bar'}
+        },
+        config: configFile
       }));
 
       build({
         config: configFile,
-        cacheDir: CACHE_DIR,
         cacheFile: cacheFile,
-        cacheKey: 'testKey',
         logger: null
       }, function(err, stats){
         assert.isNull(err);
@@ -176,13 +172,12 @@ describe('build', function() {
         done();
       });
     });
-    it('should generate a cache key from the config file and options hash', function(done) {
-      var cacheFile = path.join(CACHE_DIR, 'test_default_cache_key_default_generation.json');
+    it('should generate a cache file from the config file and options hash', function(done) {
       var configFile = path.join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js');
 
       var opts = {
         config: configFile,
-        cacheFile: cacheFile,
+        cacheDir: CACHE_DIR,
         logger: null
       };
 
@@ -195,11 +190,13 @@ describe('build', function() {
         var cache = build.caches.get(opts);
 
         assert.isString(opts.config);
-        assert.isString(opts.cacheKey);
         assert.isString(opts.hash);
-        assert.equal(opts.cacheKey, configFile + '__' + opts.hash);
+        assert.equal(
+          opts.cacheFile,
+          path.join(CACHE_DIR, (configFile + '__' + opts.hash + '.json').split(path.sep).join('_'))
+        );
 
-        assert.isObject(cache.data[wrapper.opts.cacheKey]);
+        assert.equal(cache.filename, opts.cacheFile);
 
         done();
       });

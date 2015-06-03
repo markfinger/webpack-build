@@ -30,7 +30,7 @@ describe('Cache', function() {
   });
   it('should be able to persist an entry to a file', function() {
     var cache = new Cache(path.join(TEST_OUTPUT_DIR, 'cache_persist.json'));
-    cache.set('foo', {bar: 'woz'});
+    cache.set({foo: {bar: 'woz'}});
     var json = require(TEST_OUTPUT_DIR + '/cache_persist.json');
     assert.deepEqual(json, {foo: {bar: 'woz'}});
   });
@@ -75,36 +75,36 @@ describe('Cache', function() {
 
       var cache = new Cache(filename);
 
-      cache.get('test', function(err, entry) {
+      cache.get(function(err, entry) {
         assert.isNull(err);
         assert.isNull(entry);
 
-        cache.data['test'] = {};
-        cache.get('test', function(err, entry) {
+        cache.data = {};
+        cache.get(function(err, entry) {
           assert.isNull(err);
           assert.isNull(entry);
 
-          cache.data['test'].startTime = startTime;
-          cache.get('test', function(err, entry) {
+          cache.data.startTime = startTime;
+          cache.get(function(err, entry) {
             assert.isNull(err);
             assert.isNull(entry);
 
-            cache.data['test'].fileDependencies = [];
-            cache.get('test', function(err, entry) {
+            cache.data.fileDependencies = [];
+            cache.get(function(err, entry) {
               assert.isNull(err);
               assert.isNull(entry);
 
-              cache.data['test'].stats = {};
-              cache.get('test', function(err, entry) {
+              cache.data.stats = {};
+              cache.get(function(err, entry) {
                 assert.isNull(err);
                 assert.isNull(entry);
 
-                cache.data['test'].config = testFile;
-                cache.get('test', function(err, entry) {
+                cache.data.config = testFile;
+                cache.get(function(err, entry) {
                   assert.isNull(err);
                   assert.isObject(entry);
 
-                  assert.strictEqual(entry, cache.data['test']);
+                  assert.strictEqual(entry, cache.data);
 
                   done();
                 });
@@ -122,21 +122,17 @@ describe('Cache', function() {
       mkdirp.sync(path.dirname(filename1));
 
       fs.writeFileSync(filename1, JSON.stringify({
-        test1: {
-          startTime: +new Date() - 1000,
-          fileDependencies: [filename1],
-          stats: {test: 1},
-          config: testFile
-        }
+        startTime: +new Date() - 1000,
+        fileDependencies: [filename1],
+        stats: {test: 1},
+        config: testFile
       }));
 
       fs.writeFileSync(filename2, JSON.stringify({
-        test2: {
-          startTime: +new Date() + 1000,
-          fileDependencies: [filename2],
-          stats: {test: 2},
-          config: testFile
-        }
+        startTime: +new Date() + 1000,
+        fileDependencies: [filename2],
+        stats: {test: 2},
+        config: testFile
       }));
 
       fs.writeFileSync(testFile, '{}');
@@ -144,16 +140,16 @@ describe('Cache', function() {
       var cache1 = new Cache(filename1);
       var cache2 = new Cache(filename2);
 
-      cache1.get('test1', function(err, entry) {
+      cache1.get(function(err, entry) {
         assert.instanceOf(err, Error);
         assert.include(err.message, 'Stale config file');
         assert.isUndefined(entry);
 
-        cache2.get('test2', function(err, entry) {
+        cache2.get(function(err, entry) {
           assert.isNull(err);
           assert.isObject(entry);
 
-          assert.strictEqual(entry, cache2.data['test2']);
+          assert.strictEqual(entry, cache2.data);
           assert.equal(entry.stats.test, 2);
 
           done();
@@ -168,7 +164,7 @@ describe('Cache', function() {
 
       var cache = new Cache(filename);
 
-      cache.set('foo', {bar: 'woz'});
+      cache.set({foo: {bar: 'woz'}});
 
       var contents = fs.readFileSync(filename).toString();
 
