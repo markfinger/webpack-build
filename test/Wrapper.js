@@ -33,7 +33,6 @@ describe('Wrapper', function() {
     var wrapper = new Wrapper(opts, config);
     assert.strictEqual(wrapper.opts, opts);
     assert.strictEqual(wrapper.config, config);
-    assert.isFalse(wrapper.opts.watchConfig);
     assert.isFalse(wrapper.opts.watch);
     assert.isNumber(wrapper.opts.aggregateTimeout);
     assert.isUndefined(wrapper.opts.poll);
@@ -428,47 +427,6 @@ describe('Wrapper', function() {
             done();
           });
         });
-      });
-    });
-  });
-  describe('#opts.watchConfig', function() {
-    it('should default to false', function() {
-      var wrapper = new Wrapper();
-      assert.isFalse(wrapper.opts.watchConfig);
-
-      wrapper = new Wrapper({
-        watchConfig: true
-      });
-
-      assert.isTrue(wrapper.opts.watchConfig);
-    });
-    it('should cause config files changes to trigger invalidateConfig', function(done) {
-      this.timeout(utils.watcherTimeout);
-
-      var opts = {
-        config: path.join(TEST_OUTPUT_DIR, 'detect_changes_to_config_watch_test', 'webpack.config.js'),
-        watchConfig: true
-      };
-
-      var wrapper = new Wrapper(opts);
-
-      wrapper.invalidateConfig = function() {
-        done();
-      };
-
-      mkdirp.sync(path.dirname(opts.config));
-      fs.writeFileSync(opts.config, 'module.exports = {test:1}');
-
-      assert.isUndefined(Wrapper._watchedFiles[opts.config]);
-
-      wrapper.getConfig(function(err) {
-        assert.isNull(err);
-        assert.isArray(Wrapper._watchedFiles[opts.config]);
-        assert.equal(Wrapper._watchedFiles[opts.config].length, 1);
-
-        setTimeout(function() {
-          fs.writeFileSync(opts.config, 'module.exports = {test:2}');
-        }, utils.watcherWarmUpWait);
       });
     });
   });

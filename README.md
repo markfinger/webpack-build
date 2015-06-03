@@ -123,13 +123,7 @@ webpack({
   // `stats.urlsToAssets` and configure HMR support
   staticUrl: null,
 
-  // Indicates that the config file should be watched for changes.
-  // Any changes will cause webpack to completely rebuild the bundle
-  // on the next request. Note: this relies on hacks to circumvent Node's
-  // module cache and should be considered purely experimental
-  watchConfig: false,
-  
-  // The delay between the detection of a change in your source files and 
+  // The delay between the detection of a change in your source files and
   // the start of a watcher's rebuild process
   aggregateTimeout: 200,
   
