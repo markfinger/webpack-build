@@ -249,9 +249,9 @@ describe('build', function() {
               assert.isObject(stats3);
               assert.notStrictEqual(stats3, stats2);
 
-              assert.isString(cache.data.optsHash);
-              assert.equal(cache.data.optsHash, opts.hash);
-              assert.equal(cache.data.optsHash, wrapper.opts.hash);
+              assert.isString(cache.data.hash);
+              assert.equal(cache.data.hash, opts.hash);
+              assert.equal(cache.data.hash, wrapper.opts.hash);
 
               assert.isTrue(cache.delegate);
 

@@ -460,8 +460,7 @@ describe('Wrapper', function() {
       assert.deepEqual(cache.data, {});
 
       var wrapper = new Wrapper({
-        config: path.join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js'),
-        cacheKey: 'test'
+        config: path.join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js')
       }, null, cache);
 
       assert.strictEqual(wrapper.cache, cache);

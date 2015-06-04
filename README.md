@@ -89,11 +89,7 @@ Configuration
   // An absolute path to a file that will be used to store cached data
   cacheFile: null,
 
-  // The cache key used to distinguish the current request's compilation.
-  // If not defined, it is set to `opts.config + '__' + opts.hash`
-  cacheKey: null,
-
-  // A hash value used to distinguish requests, cached values, and hmr connections. 
+  // A hash value used to distinguish requests, cached values, and hmr connections.
   // If not defined, the wrapper serializes the options provided and generates a
   // md5 hash
   hash: null,
@@ -150,22 +146,11 @@ Configuration
 Caching
 -------
 
-The wrapper uses a mixture of file and memory caches to improve build times. Specifying the `cacheFile`
-option will allow the wrapper to persist the cache to disk, which can boost build times.
+The wrapper uses persistent file caches to improve initial build times. To avoid serving stale data,
+the cache tracks the build's file dependencies and will check file timestamps before serving up
+any data.
 
-When a request comes in and the cache has a record matching the `cacheKey` option, the cached data is
-compared against the current timestamps on both the config file and the source files. If the file system
-indicates that the cached data may be out of date, the wrapper will ignore the cached data and then 
-wait for webpack to complete a fresh build.
-
-If the `watch` option is set to true, as soon as the cached data is served, the watcher is started in
-the background.
-
-Whenever a compiler successfully builds, the cache is immediately updated with the output from the 
-build process.
-
-If you want to read cache files from another process, you should probably define the `cacheKey` or `hash` 
-options to ensure that the cache entries are easily accessible.
+File caches are populated whenever a build completes successfully.
 
 
 Environment configuration
