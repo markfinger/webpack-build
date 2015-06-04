@@ -193,10 +193,7 @@ describe('build', function() {
 
         assert.isString(opts.config);
         assert.isString(opts.hash);
-        assert.equal(
-          opts.cacheFile,
-          path.join(CACHE_DIR, (configFile + '__' + opts.hash + '.json').split(path.sep).join('_'))
-        );
+        assert.equal(opts.cacheFile, path.join(CACHE_DIR, opts.hash + '.json'));
 
         assert.equal(cache.filename, opts.cacheFile);
 

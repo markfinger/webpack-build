@@ -6,6 +6,7 @@ var _ = require('lodash');
 var mkdirp = require('mkdirp');
 var webpack = require('webpack');
 var Watcher = require('../lib/Watcher');
+var options = require('../lib/options');
 var utils = require('./utils');
 var assert = utils.assert;
 var TEST_OUTPUT_DIR = utils.TEST_OUTPUT_DIR;
@@ -24,7 +25,7 @@ describe('Watcher', function() {
   });
   it('should accept compiler and option arguments', function() {
     var compiler = webpack({});
-    var opts = {};
+    var opts = {hash:'foo'};
     var watcher = new Watcher(compiler, opts);
     assert.strictEqual(watcher.compiler, compiler);
     assert.strictEqual(watcher.opts, opts);
@@ -44,7 +45,7 @@ describe('Watcher', function() {
       mkdirp.sync(path.dirname(entry));
       fs.writeFileSync(entry, 'module.exports = "__HOOK_TEST_ONE__";');
 
-      var watcher = new Watcher(webpack(config));
+      var watcher = new Watcher(webpack(config), options.generate());
 
       var onInvalidCalls = 0;
       watcher.onInvalid(function() {
@@ -85,7 +86,7 @@ describe('Watcher', function() {
   describe('#onceReady', function() {
     it('should block until a bundle is generated', function(done) {
       var compiler = webpack(require('./test_bundles/basic_bundle/webpack.config'));
-      var watcher = new Watcher(compiler);
+      var watcher = new Watcher(compiler, options.generate());
       watcher.onceDone(function(err, stats) {
         assert.isNull(err);
         assert.isObject(stats);
@@ -111,9 +112,9 @@ describe('Watcher', function() {
       };
       mkdirp.sync(path.dirname(entry));
       fs.writeFileSync(entry, 'module.exports = "__INVALIDATED_BUNDLE_ONE__";');
-      var watcher = new Watcher(webpack(config), {
+      var watcher = new Watcher(webpack(config), options.generate({
         aggregateTimeout: 10
-      });
+      }));
       watcher.onceDone(function(err, stats) {
         assert.isNull(err);
         assert.isObject(stats);
@@ -145,7 +146,7 @@ describe('Watcher', function() {
           filename: 'some_file.js'
         }
       };
-      var watcher = new Watcher(webpack(config));
+      var watcher = new Watcher(webpack(config), options.generate());
 
       watcher.onceDone(function(err) {
         assert.instanceOf(err, Error);
@@ -167,7 +168,7 @@ describe('Watcher', function() {
         }
       });
 
-      var watcher = new Watcher(compiler);
+      var watcher = new Watcher(compiler, options.generate());
 
       mkdirp.sync(path.dirname(entry));
 
@@ -222,17 +223,9 @@ describe('Watcher', function() {
         }
       });
 
-      var watcher = new Watcher(compiler, {
+      var watcher = new Watcher(compiler, options.generate({
         aggregateTimeout: utils.aggregateTimeout
-      });
-
-      //watcher.onDone(function(err, stats) {
-      //  console.log('done', !!err, !!stats)
-      //});
-      //
-      //watcher.onInvalid(function() {
-      //  console.log('invalid')
-      //});
+      }));
 
       watcher.onceDone(function(err, stats) {
         assert.isNull(err);

@@ -33,9 +33,9 @@ describe('Wrapper', function() {
     assert.isFalse(wrapper.opts.watch);
     assert.isNumber(wrapper.opts.aggregateTimeout);
     assert.isUndefined(wrapper.opts.poll);
-    assert.isNull(wrapper.opts.outputPath);
-    assert.isNull(wrapper.opts.staticRoot);
-    assert.isNull(wrapper.opts.staticUrl);
+    assert.equal(wrapper.opts.outputPath, '');
+    assert.equal(wrapper.opts.staticRoot, '');
+    assert.equal(wrapper.opts.staticUrl, '');
   });
   it('should accept a string as a config option and import the file specified', function(done) {
     var wrapper = new Wrapper({
@@ -428,9 +428,9 @@ describe('Wrapper', function() {
     });
   });
   describe('#opts.outputPath', function() {
-    it('should default to null', function() {
+    it('should default to an empty string', function() {
       var wrapper = new Wrapper();
-      assert.isNull(wrapper.opts.outputPath);
+      assert.equal(wrapper.opts.outputPath, '');
 
       wrapper = new Wrapper({
         outputPath: '/foo/bar'
