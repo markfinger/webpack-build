@@ -125,8 +125,8 @@ describe('build', function() {
       });
     });
   });
-  describe('cache', function() {
-    it('should respect the cacheDir, cacheFile and cacheKey options', function(done) {
+  describe('file cache', function() {
+    it('should respect the cacheDir and cacheFile options', function(done) {
       var cacheFile = path.join(CACHE_DIR, 'test_cacheFile.json');
       var configFile = path.join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js');
 
@@ -201,27 +201,24 @@ describe('build', function() {
         done();
       });
     });
-    it('should stop using the cache once a watched bundle has been built', function(done) {
+    it('should stop serving cached data once a watcher has completed', function(done) {
       var cacheFile = path.join(CACHE_DIR, 'test_cache_stops_once_watcher_done.json');
       var configFile = path.join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js');
 
       mkdirp.sync(path.dirname(cacheFile));
 
       fs.writeFileSync(cacheFile, JSON.stringify({
-        testKey: {
-          startTime: +new Date() + 2000,
-          fileDependencies: [],
-          stats: {
-            test: {foo: 'bar'}
-          },
-          config: configFile
-        }
+        startTime: +new Date() + 2000,
+        fileDependencies: [],
+        stats: {
+          test: {foo: 'bar'}
+        },
+        config: configFile
       }));
 
       var opts = {
         config: configFile,
         cacheFile: cacheFile,
-        cacheKey: 'testKey',
         watch: true,
         logger: null
       };
@@ -231,11 +228,12 @@ describe('build', function() {
         assert.isObject(stats1);
         assert.deepEqual(stats1, {test: {foo: 'bar'}});
 
+        assert.strictEqual(wrapper.opts.cacheFile, cacheFile);
+
         var cache = build.caches.get(opts);
         assert.strictEqual(wrapper.cache, cache);
-        assert.strictEqual(wrapper.opts.cacheKey, 'testKey');
-        assert.strictEqual(stats1, cache.data.testKey.stats);
-        assert.isUndefined(cache.updated.testKey);
+        assert.strictEqual(stats1, cache.data.stats);
+        assert.isFalse(cache.delegate);
 
         build(opts, function(err, stats2) {
           assert.isNull(err);
@@ -243,7 +241,7 @@ describe('build', function() {
 
           assert.strictEqual(stats2, stats1);
           assert.deepEqual(stats2, {test: {foo: 'bar'}});
-          assert.isUndefined(cache.updated.testKey);
+          assert.isFalse(cache.delegate);
 
           setTimeout(function() {
             wrapper.onceDone(function(err, stats3) {
@@ -251,11 +249,11 @@ describe('build', function() {
               assert.isObject(stats3);
               assert.notStrictEqual(stats3, stats2);
 
-              assert.isString(cache.data.testKey.optsHash);
-              assert.equal(cache.data.testKey.optsHash, opts.hash);
-              assert.equal(cache.data.testKey.optsHash, wrapper.opts.hash);
+              assert.isString(cache.data.optsHash);
+              assert.equal(cache.data.optsHash, opts.hash);
+              assert.equal(cache.data.optsHash, wrapper.opts.hash);
 
-              assert.isTrue(cache.updated['testKey']);
+              assert.isTrue(cache.delegate);
 
               build(opts, function(err, stats4) {
                 assert.isNull(err);
