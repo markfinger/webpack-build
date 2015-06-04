@@ -4,6 +4,7 @@ var fs = require('fs');
 var path = require('path');
 var mkdirp = require('mkdirp');
 var Cache = require('../lib/Cache');
+var options = require('../lib/options');
 var utils = require('./utils');
 
 var assert = utils.assert;
@@ -23,13 +24,15 @@ describe('Cache', function() {
   });
   it('should accept a filename argument', function() {
     var filename = path.join(TEST_OUTPUT_DIR, 'cache_init_test.json');
-    var cache = new Cache(filename);
+    var cache = new Cache(options.generate({cacheFile: filename}));
     assert.equal(cache.filename, filename);
     assert.deepEqual(cache.data, {});
     assert.equal(fs.readFileSync(filename).toString(), '{}');
   });
   it('should be able to persist an entry to a file', function() {
-    var cache = new Cache(path.join(TEST_OUTPUT_DIR, 'cache_persist.json'));
+    var cache = new Cache(
+      options.generate({cacheFile: path.join(TEST_OUTPUT_DIR, 'cache_persist.json')})
+    );
     cache.set({foo: {bar: 'woz'}});
     var json = require(TEST_OUTPUT_DIR + '/cache_persist.json');
     assert.deepEqual(json, {foo: {bar: 'woz'}});
@@ -41,25 +44,23 @@ describe('Cache', function() {
 
     mkdirp.sync(path.dirname(filename));
 
-    var obj = {};
-    obj[testFile] = {
+    fs.writeFileSync(filename, JSON.stringify({
       startTime: startTime,
       fileDependencies: [filename],
       stats: {test: 'bar'},
       config: '/foo/bar'
-    };
+    }));
 
-    fs.writeFileSync(filename, JSON.stringify(obj));
     fs.writeFileSync(testFile, '{}');
 
-    var cache = new Cache(filename);
+    var cache = new Cache(options.generate({cacheFile: filename}), true);
 
-    var entry = cache.data[testFile];
-
-    assert.equal(entry.startTime, startTime);
-    assert.deepEqual(entry.fileDependencies, [filename]);
-    assert.deepEqual(entry.stats, {test: 'bar'});
-    assert.equal(entry.config, '/foo/bar');
+    assert.equal(cache.filename, filename);
+    assert.isObject(cache.data);
+    assert.equal(cache.data.startTime, startTime);
+    assert.deepEqual(cache.data.fileDependencies, [filename]);
+    assert.deepEqual(cache.data.stats, {test: 'bar'});
+    assert.equal(cache.data.config, '/foo/bar');
   });
   describe('#get', function() {
     it('should validate an entry\'s props', function(done) {
@@ -73,7 +74,7 @@ describe('Cache', function() {
       fs.writeFileSync(filename, '{}');
       fs.writeFileSync(testFile, '{}');
 
-      var cache = new Cache(filename);
+      var cache = new Cache(options.generate({cacheFile: filename}));
 
       cache.get(function(err, entry) {
         assert.isNull(err);
@@ -145,8 +146,8 @@ describe('Cache', function() {
 
       fs.writeFileSync(testFile, '{}');
 
-      var cache1 = new Cache(filename1);
-      var cache2 = new Cache(filename2);
+      var cache1 = new Cache(options.generate({cacheFile: filename1}));
+      var cache2 = new Cache(options.generate({cacheFile: filename2}));
 
       cache1.get(function(err, entry) {
         assert.instanceOf(err, Error);
@@ -170,7 +171,7 @@ describe('Cache', function() {
       var filename = path.join(TEST_OUTPUT_DIR, 'cache_set.json');
       mkdirp.sync(path.dirname(filename));
 
-      var cache = new Cache(filename);
+      var cache = new Cache(options.generate({cacheFile: filename}));
 
       cache.set({foo: {bar: 'woz'}});
 

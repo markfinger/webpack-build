@@ -6,6 +6,7 @@ var mkdirp = require('mkdirp');
 var webpack = require('webpack');
 var Wrapper = require('../lib/Wrapper');
 var Watcher = require('../lib/Watcher');
+var options = require('../lib/options');
 var Cache = require('../lib/Cache');
 var utils = require('./utils');
 var assert = utils.assert;
@@ -456,7 +457,9 @@ describe('Wrapper', function() {
   });
   describe('#cache', function() {
     it('should be able to populate a cache', function(done) {
-      var cache = new Cache(path.join(TEST_OUTPUT_DIR, 'bundle_test_cache.json'));
+      var cache = new Cache(
+        options.generate({cacheFile: path.join(TEST_OUTPUT_DIR, 'bundle_test_cache.json')})
+      );
       assert.deepEqual(cache.data, {});
 
       var wrapper = new Wrapper({
