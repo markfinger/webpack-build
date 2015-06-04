@@ -102,11 +102,17 @@ describe('Cache', function() {
                 cache.data.config = testFile;
                 cache.get(function(err, entry) {
                   assert.isNull(err);
-                  assert.isObject(entry);
+                  assert.isNull(entry);
 
-                  assert.strictEqual(entry, cache.data);
+                  cache.data.hash = 'foo';
+                  cache.get(function(err, entry) {
+                    assert.isNull(err);
+                    assert.isObject(entry);
 
-                  done();
+                    assert.strictEqual(entry, cache.data);
+
+                    done();
+                  });
                 });
               });
             });
@@ -125,14 +131,16 @@ describe('Cache', function() {
         startTime: +new Date() - 1000,
         fileDependencies: [filename1],
         stats: {test: 1},
-        config: testFile
+        config: testFile,
+        hash: 'foo1'
       }));
 
       fs.writeFileSync(filename2, JSON.stringify({
         startTime: +new Date() + 1000,
         fileDependencies: [filename2],
         stats: {test: 2},
-        config: testFile
+        config: testFile,
+        hash: 'foo2'
       }));
 
       fs.writeFileSync(testFile, '{}');

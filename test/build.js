@@ -138,13 +138,15 @@ describe('build', function() {
         stats: {
           test: {foo: 'bar'}
         },
-        config: configFile
+        config: configFile,
+        hash: 'foo'
       }));
 
       build({
         config: configFile,
         cacheFile: cacheFile,
-        logger: null
+        logger: null,
+        hash: 'foo'
       }, function(err, stats){
         assert.isNull(err);
         assert.isObject(stats);
@@ -213,14 +215,16 @@ describe('build', function() {
         stats: {
           test: {foo: 'bar'}
         },
-        config: configFile
+        config: configFile,
+        hash: 'foo'
       }));
 
       var opts = {
         config: configFile,
         cacheFile: cacheFile,
         watch: true,
-        logger: null
+        logger: null,
+        hash: 'foo'
       };
 
       var wrapper = build(opts, function(err, stats1) {
