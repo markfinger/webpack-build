@@ -84,7 +84,7 @@ Configuration
   
   // Indicates that webpack should watch the source files for changes 
   // and rebuild in the background
-  watch: false,
+  watch: true,
   
   // An absolute path to a file that will be used to store cached data
   cacheFile: null,
