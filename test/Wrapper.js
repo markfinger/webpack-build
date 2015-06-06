@@ -542,10 +542,10 @@ describe('Wrapper', function() {
 
         assert.isObject(stats.urlsToAssets);
         assert.isObject(stats.rendered);
-        assert.isArray(stats.rendered.styleSheets);
-        assert.isArray(stats.rendered.scripts);
-        assert.equal(stats.rendered.scripts.length, 1);
-        assert.equal(stats.rendered.scripts[0], '<script src="/static/url/test/output.js"></script>');
+        assert.isArray(stats.rendered.link);
+        assert.isArray(stats.rendered.script);
+        assert.equal(stats.rendered.script.length, 1);
+        assert.equal(stats.rendered.script[0], '<script src="/static/url/test/output.js"></script>');
 
         done();
       });
