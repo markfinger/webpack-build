@@ -123,7 +123,7 @@ cached data, file timestamps and package versions are checked.
 Environment configuration
 -------------------------
 
-You can specify functions in your config file which can be run to generate env-specific configuration.
+You can specify functions in your config file which can be run to generate environment-specific configuration.
 
 ```javascript
 module.exports = {
@@ -156,7 +156,7 @@ build({
 });
 ```
 
-`env` functions are provided with both the config object and the build's options object.
+`env` functions are provided with both the config object and the options object passed in to `build`.
 
 The wrapper also comes with some convenience functions that apply changes to handle common
 situations and help you avoid boilerplate.
@@ -213,7 +213,7 @@ build({
 
 When assets are rendered on the front-end, they open sockets to the build server and
 attempt to hot update whenever possible. If hot updates are not possible, console logs
-will indicate that need to refresh to see the updates.
+will indicate the need to refresh for updates to be applied.
 
 Colophon
 --------
