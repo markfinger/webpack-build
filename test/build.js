@@ -135,6 +135,7 @@ describe('build', function() {
       fs.writeFileSync(cacheFile, JSON.stringify({
         startTime: +new Date() + 2000,
         fileDependencies: [],
+        dependencies: [],
         stats: {
           test: {foo: 'bar'}
         },
@@ -209,6 +210,7 @@ describe('build', function() {
       fs.writeFileSync(cacheFile, JSON.stringify({
         startTime: +new Date() + 2000,
         fileDependencies: [],
+        dependencies: [],
         stats: {
           test: {foo: 'bar'}
         },

@@ -6,6 +6,8 @@ var mkdirp = require('mkdirp');
 var Cache = require('../lib/Cache');
 var options = require('../lib/options');
 var utils = require('./utils');
+var webpackPackageJson = require('webpack/package');
+var packageJson = require('../package');
 
 var assert = utils.assert;
 var TEST_OUTPUT_DIR = utils.TEST_OUTPUT_DIR;
@@ -108,11 +110,29 @@ describe('Cache', function() {
                   cache.data.hash = 'foo';
                   cache.get(function(err, entry) {
                     assert.isNull(err);
-                    assert.isObject(entry);
+                    assert.isNull(entry);
 
-                    assert.strictEqual(entry, cache.data);
+                    cache.data.dependencies = {
+                      webpack: webpackPackageJson.version,
+                      'webpack-build': null
+                    };
+                    cache.get(function(err, entry) {
+                      assert.isNull(err);
+                      assert.isNull(entry);
 
-                    done();
+                      cache.data.dependencies = {
+                        webpack: webpackPackageJson.version,
+                        'webpack-build': packageJson.version
+                      };
+                      cache.get(function(err, entry) {
+                        assert.isNull(err);
+                        assert.isObject(entry);
+
+                        assert.strictEqual(entry, cache.data);
+
+                        done();
+                      });
+                    });
                   });
                 });
               });
@@ -131,6 +151,7 @@ describe('Cache', function() {
       fs.writeFileSync(filename1, JSON.stringify({
         startTime: +new Date() - 1000,
         fileDependencies: [filename1],
+        dependencies: {},
         stats: {test: 1},
         config: testFile,
         hash: 'foo1'
@@ -139,6 +160,7 @@ describe('Cache', function() {
       fs.writeFileSync(filename2, JSON.stringify({
         startTime: +new Date() + 1000,
         fileDependencies: [filename2],
+        dependencies: {},
         stats: {test: 2},
         config: testFile,
         hash: 'foo2'
