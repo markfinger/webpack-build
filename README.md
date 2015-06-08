@@ -180,7 +180,11 @@ module.exports = {
 - Sets `output.pathinfo` to `true`
 - Adds `new webpack.optimize.OccurrenceOrderPlugin()`
 - Adds `new webpack.NoErrorsPlugin()`
-- Adds `new webpack.DefinePlugin({'process.env': {NODE_ENV: JSON.stringify('development')}})`
+- Adds ```
+new webpack.DefinePlugin({
+  'process.env': {NODE_ENV: JSON.stringify('development')}
+})
+```
 
 
 `build.env.prod(config, opts)`
@@ -190,7 +194,12 @@ module.exports = {
 - Adds `new webpack.NoErrorsPlugin()`
 - Adds `new webpack.optimize.DedupePlugin()`
 - Adds `new webpack.optimize.UglifyJsPlugin()`
-- Adds `new webpack.DefinePlugin({'process.env': {NODE_ENV: JSON.stringify('production')}})`
+- Adds
+```
+new webpack.DefinePlugin({
+  'process.env': {NODE_ENV: JSON.stringify('production')}
+})
+```
 
 
 HMR
