@@ -181,7 +181,7 @@ module.exports = {
   output: {
     // ...
     pathinfo: true
-  }
+  },
   devtool: 'eval-source-maps',
   plugins: [
     // ...
