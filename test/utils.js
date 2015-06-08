@@ -10,10 +10,6 @@ chai.config.includeStack = true;
 
 var CI = !!process.env.TRAVIS;
 
-if (CI) {
-  console.log('Detected CI environment. Tweaking settings...');
-}
-
 module.exports = {
   assert: chai.assert,
   TEST_OUTPUT_DIR: TEST_OUTPUT_DIR,
@@ -27,3 +23,7 @@ module.exports = {
   watcherWait: CI ? 1000 : 400,
   watcherTimeout: CI ? 10000 : 2000
 };
+
+if (CI) {
+  console.log('Detected CI environment. Settings...', JSON.stringify(module.exports));
+}
