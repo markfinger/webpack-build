@@ -1,6 +1,6 @@
 {
   "name": "webpack-build",
-  "version": "0.6.1",
+  "version": "0.7.0",
   "description": "A build library which wraps webpack and provides a variety of optimizations and utilities",
   "main": "lib/index.js",
   "author": "Mark Finger <markfinger@gmail.com>",
