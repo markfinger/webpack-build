@@ -28,11 +28,6 @@ class Wrapper {
     // Callbacks
     this._onceDone = [];
   }
-  invalidate() {
-    if (this.watching) {
-      this.watcher.invalidate();
-    }
-  }
   getConfig(cb) {
     if (this.config) {
       return cb(null, this.config);
