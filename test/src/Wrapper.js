@@ -1,34 +1,32 @@
-'use strict';
+import fs from 'fs';
+import path from 'path';
+import mkdirp from 'mkdirp';
+import webpack from 'webpack';
+import Wrapper from '../../lib/Wrapper';
+import Watcher from '../../lib/Watcher';
+import options from '../../lib/options';
+import Cache from '../../lib/Cache';
+import utils from './utils';
 
-var fs = require('fs');
-var path = require('path');
-var mkdirp = require('mkdirp');
-var webpack = require('webpack');
-var Wrapper = require('../lib/Wrapper');
-var Watcher = require('../lib/Watcher');
-var options = require('../lib/options');
-var Cache = require('../lib/Cache');
-var utils = require('./utils');
-var assert = utils.assert;
-
-var TEST_OUTPUT_DIR = utils.TEST_OUTPUT_DIR;
+let assert = utils.assert;
+let TEST_OUTPUT_DIR = utils.TEST_OUTPUT_DIR;
 
 // Ensure we have a clean slate before and after each test
-beforeEach(function() {
+beforeEach(() => {
   utils.cleanTestOutputDir();
 });
-afterEach(function() {
+afterEach(() => {
   utils.cleanTestOutputDir();
 });
 
-describe('Wrapper', function() {
-  it('should be a function', function() {
+describe('Wrapper', () => {
+  it('should be a function', () => {
     assert.isFunction(Wrapper);
   });
-  it('should accept options and config arguments', function() {
-    var opts = {};
-    var config = {};
-    var wrapper = new Wrapper(opts, config);
+  it('should accept options and config arguments', () => {
+    let opts = {};
+    let config = {};
+    let wrapper = new Wrapper(opts, config);
     assert.strictEqual(wrapper.opts, opts);
     assert.strictEqual(wrapper.config, config);
     assert.isTrue(wrapper.opts.watch);
@@ -38,52 +36,52 @@ describe('Wrapper', function() {
     assert.equal(wrapper.opts.staticRoot, '');
     assert.equal(wrapper.opts.staticUrl, '');
   });
-  it('should accept a string as a config option and import the file specified', function(done) {
-    var wrapper = new Wrapper({
+  it('should accept a string as a config option and import the file specified', (done) => {
+    let wrapper = new Wrapper({
       config: path.join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js')
     });
-    wrapper.getConfig(function(err, config) {
+    wrapper.getConfig((err, config) => {
       assert.isNull(err);
       assert.strictEqual(config, require('./test_bundles/basic_bundle/webpack.config'));
       done();
     });
   });
-  it('should compile a basic bundle', function(done) {
-    var wrapper = new Wrapper({}, require('./test_bundles/basic_bundle/webpack.config'));
+  it('should compile a basic bundle', (done) => {
+    let wrapper = new Wrapper({}, require('./test_bundles/basic_bundle/webpack.config'));
 
-    wrapper.compile(function(err, stats) {
+    wrapper.compile((err, stats) => {
       assert.isNull(err);
       assert.isObject(stats);
 
-      var existsAt = stats.pathsToAssets['output.js'];
+      let existsAt = stats.pathsToAssets['output.js'];
       assert.isString(existsAt);
-      fs.readFile(existsAt, function(err, contents) {
+      fs.readFile(existsAt, (err, contents) => {
         assert.isNull(err);
-        var compiledWrapper = contents.toString();
+        let compiledWrapper = contents.toString();
         assert.include(compiledWrapper, '__BASIC_BUNDLE_ENTRY_TEST__');
         assert.include(compiledWrapper, '__BASIC_BUNDLE_REQUIRE_TEST__');
         done();
       });
     });
   });
-  it('should expose the webpack config on the stats object', function(done) {
-    var wrapper = new Wrapper({}, require('./test_bundles/basic_bundle/webpack.config'));
+  it('should expose the webpack config on the stats object', (done) => {
+    let wrapper = new Wrapper({}, require('./test_bundles/basic_bundle/webpack.config'));
 
-    wrapper.compile(function(err, stats) {
+    wrapper.compile((err, stats) => {
       assert.isNull(err);
       assert.isObject(stats);
       assert.strictEqual(stats.webpackConfig, require('./test_bundles/basic_bundle/webpack.config'));
       done();
     });
   });
-  describe('#getCompiler', function() {
-    it('should not preserved the compiler', function(done) {
-      var wrapper = new Wrapper({}, {});
+  describe('#getCompiler', () => {
+    it('should not preserved the compiler', (done) => {
+      let wrapper = new Wrapper({}, {});
 
-      wrapper.getCompiler(function(err, compiler1) {
+      wrapper.getCompiler((err, compiler1) => {
         assert.isNull(err);
         assert.isObject(compiler1);
-        wrapper.getCompiler(function(err, compiler2) {
+        wrapper.getCompiler((err, compiler2) => {
           assert.isNull(err);
           assert.isObject(compiler2);
           assert.notStrictEqual(compiler1, compiler2);
@@ -92,24 +90,24 @@ describe('Wrapper', function() {
       });
     });
   });
-  describe('#getWatcher', function() {
-    it('should provide an instance of Watcher', function(done) {
-      var wrapper = new Wrapper({watch: true}, {});
+  describe('#getWatcher', () => {
+    it('should provide an instance of Watcher', (done) => {
+      let wrapper = new Wrapper({watch: true}, {});
 
-      wrapper.getWatcher(function(err, watcher) {
+      wrapper.getWatcher((err, watcher) => {
         assert.isNull(err);
         assert.instanceOf(watcher, Watcher);
         done();
       });
     });
-    it('should preserve the watcher', function(done) {
-      var wrapper = new Wrapper({watch: true}, {});
+    it('should preserve the watcher', (done) => {
+      let wrapper = new Wrapper({watch: true}, {});
 
-      wrapper.getWatcher(function(err, watcher1) {
+      wrapper.getWatcher((err, watcher1) => {
         assert.isNull(err);
         assert.isObject(watcher1);
 
-        wrapper.getWatcher(function(err, watcher2) {
+        wrapper.getWatcher((err, watcher2) => {
           assert.isNull(err);
           assert.isObject(watcher2);
 
@@ -119,27 +117,27 @@ describe('Wrapper', function() {
       });
     });
   });
-  describe('#processStats', function() {
-    it('should produce a serializable form of the stats', function (done) {
-      var wrapper = new Wrapper({
+  describe('#processStats', () => {
+    it('should produce a serializable form of the stats', (done) => {
+      let wrapper = new Wrapper({
         watch: false,
         config: path.join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js')
       });
 
-      wrapper.getCompiler(function(err, compiler) {
+      wrapper.getCompiler((err, compiler) => {
         assert.isNull(err);
         assert.isObject(compiler);
 
-        compiler.run(function(err, stats) {
+        compiler.run((err, stats) => {
           assert.isNull(err);
           assert.isObject(stats);
 
-          var processed = wrapper.processStats(stats);
+          let processed = wrapper.processStats(stats);
 
           // webpack inserts regexes which can't be serialized
           processed.webpackConfig.module = null;
 
-          var serialized = JSON.stringify(processed);
+          let serialized = JSON.stringify(processed);
           assert.deepEqual(JSON.parse(serialized), processed);
 
           done();
@@ -147,18 +145,18 @@ describe('Wrapper', function() {
       });
     });
   });
-  describe('#onceDone', function() {
-    it('should not preserve errors and stats from the compilation, if not watching', function(done) {
-      var wrapper = new Wrapper({
+  describe('#onceDone', () => {
+    it('should not preserve errors and stats from the compilation, if not watching', (done) => {
+      let wrapper = new Wrapper({
         watch: false,
         config: path.join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js')
       });
 
-      wrapper.onceDone(function(err1, stats1) {
+      wrapper.onceDone((err1, stats1) => {
         assert.isNull(err1);
         assert.isObject(stats1);
 
-        wrapper.onceDone(function(err2, stats2) {
+        wrapper.onceDone((err2, stats2) => {
           assert.isNull(err2);
           assert.isObject(stats2);
           assert.notStrictEqual(stats2, stats1);
@@ -166,17 +164,17 @@ describe('Wrapper', function() {
         });
       });
     });
-    it('should preserve errors and stats from the compilation, if watching', function(done) {
-      var wrapper = new Wrapper({
+    it('should preserve errors and stats from the compilation, if watching', (done) => {
+      let wrapper = new Wrapper({
         watch: true,
         config: path.join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js')
       });
 
-      wrapper.onceDone(function(err1, stats1) {
+      wrapper.onceDone((err1, stats1) => {
         assert.isNull(err1);
         assert.isObject(stats1);
 
-        wrapper.onceDone(function(err2, stats2) {
+        wrapper.onceDone((err2, stats2) => {
           assert.isNull(err2);
           assert.isObject(stats2);
           assert.deepEqual(stats2, stats1);
@@ -184,11 +182,11 @@ describe('Wrapper', function() {
         });
       });
     });
-    it('should rebuild wrappers when onceDone is called', function(done) {
-      var entry = path.join(TEST_OUTPUT_DIR, 'rebuilt_bundles', 'entry.js');
-      var output = path.join(TEST_OUTPUT_DIR, 'rebuilt_bundles', 'output.js');
+    it('should rebuild wrappers when onceDone is called', (done) => {
+      let entry = path.join(TEST_OUTPUT_DIR, 'rebuilt_bundles', 'entry.js');
+      let output = path.join(TEST_OUTPUT_DIR, 'rebuilt_bundles', 'output.js');
 
-      var wrapper = new Wrapper({
+      let wrapper = new Wrapper({
         watch: false
       }, {
         context: path.dirname(entry),
@@ -202,15 +200,15 @@ describe('Wrapper', function() {
       mkdirp.sync(path.dirname(entry));
       fs.writeFileSync(entry, 'module.exports = "__REBUILT_TEST_ONE__";');
 
-      wrapper.onceDone(function(err, stats) {
+      wrapper.onceDone((err, stats) => {
         assert.isNull(err);
         assert.isObject(stats);
         assert.equal(output, stats.pathsToAssets['output.js']);
-        var contents = fs.readFileSync(output);
+        let contents = fs.readFileSync(output);
         assert.include(contents.toString(), '__REBUILT_TEST_ONE__');
 
         fs.writeFileSync(entry, 'module.exports = "__REBUILT_TEST_TWO__";');
-        wrapper.onceDone(function(err, stats) {
+        wrapper.onceDone((err, stats) => {
           assert.isNull(err);
           assert.isObject(stats);
           assert.equal(output, stats.pathsToAssets['output.js']);
@@ -218,7 +216,7 @@ describe('Wrapper', function() {
           assert.include(contents.toString(), '__REBUILT_TEST_TWO__');
 
           fs.writeFileSync(entry, 'module.exports = "__REBUILT_TEST_THREE__";');
-          wrapper.onceDone(function(err, stats) {
+          wrapper.onceDone((err, stats) => {
             assert.isNull(err);
             assert.isObject(stats);
             assert.equal(output, stats.pathsToAssets['output.js']);
@@ -230,9 +228,9 @@ describe('Wrapper', function() {
       });
     });
   });
-  describe('#opts.aggregateTimeout', function() {
-    it('should default to 200', function () {
-      var wrapper = new Wrapper();
+  describe('#opts.aggregateTimeout', () => {
+    it('should default to 200', () => {
+      let wrapper = new Wrapper();
       assert.equal(wrapper.opts.aggregateTimeout, 200);
 
       wrapper = new Wrapper({
@@ -241,9 +239,9 @@ describe('Wrapper', function() {
 
       assert.equal(wrapper.opts.aggregateTimeout, 300);
     });
-    it('should be passed to the watcher', function(done) {
-      var wrapper = new Wrapper({}, {});
-      wrapper.getWatcher(function(err, watcher) {
+    it('should be passed to the watcher', (done) => {
+      let wrapper = new Wrapper({}, {});
+      wrapper.getWatcher((err, watcher) => {
         assert.isNull(err);
         assert.equal(watcher.opts.aggregateTimeout, 200);
 
@@ -251,7 +249,7 @@ describe('Wrapper', function() {
           aggregateTimeout: 300
         }, {});
 
-        wrapper.getWatcher(function(err, watcher) {
+        wrapper.getWatcher((err, watcher) => {
           assert.isNull(err);
           assert.equal(watcher.opts.aggregateTimeout, 300);
           done();
@@ -259,9 +257,9 @@ describe('Wrapper', function() {
       });
     });
   });
-  describe('#opts.watch', function() {
-    it('should default to true', function() {
-      var wrapper = new Wrapper();
+  describe('#opts.watch', () => {
+    it('should default to true', () => {
+      let wrapper = new Wrapper();
       assert.isTrue(wrapper.opts.watch);
 
       wrapper = new Wrapper({
@@ -273,10 +271,10 @@ describe('Wrapper', function() {
     it('should cause file changes to trigger bundle rebuilds', function(done) {
       this.timeout(utils.watcherTimeout);
 
-      var entry = path.join(TEST_OUTPUT_DIR, 'watch_source', 'entry.js');
-      var output = path.join(TEST_OUTPUT_DIR, 'watch_source', 'output.js');
+      let entry = path.join(TEST_OUTPUT_DIR, 'watch_source', 'entry.js');
+      let output = path.join(TEST_OUTPUT_DIR, 'watch_source', 'output.js');
 
-      var wrapper = new Wrapper({
+      let wrapper = new Wrapper({
         watch: true,
         aggregateTimeout: utils.aggregateTimeout
       }, {
@@ -291,18 +289,18 @@ describe('Wrapper', function() {
       mkdirp.sync(path.dirname(entry));
       fs.writeFileSync(entry, 'module.exports = "__WATCH_TEST_ONE__";');
 
-      wrapper.onceDone(function(err, stats) {
+      wrapper.onceDone((err, stats) => {
         assert.isNull(err);
         assert.isObject(stats);
         assert.equal(output, stats.pathsToAssets['output.js']);
-        var contents = fs.readFileSync(output);
+        let contents = fs.readFileSync(output);
         assert.include(contents.toString(), '__WATCH_TEST_ONE__');
 
-        setTimeout(function() {
+        setTimeout(() => {
           fs.writeFileSync(entry, 'module.exports = "__WATCH_TEST_TWO__";');
 
-          setTimeout(function() {
-            wrapper.onceDone(function(err, stats) {
+          setTimeout(() => {
+            wrapper.onceDone((err, stats) => {
               assert.isNull(err);
               assert.isObject(stats);
               assert.property(stats.pathsToAssets, 'output.js');
@@ -312,8 +310,8 @@ describe('Wrapper', function() {
 
               fs.writeFileSync(entry, 'module.exports = "__WATCH_TEST_THREE__";');
 
-              setTimeout(function() {
-                wrapper.onceDone(function(err, stats) {
+              setTimeout(() => {
+                wrapper.onceDone((err, stats) => {
                   assert.isNull(err);
                   assert.isObject(stats);
                   assert.equal(output, stats.pathsToAssets['output.js']);
@@ -330,10 +328,10 @@ describe('Wrapper', function() {
     it('should indicate any errors which occurred during background compilation', function(done) {
       this.timeout(utils.watcherTimeout);
 
-      var entry = path.join(TEST_OUTPUT_DIR, 'watched_file_error', 'entry.js');
-      var output = path.join(TEST_OUTPUT_DIR, 'watched_file_error', 'output.js');
+      let entry = path.join(TEST_OUTPUT_DIR, 'watched_file_error', 'entry.js');
+      let output = path.join(TEST_OUTPUT_DIR, 'watched_file_error', 'output.js');
 
-      var wrapper = new Wrapper({
+      let wrapper = new Wrapper({
         watch: true,
         aggregateTimeout: utils.aggregateTimeout
       }, {
@@ -348,22 +346,22 @@ describe('Wrapper', function() {
       mkdirp.sync(path.dirname(entry));
       fs.writeFileSync(entry, 'module.exports = "__WATCHED_FILE_ERROR_ONE__";');
 
-      wrapper.onceDone(function(err1, stats1) {
+      wrapper.onceDone((err1, stats1) => {
         assert.isNull(err1);
         assert.isObject(stats1);
         assert.equal(output, stats1.pathsToAssets['output.js']);
-        var contents = fs.readFileSync(output);
+        let contents = fs.readFileSync(output);
         assert.include(contents.toString(), '__WATCHED_FILE_ERROR_ONE__');
 
-        setTimeout(function() {
+        setTimeout(() => {
           fs.writeFileSync(entry, '+?');
 
-          setTimeout(function() {
-            wrapper.onceDone(function(err2, stats2) {
+          setTimeout(() => {
+            wrapper.onceDone((err2, stats2) => {
               assert.instanceOf(err2, Error);
               assert.isObject(stats2);
 
-              wrapper.onceDone(function(err3, stats3) {
+              wrapper.onceDone((err3, stats3) => {
                 assert.instanceOf(err3, Error);
                 assert.isObject(stats3);
                 assert.strictEqual(err3, err2);
@@ -379,10 +377,10 @@ describe('Wrapper', function() {
     it('should continue to compile if a file change introduces an error', function(done) {
       this.timeout(utils.watcherTimeout);
 
-      var entry = path.join(TEST_OUTPUT_DIR, 'watched_file_continues_to_compile', 'entry.js');
-      var output = path.join(TEST_OUTPUT_DIR, 'watched_file_continues_to_compile', 'output.js');
+      let entry = path.join(TEST_OUTPUT_DIR, 'watched_file_continues_to_compile', 'entry.js');
+      let output = path.join(TEST_OUTPUT_DIR, 'watched_file_continues_to_compile', 'output.js');
 
-      var wrapper = new Wrapper({
+      let wrapper = new Wrapper({
         watch: true,
         aggregateTimeout: utils.aggregateTimeout
       }, {
@@ -397,29 +395,29 @@ describe('Wrapper', function() {
       mkdirp.sync(path.dirname(entry));
       fs.writeFileSync(entry, 'module.exports = "__WATCHED_FILE_ERROR_ONE__";');
 
-      wrapper.onceDone(function(err, stats) {
+      wrapper.onceDone((err, stats) => {
         assert.isNull(err);
         assert.isObject(stats);
         assert.equal(output, stats.pathsToAssets['output.js']);
-        var contents = fs.readFileSync(output);
+        let contents = fs.readFileSync(output);
         assert.include(contents.toString(), '__WATCHED_FILE_ERROR_ONE__');
 
-        setTimeout(function() {
+        setTimeout(() => {
           fs.writeFileSync(entry, '+?');
 
-          setTimeout(function() {
-            wrapper.onceDone(function(err, stats) {
+          setTimeout(() => {
+            wrapper.onceDone((err, stats) => {
               assert.instanceOf(err, Error);
               assert.isObject(stats);
 
               fs.writeFileSync(entry, '__WATCHED_FILE_ERROR_TWO__');
 
-              setTimeout(function() {
-                wrapper.onceDone(function(err, stats) {
+              setTimeout(() => {
+                wrapper.onceDone((err, stats) => {
                   assert.isNull(err);
                   assert.isObject(stats);
                   assert.equal(output, stats.pathsToAssets['output.js']);
-                  var contents = fs.readFileSync(output);
+                  let contents = fs.readFileSync(output);
                   assert.include(contents.toString(), '__WATCHED_FILE_ERROR_TWO__');
                   done();
                 });
@@ -430,9 +428,9 @@ describe('Wrapper', function() {
       });
     });
   });
-  describe('#opts.outputPath', function() {
-    it('should default to an empty string', function() {
-      var wrapper = new Wrapper();
+  describe('#opts.outputPath', () => {
+    it('should default to an empty string', () => {
+      let wrapper = new Wrapper();
       assert.equal(wrapper.opts.outputPath, '');
 
       wrapper = new Wrapper({
@@ -441,13 +439,13 @@ describe('Wrapper', function() {
 
       assert.equal(wrapper.opts.outputPath, '/foo/bar');
     });
-    it('should set a config\'s output.path prop', function(done) {
-      var wrapper = new Wrapper({
+    it('should set a config\'s output.path prop', (done) => {
+      let wrapper = new Wrapper({
         config: path.join(__dirname, 'test_bundles', 'output_path_bundle', 'webpack.config.js'),
         outputPath: '/some/path/'
       });
 
-      wrapper.getConfig(function(err, config) {
+      wrapper.getConfig((err, config) => {
         assert.isNull(err);
         assert.equal(config.context, 'context');
         assert.equal(config.entry, 'entry');
@@ -457,25 +455,25 @@ describe('Wrapper', function() {
       });
     });
   });
-  describe('#cache', function() {
-    it('should be able to populate a cache', function(done) {
-      var cache = new Cache(
+  describe('#cache', () => {
+    it('should be able to populate a cache', (done) => {
+      let cache = new Cache(
         options.generate({cacheFile: path.join(TEST_OUTPUT_DIR, 'bundle_test_cache.json')})
       );
       assert.deepEqual(cache.data, {});
 
-      var wrapper = new Wrapper({
+      let wrapper = new Wrapper({
         config: path.join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js')
       }, null, cache);
 
       assert.strictEqual(wrapper.cache, cache);
       assert.isString(wrapper.opts.config);
 
-      wrapper.onceDone(function(err, stats) {
+      wrapper.onceDone((err, stats) => {
         assert.isNull(err);
         assert.isObject(stats);
 
-        cache.get(function(err, entry) {
+        cache.get((err, entry) => {
           assert.isNull(err);
           assert.isObject(entry);
 
@@ -489,16 +487,16 @@ describe('Wrapper', function() {
       });
     });
   });
-  describe('#stats.urlsToAssets', function() {
-    it('should create urls relative to staticRoot', function(done) {
-      var wrapper = new Wrapper({
+  describe('#stats.urlsToAssets', () => {
+    it('should create urls relative to staticRoot', (done) => {
+      let wrapper = new Wrapper({
         config: path.join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js'),
         outputPath: path.join(TEST_OUTPUT_DIR, 'url', 'test'),
         staticRoot: TEST_OUTPUT_DIR,
         staticUrl: '/static/'
       });
 
-      wrapper.compile(function(err, stats) {
+      wrapper.compile((err, stats) => {
         assert.isNull(err);
         assert.isObject(stats);
 
@@ -508,15 +506,15 @@ describe('Wrapper', function() {
         done();
       });
     });
-    it('should handle staticUrl without a trailing slash', function(done) {
-      var wrapper = new Wrapper({
+    it('should handle staticUrl without a trailing slash', (done) => {
+      let wrapper = new Wrapper({
         config: path.join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js'),
         outputPath: path.join(TEST_OUTPUT_DIR, 'url', 'test'),
         staticRoot: TEST_OUTPUT_DIR,
         staticUrl: '/static'
       });
 
-      wrapper.compile(function(err, stats) {
+      wrapper.compile((err, stats) => {
         assert.isNull(err);
         assert.isObject(stats);
 
@@ -527,16 +525,16 @@ describe('Wrapper', function() {
       });
     });
   });
-  describe('#stats.rendered', function() {
-    it('should create rendered elements using staticRoot and staticUrl', function(done) {
-      var wrapper = new Wrapper({
+  describe('#stats.rendered', () => {
+    it('should create rendered elements using staticRoot and staticUrl', (done) => {
+      let wrapper = new Wrapper({
         config: path.join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js'),
         outputPath: path.join(TEST_OUTPUT_DIR, 'url', 'test'),
         staticRoot: TEST_OUTPUT_DIR,
         staticUrl: '/static/'
       });
 
-      wrapper.compile(function(err, stats) {
+      wrapper.compile((err, stats) => {
         assert.isNull(err);
         assert.isObject(stats);
 
@@ -551,12 +549,12 @@ describe('Wrapper', function() {
       });
     });
   });
-  describe('#opts.env', function() {
-    it('should call the function matched on the config object', function(done) {
-      var wrapper = new Wrapper({
+  describe('#opts.env', () => {
+    it('should call the function matched on the config object', (done) => {
+      let wrapper = new Wrapper({
         config: {
           env: {
-            foo: function() {
+            foo: () => {
               done();
             }
           }
@@ -564,16 +562,16 @@ describe('Wrapper', function() {
         env: 'foo'
       });
 
-      wrapper.getConfig(function(){});
+      wrapper.getConfig(() =>{});
     });
-    it('should provide the config and opts objects', function(done) {
-      var opts = {
+    it('should provide the config and opts objects', (done) => {
+      let opts = {
         env: 'foo'
       };
 
-      var config = {
+      let config = {
         env: {
-          foo: function(_config, _opts) {
+          foo: (_config, _opts) => {
             assert.strictEqual(_config, config);
             assert.strictEqual(_opts, opts);
             done();
@@ -583,15 +581,15 @@ describe('Wrapper', function() {
 
       opts.config = config;
 
-      var wrapper = new Wrapper(opts);
+      let wrapper = new Wrapper(opts);
 
-      wrapper.getConfig(function(){});
+      wrapper.getConfig(() =>{});
     });
-    it('should accept mutations to the config object', function(done) {
-      var wrapper = new Wrapper({
+    it('should accept mutations to the config object', (done) => {
+      let wrapper = new Wrapper({
         config: {
           env: {
-            foo: function(config) {
+            foo: (config) => {
               config.devtool = 'eval';
             }
           }
@@ -599,7 +597,7 @@ describe('Wrapper', function() {
         env: 'foo'
       });
 
-      wrapper.getConfig(function(err, config){
+      wrapper.getConfig((err, config) => {
         assert.isNull(err);
         assert.isObject(config);
 
@@ -608,11 +606,11 @@ describe('Wrapper', function() {
       });
     });
   });
-  describe('#opts.hmr', function() {
-    it('should add hmr settings and entries', function(done) {
-      var publicPath = '/static/foo';
+  describe('#opts.hmr', () => {
+    it('should add hmr settings and entries', (done) => {
+      let publicPath = '/static/foo';
 
-      var wrapper = new Wrapper({
+      let wrapper = new Wrapper({
         config: {},
         hmr: true,
         hmrRoot: 'http://test.com',
@@ -620,7 +618,7 @@ describe('Wrapper', function() {
         publicPath: publicPath
       });
 
-      wrapper.getConfig(function(err, config){
+      wrapper.getConfig((err, config) => {
         assert.isNull(err);
 
         assert.isArray(config.plugins);

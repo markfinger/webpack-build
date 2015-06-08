@@ -1,19 +1,17 @@
-'use strict';
+import path from 'path';
+import chai from 'chai';
+import child_process from 'child_process';
 
-var path = require('path');
-var chai = require('chai');
-var child_process = require('child_process');
-
-var TEST_OUTPUT_DIR = path.join(__dirname, 'test_output');
+let TEST_OUTPUT_DIR = path.join(__dirname, 'test_output');
 
 chai.config.includeStack = true;
 
-var CI = !!process.env.TRAVIS;
+let CI = !!process.env.TRAVIS;
 
 module.exports = {
   assert: chai.assert,
   TEST_OUTPUT_DIR: TEST_OUTPUT_DIR,
-  cleanTestOutputDir: function() {
+  cleanTestOutputDir: () => {
     try {
       child_process.spawnSync('rm', ['-rf', TEST_OUTPUT_DIR]);
     } catch(err) {}

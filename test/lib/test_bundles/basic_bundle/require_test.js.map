@@ -1,0 +1,1 @@
+{"version":3,"sources":["../../../src/test_bundles/basic_bundle/require_test.js"],"names":[],"mappings":";;AAAA,MAAM,CAAC,OAAO,GAAG,+BAA+B,CAAC","file":"require_test.js","sourcesContent":["module.exports = '__BASIC_BUNDLE_REQUIRE_TEST__';"]}

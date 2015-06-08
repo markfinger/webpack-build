@@ -1,6 +1,9 @@
+'use strict';
+
 var requireTest = require('./require_test');
 
 module.exports = {
 	test: '__BASIC_BUNDLE_ENTRY_TEST__',
 	requireTest: requireTest
 };
+//# sourceMappingURL=entry.js.map

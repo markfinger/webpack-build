@@ -159,8 +159,7 @@ build({
 
 `env` functions are provided with both the config object and the options object passed in to `build`.
 
-The wrapper also comes with some convenience functions that apply changes to handle common
-situations and help you avoid boilerplate.
+The wrapper also comes with some convenience functions that help you to avoid boilerplate.
 
 ```javascript
 var build = require('webpack-build');

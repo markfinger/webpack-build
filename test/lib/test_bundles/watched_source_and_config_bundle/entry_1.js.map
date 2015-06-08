@@ -1,0 +1,1 @@
+{"version":3,"sources":["../../../src/test_bundles/watched_source_and_config_bundle/entry_1.js"],"names":[],"mappings":";;AAAA,MAAM,CAAC,OAAO,GAAG;AAChB,KAAI,EAAE,mCAAmC;CACzC,CAAC","file":"entry_1.js","sourcesContent":["module.exports = {\n\ttest: '__WATCHED_SOURCE_AND_CONFIG_ONE__'\n};"]}

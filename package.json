@@ -36,9 +36,9 @@
     "webpack": "*"
   },
   "scripts": {
-    "test": "mocha --require source-map-support/register",
-    "test-debug": "mocha debug --require source-map-support/register",
-    "test-bail": "mocha --bail --require source-map-support/register",
+    "test": "mocha test/lib --require source-map-support/register",
+    "test-debug": "mocha test/lib debug --require source-map-support/register",
+    "test-bail": "mocha test/lib --bail --require source-map-support/register",
     "build": "bin/build.js",
     "build-watch": "bin/build.js --watch"
   }
