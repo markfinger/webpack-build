@@ -2,7 +2,7 @@
 
 var path = require('path');
 var chai = require('chai');
-var spawnSync = require('spawn-sync');
+var child_process = require('child_process');
 
 var TEST_OUTPUT_DIR = path.join(__dirname, 'test_output');
 
@@ -19,7 +19,7 @@ module.exports = {
   TEST_OUTPUT_DIR: TEST_OUTPUT_DIR,
   cleanTestOutputDir: function() {
     try {
-      spawnSync('rm', ['-rf', TEST_OUTPUT_DIR]);
+      child_process.spawnSync('rm', ['-rf', TEST_OUTPUT_DIR]);
     } catch(err) {}
   },
   aggregateTimeout: 10,
