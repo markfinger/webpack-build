@@ -39,7 +39,7 @@
     "test": "mocha test/lib --require source-map-support/register",
     "test-debug": "mocha test/lib debug --require source-map-support/register",
     "test-bail": "mocha test/lib --bail --require source-map-support/register",
-    "build": "bin/build.js",
-    "build-watch": "bin/build.js --watch"
+    "build": "scripts/build.js",
+    "build-watch": "scripts/build.js --watch"
   }
 }

@@ -102,7 +102,7 @@ class Cache {
         },
         (err) => {
           if (err) {
-            this.logger('cache retrieval error', err.message);
+            this.logger(`cache retrieval error: ${err.message}`);
             return cb(err);
           }
 

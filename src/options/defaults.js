@@ -26,7 +26,7 @@ export default {
   hmrRoot: '',
   hmrPath: '/__webpack_hmr__',
 
-  // Created in `generate`
+  // Dynamically created props
   hash: '',
   cacheFile: '',
   hmrNamespace: ''

@@ -45,7 +45,7 @@ class Server {
     });
 
     this.app.get('/build', (req, res, next) => {
-
+      // TODO: map query args to `build` options
     });
   }
   listen() {

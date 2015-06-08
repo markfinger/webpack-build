@@ -1,15 +1,18 @@
 #!/usr/bin/env node
 
+// Builds the project
+// Usage: ./build.js
+// Usage: ./build.js --watch
+
 var path = require('path');
 var child_process = require('child_process');
+
+var watch = process.argv.indexOf('--watch') !== -1;
 
 var src = path.join(__dirname, '..', 'src');
 var lib = path.join(__dirname, '..', 'lib');
 var testSrc = path.join(__dirname, '..', 'test', 'src');
 var testLib = path.join(__dirname, '..', 'test', 'lib');
-
-var watch = process.argv.indexOf('--watch') !== -1;
-
 var inputDirs = [src, testSrc];
 var outputDirs = [lib, testLib];
 
