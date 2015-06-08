@@ -5,17 +5,14 @@ webpack-build
 [![Dependency Status](https://david-dm.org/markfinger/webpack-build.svg)](https://david-dm.org/markfinger/webpack-build)
 [![devDependency Status](https://david-dm.org/markfinger/webpack-build/dev-status.svg)](https://david-dm.org/markfinger/webpack-build#info=devDependencies)
 
-Wraps webpack and exposes an API suitable for tool chains.
+Wraps webpack and exposes an API suitable for tool chains and request cycles.
 
-
-Features include
-----------------
+Does a bunch of things, including:
 
 - Multiple concurrent compilers
-- Persistent caching which reduces build times
+- Persistent caching to reduce build times
 - HMR support
-- Support for environment configuration hooks in your config files
-- Output that can be easily passed between processes
+- Easy environment configuration
 
 
 Documentation
@@ -116,10 +113,19 @@ some non-standard props:
 Caching
 -------
 
-A persistent file cache is used to improve build times.
+A combination of persistent files and in-memory data are used to improve build times.
 
-To avoid serving stale data, the wrapper tracks file and package dependencies. Before
-serving up any cached data, file timestamps and package versions are checked.
+Once your first compilation request has completed successfully, the output is cached and
+subsequent requests will be served from memory. Cached output is written to disk, so cold
+boots will experience comparable performance.
+
+When serving cached data, a compiler will be spun up in the background and the cache will
+continue to serve data only until the compiler has completed. Spawning a compiler enables
+webpack's incremental compilation to provide almost instantaneous builds.
+
+To avoid serving stale data, the wrapper tracks file and package dependencies. File timestamps
+and package versions are checked before serving up any cached data. If the cached data is ever
+deemed to be stale, requests will be blocked until the compiler completes.
 
 
 Environment configuration
@@ -138,6 +144,10 @@ module.exports = {
       config.loaders.push({
         // ...
       });
+
+      if (opts.hmr) {
+        // ...
+      }
     },
     prod: function(config, opts) {
       config.devtool = 'source-map';
@@ -146,7 +156,7 @@ module.exports = {
 };
 ```
 
-To apply any environment configuration, pass in the `env` option to the wrapper
+To apply an environment configuration, pass in the `env` option to the wrapper
 
 ```javascript
 var build = require('webpack-build');
@@ -159,7 +169,8 @@ build({
 });
 ```
 
-`env` functions are provided with the config object and the generated options object.
+`env` functions are provided with both your config file's object and your options object you
+passed in to build.
 
 The wrapper also comes with some convenience functions that help you to avoid boilerplate.
 
@@ -205,6 +216,7 @@ module.exports = {
     new webpack.optimize.OccurrenceOrderPlugin(),
     new webpack.NoErrorsPlugin(),
     new webpack.optimize.DedupePlugin(),
+    new webpack.optimize.UglifyJsPlugin(),
     new webpack.DefinePlugin({
       'process.env': {NODE_ENV: JSON.stringify('production')}
     })
