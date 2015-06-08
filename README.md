@@ -237,6 +237,14 @@ attempt to hot update whenever possible. If hot updates are not possible, consol
 will indicate the need to refresh for updates to be applied.
 
 
+Debugging
+---------
+
+The environment variable DEBUG is respected by the library's logger.
+
+To expose verbose logs to your shell, run your process with `DEBUG=webpack-build:* ...`
+
+
 Running the tests
 -----------------
 
