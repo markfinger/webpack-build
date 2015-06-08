@@ -27,6 +27,7 @@ Documentation
 - [Caching](#caching)
 - [Environment configuration](#environment-configuration)
 - [HMR](#hmr)
+- [Running the tests](#running-the-tests)
 - [Colophon](#colophon)
 
 
@@ -214,6 +215,16 @@ build({
 When assets are rendered on the front-end, they open sockets to the build server and
 attempt to hot update whenever possible. If hot updates are not possible, console logs
 will indicate the need to refresh for updates to be applied.
+
+
+Running the tests
+-----------------
+
+```bash
+npm run build
+npm test
+```
+
 
 Colophon
 --------

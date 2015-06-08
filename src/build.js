@@ -1,43 +1,26 @@
-'use strict';
+import Wrapper from './Wrapper';
+import options from './options';
+import _logger from './logger';
+import {Wrappers, Caches} from './collections';
 
-Object.defineProperty(exports, '__esModule', {
-  value: true
-});
+const wrappers = new Wrappers();
+const caches = new Caches();
 
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+const build = (opts, cb) => {
+  opts = options.generate(opts);
 
-var _Wrapper = require('./Wrapper');
+  let logger = _logger('build', opts);
 
-var _Wrapper2 = _interopRequireDefault(_Wrapper);
-
-var _options = require('./options');
-
-var _options2 = _interopRequireDefault(_options);
-
-var _logger2 = require('./logger');
-
-var _logger3 = _interopRequireDefault(_logger2);
-
-var _collections = require('./collections');
-
-var wrappers = new _collections.Wrappers();
-var caches = new _collections.Caches();
-
-var build = function build(opts, cb) {
-  opts = _options2['default'].generate(opts);
-
-  var logger = (0, _logger3['default'])('build', opts);
-
-  var cache = undefined;
+  let cache;
   if (opts.cache) {
     logger('cache enabled');
     cache = caches.get(opts);
   }
 
-  var wrapper = wrappers.get(opts, cache);
+  let wrapper = wrappers.get(opts, cache);
 
   // Defer so that we can return the wrapper before `cb` is called
-  process.nextTick(function () {
+  process.nextTick(() => {
     if (!cache || cache.delegate) {
       if (cache.delegate) {
         logger('cache has delegated to wrapper');
@@ -47,7 +30,7 @@ var build = function build(opts, cb) {
     } else {
       logger('requesting data from cache');
 
-      cache.get(function (err, data) {
+      cache.get((err, data) => {
         if (err) {
           logger('cache error', err.message);
           return wrapper.onceDone(cb);
@@ -69,7 +52,7 @@ var build = function build(opts, cb) {
           logger('starting watcher');
 
           // Start the watcher
-          wrapper.onceDone(function () {});
+          wrapper.onceDone(() => { /* no-op */});
         }
 
         logger('serving cached output');
@@ -85,7 +68,4 @@ var build = function build(opts, cb) {
 build.wrappers = wrappers;
 build.caches = caches;
 
-exports['default'] = build;
-module.exports = exports['default'];
-/* no-op */
-//# sourceMappingURL=build.js.map
+export default build;
