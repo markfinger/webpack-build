@@ -174,33 +174,41 @@ module.exports = {
 };
 ```
 
-`build.env.dev(config, opts)`
+`build.env.dev(config, opts)` makes the following changes and additions
 
-- Sets `devtool` to `eval-source-maps`
-- Sets `output.pathinfo` to `true`
-- Adds `new webpack.optimize.OccurrenceOrderPlugin()`
-- Adds `new webpack.NoErrorsPlugin()`
-- Adds
-  ```
-  new webpack.DefinePlugin({
-    'process.env': {NODE_ENV: JSON.stringify('development')}
-  })
-  ```
+```javascript
+{
+  output: {
+    // ...
+    pathinfo: true
+  }
+  devtool: 'eval-source-maps',
+  plugins: [
+    // ...
+    new webpack.optimize.OccurrenceOrderPlugin(),
+    new webpack.NoErrorsPlugin(),
+    new webpack.DefinePlugin({
+      'process.env': {NODE_ENV: JSON.stringify('development')}
+    })
+  ]
+}
 
+`build.env.prod(config, opts)` makes the following changes and additions
 
-`build.env.prod(config, opts)`
-
-- Sets `devtool` to `source-map`
-- Adds `new webpack.optimize.OccurrenceOrderPlugin()`
-- Adds `new webpack.NoErrorsPlugin()`
-- Adds `new webpack.optimize.DedupePlugin()`
-- Adds `new webpack.optimize.UglifyJsPlugin()`
-- Adds
-  ```
-  new webpack.DefinePlugin({
-    'process.env': {NODE_ENV: JSON.stringify('production')}
-  })
-  ```
+```javascript
+{
+  devtool: 'source-maps',
+  plugins: [
+    // ...
+    new webpack.optimize.OccurrenceOrderPlugin(),
+    new webpack.NoErrorsPlugin(),
+    new webpack.optimize.DedupePlugin(),
+    new webpack.DefinePlugin({
+      'process.env': {NODE_ENV: JSON.stringify('production')}
+    })
+  ]
+}
+```
 
 
 HMR
