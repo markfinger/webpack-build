@@ -192,6 +192,7 @@ module.exports = {
     })
   ]
 }
+```
 
 `build.env.prod(config, opts)` makes the following changes and additions
 
