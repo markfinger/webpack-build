@@ -25,7 +25,7 @@ export default (opts) => {
   }
 
   if (!opts.cacheFile) {
-    opts.cacheFile = path.join(opts.cacheDir, opts.hash + '.json');
+    opts.cacheFile = path.join(opts.cacheDir, `${opts.hash}.json`);
   }
 
   if (opts.hmrRoot && _.endsWith(opts.hmrRoot, '/')) {

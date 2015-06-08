@@ -24,9 +24,9 @@ class Server {
 
             let ms = time.getMilliseconds();
             if (ms < 10) {
-              ms = '00' + ms;
+              ms = `00${ms}`;
             } else if (ms < 100) {
-              ms = '0' + ms;
+              ms = `0${ms}`;
             }
 
             return `${time.getHours()}:${time.getMinutes()}:${ms}`;
@@ -39,7 +39,7 @@ class Server {
     });
 
     this.app.use((req, res, next) => {
-      this.logger.info(req.method + ' ' + req.url);
+      this.logger.info(`${req.method} ${req.url}`);
 
       next();
     });

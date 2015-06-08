@@ -57,7 +57,7 @@ class Cache {
         installedVersion = packageJson.version
       } else {
         try {
-          installedVersion = require(depName + '/package').version;
+          installedVersion = require(`${depName}/package`).version;
         } catch(err) {
           this.logger(`cached data references a dependency ${depName} which produced an error during version checks`);
           return cb(err, null);
