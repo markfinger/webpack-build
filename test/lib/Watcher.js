@@ -71,7 +71,7 @@ describe('Watcher', function () {
       _mkdirp2['default'].sync(_path2['default'].dirname(entry));
       _fs2['default'].writeFileSync(entry, 'module.exports = "__HOOK_TEST_ONE__";');
 
-      var watcher = new _libWatcher2['default']((0, _webpack2['default'])(config), _libOptions2['default'].generate());
+      var watcher = new _libWatcher2['default']((0, _webpack2['default'])(config), (0, _libOptions2['default'])());
 
       var onInvalidCalls = 0;
       watcher.onInvalid(function () {
@@ -112,7 +112,7 @@ describe('Watcher', function () {
   describe('#onceReady', function () {
     it('should block until a bundle is generated', function (done) {
       var compiler = (0, _webpack2['default'])(require('./test_bundles/basic_bundle/webpack.config'));
-      var watcher = new _libWatcher2['default'](compiler, _libOptions2['default'].generate());
+      var watcher = new _libWatcher2['default'](compiler, (0, _libOptions2['default'])());
       watcher.onceDone(function (err, stats) {
         assert.isNull(err);
         assert.isObject(stats);
@@ -138,7 +138,7 @@ describe('Watcher', function () {
       };
       _mkdirp2['default'].sync(_path2['default'].dirname(entry));
       _fs2['default'].writeFileSync(entry, 'module.exports = "__INVALIDATED_BUNDLE_ONE__";');
-      var watcher = new _libWatcher2['default']((0, _webpack2['default'])(config), _libOptions2['default'].generate({
+      var watcher = new _libWatcher2['default']((0, _webpack2['default'])(config), (0, _libOptions2['default'])({
         aggregateTimeout: 10
       }));
       watcher.onceDone(function (err, stats) {
@@ -172,7 +172,7 @@ describe('Watcher', function () {
           filename: 'some_file.js'
         }
       };
-      var watcher = new _libWatcher2['default']((0, _webpack2['default'])(config), _libOptions2['default'].generate());
+      var watcher = new _libWatcher2['default']((0, _webpack2['default'])(config), (0, _libOptions2['default'])());
 
       watcher.onceDone(function (err) {
         assert.instanceOf(err, Error);
@@ -194,7 +194,7 @@ describe('Watcher', function () {
         }
       });
 
-      var watcher = new _libWatcher2['default'](compiler, _libOptions2['default'].generate());
+      var watcher = new _libWatcher2['default'](compiler, (0, _libOptions2['default'])());
 
       _mkdirp2['default'].sync(_path2['default'].dirname(entry));
 
@@ -249,7 +249,7 @@ describe('Watcher', function () {
         }
       });
 
-      var watcher = new _libWatcher2['default'](compiler, _libOptions2['default'].generate({
+      var watcher = new _libWatcher2['default'](compiler, (0, _libOptions2['default'])({
         aggregateTimeout: _utils2['default'].aggregateTimeout
       }));
 

@@ -5,14 +5,14 @@ import Watcher from './Watcher';
 import options from './options';
 import hmr from './hmr';
 import hmrConfig from './hmr/config';
-import logger from './logger';
+import log from './log';
 import packageJson from '../package';
 
 class Wrapper {
   constructor(opts, config, cache) {
-    this.opts = options.generate(opts);
+    this.opts = options(opts);
 
-    this.logger = logger('wrapper', this.opts);
+    this.logger = log('wrapper', this.opts);
 
     // TODO: remove this, it's mostly legacy in the test suite. Should simply pass the config obj as `opts.config`
     // Convenience hook to pass an object in. You can also define
@@ -45,7 +45,7 @@ class Wrapper {
     this.config = this.opts.config;
 
     if (_.isString(this.config)) {
-      this.logger('loading config file ' + this.opts.config);
+      this.logger(`loading config file ${this.opts.config}`);
       try {
         this.config = require(this.config);
       } catch(err) {
@@ -67,7 +67,7 @@ class Wrapper {
     }
 
     if (this.config && this.config.env && this.opts.env in this.config.env) {
-      this.logger('applying env "' + this.opts.env + '"');
+      this.logger(`applying env "${this.opts.env}"`);
       let env = this.config.env[this.opts.env];
       try {
         env(this.config, this.opts);
@@ -79,7 +79,7 @@ class Wrapper {
     cb(null, this.config)
   }
   getCompiler(cb) {
-    this.getConfig(function(err, config) {
+    this.getConfig((err, config) => {
       if (err) return cb(err);
 
       let compiler = webpack(config);
@@ -122,7 +122,7 @@ class Wrapper {
       }
 
       cb(null, compiler);
-    }.bind(this));
+    });
   }
   compile(cb) {
     this.getCompiler((err, compiler) => {

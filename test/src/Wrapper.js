@@ -458,7 +458,7 @@ describe('Wrapper', () => {
   describe('#cache', () => {
     it('should be able to populate a cache', (done) => {
       let cache = new Cache(
-        options.generate({cacheFile: path.join(TEST_OUTPUT_DIR, 'bundle_test_cache.json')})
+        options({cacheFile: path.join(TEST_OUTPUT_DIR, 'bundle_test_cache.json')})
       );
       assert.deepEqual(cache.data, {});
 

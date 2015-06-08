@@ -44,7 +44,7 @@ describe('Watcher', () => {
       mkdirp.sync(path.dirname(entry));
       fs.writeFileSync(entry, 'module.exports = "__HOOK_TEST_ONE__";');
 
-      let watcher = new Watcher(webpack(config), options.generate());
+      let watcher = new Watcher(webpack(config), options());
 
       let onInvalidCalls = 0;
       watcher.onInvalid(() => {
@@ -85,7 +85,7 @@ describe('Watcher', () => {
   describe('#onceReady', () => {
     it('should block until a bundle is generated', (done) => {
       let compiler = webpack(require('./test_bundles/basic_bundle/webpack.config'));
-      let watcher = new Watcher(compiler, options.generate());
+      let watcher = new Watcher(compiler, options());
       watcher.onceDone((err, stats) => {
         assert.isNull(err);
         assert.isObject(stats);
@@ -111,7 +111,7 @@ describe('Watcher', () => {
       };
       mkdirp.sync(path.dirname(entry));
       fs.writeFileSync(entry, 'module.exports = "__INVALIDATED_BUNDLE_ONE__";');
-      let watcher = new Watcher(webpack(config), options.generate({
+      let watcher = new Watcher(webpack(config), options({
         aggregateTimeout: 10
       }));
       watcher.onceDone((err, stats) => {
@@ -145,7 +145,7 @@ describe('Watcher', () => {
           filename: 'some_file.js'
         }
       };
-      let watcher = new Watcher(webpack(config), options.generate());
+      let watcher = new Watcher(webpack(config), options());
 
       watcher.onceDone((err) => {
         assert.instanceOf(err, Error);
@@ -167,7 +167,7 @@ describe('Watcher', () => {
         }
       });
 
-      let watcher = new Watcher(compiler, options.generate());
+      let watcher = new Watcher(compiler, options());
 
       mkdirp.sync(path.dirname(entry));
 
@@ -222,7 +222,7 @@ describe('Watcher', () => {
         }
       });
 
-      let watcher = new Watcher(compiler, options.generate({
+      let watcher = new Watcher(compiler, options({
         aggregateTimeout: utils.aggregateTimeout
       }));
 

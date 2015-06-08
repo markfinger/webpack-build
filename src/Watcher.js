@@ -1,10 +1,10 @@
 import _ from 'lodash';
-import logger from './logger';
+import log from './log';
 
 class Watcher {
   constructor(compiler, opts) {
     this.opts = opts;
-    this.logger = logger('watcher', opts);
+    this.logger = log('watcher', opts);
 
     // Callback stores
     this._onDone = []; // function(err, stats) {}
@@ -75,7 +75,7 @@ class Watcher {
 
     // Defer in case the bundle has been invalidated
     // during the compilation process
-    process.nextTick(function() {
+    process.nextTick(() => {
       if (!this.isReady) return;
 
       if (stats.hasErrors()) {
@@ -89,7 +89,7 @@ class Watcher {
       );
 
       this.callOnceDone();
-    }.bind(this));
+    });
   }
   callOnceDone() {
     let _onceDone = this._onceDone;

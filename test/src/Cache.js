@@ -24,14 +24,14 @@ describe('Cache', () => {
   });
   it('should accept a filename argument', () => {
     let filename = path.join(TEST_OUTPUT_DIR, 'cache_init_test.json');
-    let cache = new Cache(options.generate({cacheFile: filename}));
+    let cache = new Cache(options({cacheFile: filename}));
     assert.equal(cache.filename, filename);
     assert.deepEqual(cache.data, {});
     assert.equal(fs.readFileSync(filename).toString(), '{}');
   });
   it('should be able to persist an entry to a file', () => {
     let cache = new Cache(
-      options.generate({cacheFile: path.join(TEST_OUTPUT_DIR, 'cache_persist.json')})
+      options({cacheFile: path.join(TEST_OUTPUT_DIR, 'cache_persist.json')})
     );
     cache.set({foo: {bar: 'woz'}});
     let json = require(TEST_OUTPUT_DIR + '/cache_persist.json');
@@ -53,7 +53,7 @@ describe('Cache', () => {
 
     fs.writeFileSync(testFile, '{}');
 
-    let cache = new Cache(options.generate({cacheFile: filename}), true);
+    let cache = new Cache(options({cacheFile: filename}), true);
 
     assert.equal(cache.filename, filename);
     assert.isObject(cache.data);
@@ -74,7 +74,7 @@ describe('Cache', () => {
       fs.writeFileSync(filename, '{}');
       fs.writeFileSync(testFile, '{}');
 
-      let cache = new Cache(options.generate({cacheFile: filename}));
+      let cache = new Cache(options({cacheFile: filename}));
 
       cache.get((err, entry) => {
         assert.isNull(err);
@@ -166,8 +166,8 @@ describe('Cache', () => {
 
       fs.writeFileSync(testFile, '{}');
 
-      let cache1 = new Cache(options.generate({cacheFile: filename1}));
-      let cache2 = new Cache(options.generate({cacheFile: filename2}));
+      let cache1 = new Cache(options({cacheFile: filename1}));
+      let cache2 = new Cache(options({cacheFile: filename2}));
 
       cache1.get((err, entry) => {
         assert.instanceOf(err, Error);
@@ -191,7 +191,7 @@ describe('Cache', () => {
       let filename = path.join(TEST_OUTPUT_DIR, 'cache_set.json');
       mkdirp.sync(path.dirname(filename));
 
-      let cache = new Cache(options.generate({cacheFile: filename}));
+      let cache = new Cache(options({cacheFile: filename}));
 
       cache.set({foo: {bar: 'woz'}});
 

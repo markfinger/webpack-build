@@ -2,13 +2,13 @@ import fs from 'fs';
 import path from 'path';
 import async from 'async';
 import mkdirp from 'mkdirp';
-import logger from './logger';
+import log from './log';
 import packageJson from '../package';
 
 class Cache {
   constructor(opts) {
     this.filename = opts.cacheFile;
-    this.logger = logger('cache', opts);
+    this.logger = log('cache', opts);
 
     // A flag denoting that another part of the system will serve
     // the data, rather than this cache
@@ -40,37 +40,34 @@ class Cache {
 
     let requiredProps = ['startTime', 'fileDependencies', 'stats', 'config', 'hash', 'dependencies'];
 
-    for (let i=0; i<requiredProps.length; i++) {
-      if (!data[requiredProps[i]]) {
-        this.logger('cached data is missing the ' + requiredProps[i] + ' prop');
+    for (let prop of requiredProps) {
+      if (!data[prop]) {
+        this.logger(`cached data is missing the ${prop} prop`);
 
         return cb(null, null);
       }
     }
 
     // Check dependency versions
-    const depNames = Object.keys(data.dependencies);
-    for (let i=0; i<depNames.length; i++) {
-      let depName = depNames[i];
-      let requiredDepVersion = data.dependencies[depName];
+    for (let depName of Object.keys(data.dependencies)) {
+      let requiredVersion = data.dependencies[depName];
 
-      let depVersion;
+      let installedVersion;
       if (depName === packageJson.name) {
-        depVersion = packageJson.version
+        installedVersion = packageJson.version
       } else {
         try {
-          depVersion = require(depName + '/package').version;
+          installedVersion = require(depName + '/package').version;
         } catch(err) {
-          this.logger('cached data references a dependency ' + depName + ' which produced an error during version checks');
+          this.logger(`cached data references a dependency ${depName} which produced an error during version checks`);
           return cb(err, null);
         }
       }
 
-      if (depVersion !== requiredDepVersion) {
-        this.logger(
-          'cached data references a dependency ' + depName + '@' + requiredDepVersion + ' but the ' +
-          'installed version is ' + depName + '@' + requiredDepVersion
-        );
+      if (installedVersion !== requiredVersion) {
+        let required = `${depName}@${requiredVersion}`;
+        let installed = `${depName}@${installedVersion}`;
+        this.logger(`cached data requires a package ${required} but the installed version is ${installed}`);
 
         return cb(null, null);
       }
@@ -78,36 +75,32 @@ class Cache {
 
     // Check the modified times on the config file
     let configFile = data.config;
-    fs.stat(configFile, function(err, stats) {
+    fs.stat(configFile, (err, stats) => {
       if (err) return cb(err);
 
       if (+stats.mtime > data.startTime) {
-        return cb(new Error(
-          'Stale config file: ' + configFile + '. ' +
-          'Compile start time: ' + data.startTime + '. ' +
-          'File mtime: ' + (+stats.mtime)
-        ));
+        return cb(
+          new Error(`Stale config file: ${configFile}. Compile start time: ${data.startTime}. File mtime: ${+stats.mtime}`)
+        );
       }
 
       // Check the modified times on the file dependencies
       async.each(
         data.fileDependencies,
-        function(filename, cb) {
-          fs.stat(filename, function(err, stats) {
+        (filename, cb) => {
+          fs.stat(filename, (err, stats) => {
             if (err) return cb(err);
 
             if (+stats.mtime > data.startTime) {
-              return cb(new Error(
-                'Stale file dependency: ' + filename + '. ' +
-                'Compile start time: ' + data.startTime + '. ' +
-                'File mtime: ' + (+stats.mtime)
-              ));
+              return cb(
+                new Error(`Stale file dependency: ${filename}. Compile start time: ${data.startTime}. File mtime: ${+stats.mtime}`)
+              );
             }
 
             cb(null, true);
           });
         },
-        function(err) {
+        (err) => {
           if (err) {
             this.logger('cache retrieval error', err.message);
             return cb(err);
@@ -115,9 +108,9 @@ class Cache {
 
           this.logger('serving cached data');
           cb(null, data);
-        }.bind(this)
+        }
       );
-    }.bind(this));
+    });
   }
   set(data, delegate) {
     this.data = data;
@@ -143,13 +136,13 @@ class Cache {
     try {
       mkdirp.sync(path.dirname(this.filename));
     } catch(err) {
-      throw new Error('Failed to create path to webpack cache file: ' + this.filename);
+      throw new Error(`Failed to create path to webpack cache file: ${this.filename}`);
     }
 
     try {
       fs.writeFileSync(this.filename, json);
     } catch(err) {
-      throw new Error('Failed to write webpack cache file: ' + this.filename);
+      throw new Error(`Failed to write webpack cache file: ${this.filename}`);
     }
 
     this.logger('updated cache file');

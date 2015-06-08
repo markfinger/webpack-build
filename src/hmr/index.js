@@ -1,6 +1,6 @@
 import path from 'path';
 import socketIo from 'socket.io';
-import options from '../options';
+import * as options from '../options';
 
 let io = null;
 
@@ -14,7 +14,7 @@ export const send = (nsp, stats) => {
   if (
     stats &&
     stats.assets &&
-    stats.assets.every(function(asset) {
+    stats.assets.every((asset) => {
       return !asset.emitted;
     })
   ) {

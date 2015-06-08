@@ -1,7 +1,7 @@
 import path from 'path';
 import webpack from 'webpack';
 
-const improve = function(config) {
+const improve = (config) => {
   config.plugins = config.plugins || [];
 
   config.plugins.push(
@@ -11,7 +11,7 @@ const improve = function(config) {
 };
 
 module.exports = {
-  dev: function(config) {
+  dev: (config) => {
     improve(config);
 
     config.output = config.output || {};
@@ -28,7 +28,7 @@ module.exports = {
       })
     );
   },
-  prod: function(config) {
+  prod: (config) => {
     improve(config);
 
     config.devtool = 'source-map';

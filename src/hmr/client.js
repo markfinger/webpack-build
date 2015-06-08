@@ -10,28 +10,28 @@ const socket = socketIoClient(opts.root + opts.namespace, {
 let currentHash = '';
 
 let reload = () => {
-  console.info('[WPW-HMR] Triggering HMR with hash ' + currentHash + '...');
+  console.info(`[WB-HMR] Triggering HMR with hash ${currentHash}...`);
 
-  window.postMessage('webpackHotUpdate' + currentHash, '*');
+  window.postMessage(`webpackHotUpdate${currentHash}`, '*');
 };
 
-socket.on('connect', () => console.info('[WPW-HMR] Connected to ' + opts.root + opts.path + opts.namespace));
+socket.on('connect', () => console.info(`[WB-HMR] Connected to ${opts.root}${opts.path}${opts.namespace}`));
 
-socket.on('hot', () => console.info('[WPW-HMR] Hot Module Replacement enabled'));
+socket.on('hot', () => console.info('[WB-HMR] Hot Module Replacement enabled'));
 
-socket.on('invalid', () => console.info('[WPW-HMR] Changes detected. Recompiling...'));
+socket.on('invalid', () => console.info('[WB-HMR] Changes detected. Recompiling...'));
 
 socket.on('hash', (hash) => currentHash = hash);
 
-socket.on('no-change', () => console.info('[WPW-HMR] Nothing changed'));
+socket.on('no-change', () => console.info('[WB-HMR] Nothing changed'));
 
 socket.on('success', () => {
-  console.info('[WPW-HMR] Compiler completed successfully');
+  console.info('[WB-HMR] Compiler completed successfully');
   reload();
 });
 
 socket.on('warnings', (warnings) => {
-  console.warn('[WPW-HMR] Warnings while compiling...');
+  console.warn('[WB-HMR] Warnings while compiling...');
 
   for (let i = 0; i < warnings.length; i++) {
     console.warn(stripAnsi(warnings[i]));
@@ -41,7 +41,7 @@ socket.on('warnings', (warnings) => {
 });
 
 socket.on('errors', (errors) => {
-  console.error('[WPW-HMR] Errors while compiling...');
+  console.error('[WB-HMR] Errors while compiling...');
 
   for (let i = 0; i < errors.length; i++) {
     console.error(stripAnsi(errors[i]));
@@ -51,5 +51,5 @@ socket.on('errors', (errors) => {
 });
 
 socket.on('disconnect', () => {
-  console.warn('[WPW-HMR] Disconnected');
+  console.warn('[WB-HMR] Disconnected');
 });

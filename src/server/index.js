@@ -20,9 +20,9 @@ class Server {
         new winston.transports.Console({
           colorize: true,
           timestamp: function () {
-            var time = new Date();
+            let time = new Date();
 
-            var ms = time.getMilliseconds();
+            let ms = time.getMilliseconds();
             if (ms < 10) {
               ms = '00' + ms;
             } else if (ms < 100) {

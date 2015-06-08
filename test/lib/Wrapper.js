@@ -487,7 +487,7 @@ describe('Wrapper', function () {
   });
   describe('#cache', function () {
     it('should be able to populate a cache', function (done) {
-      var cache = new _libCache2['default'](_libOptions2['default'].generate({ cacheFile: _path2['default'].join(TEST_OUTPUT_DIR, 'bundle_test_cache.json') }));
+      var cache = new _libCache2['default']((0, _libOptions2['default'])({ cacheFile: _path2['default'].join(TEST_OUTPUT_DIR, 'bundle_test_cache.json') }));
       assert.deepEqual(cache.data, {});
 
       var wrapper = new _libWrapper2['default']({

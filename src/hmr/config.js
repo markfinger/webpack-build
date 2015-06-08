@@ -22,7 +22,7 @@ const hmrConfig = (config, opts) => {
   });
 
   const devClient = [
-    'webpack-build/lib/hmr/client?' + socketOpts,
+    `webpack-build/lib/hmr/client?${socketOpts}`,
     // TODO: replace?
     'webpack/hot/only-dev-server'
   ];
@@ -47,7 +47,7 @@ const hmrConfig = (config, opts) => {
 
   config.output.publicPath = opts.publicPath;
 
-  config.recordsPath = path.join(opts.outputPath, 'webpack.records-' + opts.hash + '.json');
+  config.recordsPath = path.join(opts.outputPath, `webpack.records-${opts.hash}.json`);
 };
 
 export default hmrConfig;

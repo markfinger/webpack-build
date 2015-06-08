@@ -1,15 +1,15 @@
 import Wrapper from './Wrapper';
 import options from './options';
-import _logger from './logger';
+import log from './log';
 import {Wrappers, Caches} from './collections';
 
 const wrappers = new Wrappers();
 const caches = new Caches();
 
 const build = (opts, cb) => {
-  opts = options.generate(opts);
+  opts = options(opts);
 
-  let logger = _logger('build', opts);
+  let logger = log('build', opts);
 
   let cache;
   if (opts.cache) {
@@ -42,7 +42,7 @@ const build = (opts, cb) => {
         }
 
         if (data.hash !== opts.hash) {
-          logger('cached hash "' + data.hash + '" does not match the expected');
+          logger(`cached hash "${data.hash}" does not match the expected`);
 
           cache.set(null);
           return wrapper.onceDone(cb);

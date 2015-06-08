@@ -1,7 +1,7 @@
 import build from './build';
 import hmr from './hmr';
 import env from './env';
-import options from './options';
+import * as options from './options';
 
 build.hmr = hmr;
 build.env = env;
