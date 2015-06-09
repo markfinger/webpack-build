@@ -185,11 +185,11 @@ class Wrapper {
     return processed
   }
   handleErrAndStats(err, stats, cb) {
-    if (!stats) {
-      return cb(err, stats);
+    if (err) {
+      return cb(err);
     }
 
-    if (!err && stats && stats.compilation && stats.compilation.errors.length) {
+    if (stats.hasErrors()) {
       err = _.first(stats.compilation.errors);
     }
 
