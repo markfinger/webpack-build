@@ -23,7 +23,6 @@ class Wrapper {
 
     // State
     this.watcher = null;
-    this.watching = false;
 
     // Callbacks
     this._onceDone = [];
@@ -228,8 +227,6 @@ class Wrapper {
 
         this.handleErrAndStats(err, stats, cb);
       });
-
-      this.watching = true;
     });
   }
   onceDone(cb) {
