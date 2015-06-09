@@ -86,17 +86,14 @@ class Wrapper {
       });
 
       if (this.opts.config && this.cache) {
-        compiler.plugin('compilation', (compilation) => {
-          compilation.__startTime = +new Date();
-        });
-
         compiler.plugin('done', (stats) => {
           // TODO: get startTime/endTime from the stats
           if (stats.hasErrors()) {
             this.cache.set(null);
           } else {
             let data = {
-              startTime: stats.compilation.__startTime,
+              startTime: stats.startTime,
+              endTime: stats.endTime,
               fileDependencies: stats.compilation.fileDependencies,
               dependencies: {
                 webpack: require('webpack/package').version,
