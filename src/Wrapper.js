@@ -91,20 +91,10 @@ class Wrapper {
           if (stats.hasErrors()) {
             this.cache.set(null);
           } else {
-            let data = {
-              startTime: stats.startTime,
-              endTime: stats.endTime,
-              fileDependencies: stats.compilation.fileDependencies,
-              dependencies: {
-                webpack: require('webpack/package').version,
-                'webpack-build': packageJson.version
-              },
-              stats: this.processStats(stats),
-              config: this.opts.config,
-              hash: this.opts.hash
-            };
-
-            this.cache.set(data, this.opts.watch);
+            this.cache.set(
+              this.generateOutput(stats),
+              this.opts.watch
+            );
           }
         });
       }
@@ -130,56 +120,64 @@ class Wrapper {
       });
     });
   }
-  processStats(stats) {
+  generateOutput(stats) {
     if (!stats) return null;
 
-    let processed = stats.toJson({
-      modules: false,
-      source: false
-    });
-
-    if (stats.compilation) {
-      processed.pathsToAssets = _.transform(
+    let data = {
+      startTime: stats.startTime,
+      endTime: stats.endTime,
+      stats: stats.toJson({
+        modules: false,
+        source: false
+      }),
+      fileDependencies: stats.compilation.fileDependencies,
+      dependencies: {
+        webpack: require('webpack/package').version,
+        'webpack-build': packageJson.version
+      },
+      config: this.opts.config,
+      hash: this.opts.hash,
+      pathsToAssets: _.transform(
         stats.compilation.assets,
         (result, obj, asset) => result[asset] = obj.existsAt,
         {}
-      );
-
-      processed.urlsToAssets = {};
-      processed.rendered = {
+      ),
+      urlsToAssets: {},
+      rendered: {
         script: [],
         link: []
-      };
-      if (this.opts.staticRoot && this.opts.staticUrl) {
-        _.forEach(processed.pathsToAssets, (absPath, asset) => {
-          let relPath = absPath.replace(this.opts.staticRoot, '');
-
-          let relUrl = relPath.split(path.sep).join('/');
-          if (_.startsWith(relUrl, '/')) {
-            relUrl = relUrl.slice(1);
-          }
-
-          let url = this.opts.staticUrl + relUrl;
-          processed.urlsToAssets[asset] = url;
-
-          if (path.extname(relPath) === '.css') {
-            processed.rendered.link.push(`<link rel="stylesheet" href="${url}">`);
-          } else if (path.extname(relPath) === '.js') {
-            processed.rendered.script.push(`<script src="${url}"></script>`);
-          }
-        });
       }
+    };
+
+    if (this.opts.staticRoot && this.opts.staticUrl) {
+      _.forEach(data.pathsToAssets, (absPath, asset) => {
+        let relPath = absPath.replace(this.opts.staticRoot, '');
+
+        let relUrl = relPath.split(path.sep).join('/');
+        if (_.startsWith(relUrl, '/')) {
+          relUrl = relUrl.slice(1);
+        }
+
+        let url = this.opts.staticUrl + relUrl;
+        data.urlsToAssets[asset] = url;
+
+        if (path.extname(relPath) === '.css') {
+          data.rendered.link.push(`<link rel="stylesheet" href="${url}">`);
+        } else if (path.extname(relPath) === '.js') {
+          data.rendered.script.push(`<script src="${url}"></script>`);
+        }
+      });
     }
 
     if (this.config) {
-      processed.webpackConfig = this.config;
+      data.webpackConfig = this.config;
     } else if (this.opts.config) {
       try {
-        processed.webpackConfig = require(this.opts.config);
+        data.webpackConfig = require(this.opts.config);
       } catch(err) {}
     }
 
-    return processed
+    return data;
   }
   handleErrAndStats(err, stats, cb) {
     if (err) {
@@ -190,7 +188,7 @@ class Wrapper {
       err = _.first(stats.compilation.errors);
     }
 
-    cb(err, this.processStats(stats));
+    cb(err, this.generateOutput(stats));
   }
   getWatcher(cb) {
     if (this.watcher) {

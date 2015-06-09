@@ -147,8 +147,8 @@ describe('Wrapper', function () {
       });
     });
   });
-  describe('#processStats', function () {
-    it('should produce a serializable form of the stats', function (done) {
+  describe('#generateOutput', function () {
+    it('should produce a serializable form of the compilation\'s output', function (done) {
       var wrapper = new _libWrapper2['default']({
         watch: false,
         config: _path2['default'].join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js')
@@ -162,13 +162,13 @@ describe('Wrapper', function () {
           assert.isNull(err);
           assert.isObject(stats);
 
-          var processed = wrapper.processStats(stats);
+          var output = wrapper.generateOutput(stats);
 
           // webpack inserts regexes which can't be serialized
-          processed.webpackConfig.module = null;
+          output.webpackConfig.module = null;
 
-          var serialized = JSON.stringify(processed);
-          assert.deepEqual(JSON.parse(serialized), processed);
+          var serialized = JSON.stringify(output);
+          assert.deepEqual(JSON.parse(serialized), output);
 
           done();
         });

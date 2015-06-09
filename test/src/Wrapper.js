@@ -117,8 +117,8 @@ describe('Wrapper', () => {
       });
     });
   });
-  describe('#processStats', () => {
-    it('should produce a serializable form of the stats', (done) => {
+  describe('#generateOutput', () => {
+    it('should produce a serializable form of the compilation\'s output', (done) => {
       let wrapper = new Wrapper({
         watch: false,
         config: path.join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js')
@@ -132,13 +132,13 @@ describe('Wrapper', () => {
           assert.isNull(err);
           assert.isObject(stats);
 
-          let processed = wrapper.processStats(stats);
+          let output = wrapper.generateOutput(stats);
 
           // webpack inserts regexes which can't be serialized
-          processed.webpackConfig.module = null;
+          output.webpackConfig.module = null;
 
-          let serialized = JSON.stringify(processed);
-          assert.deepEqual(JSON.parse(serialized), processed);
+          let serialized = JSON.stringify(output);
+          assert.deepEqual(JSON.parse(serialized), output);
 
           done();
         });
