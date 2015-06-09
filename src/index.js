@@ -59,7 +59,7 @@ const build = (opts, cb) => {
 
         logger('serving cached output');
 
-        cb(null, data.stats);
+        cb(null, data);
       });
     }
   });

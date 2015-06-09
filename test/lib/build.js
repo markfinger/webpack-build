@@ -125,14 +125,14 @@ describe('build', function () {
       config: _path2['default'].join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config'),
       logger: null,
       cacheDir: CACHE_DIR
-    }, function (err, stats) {
+    }, function (err, data) {
       assert.isNull(err);
-      assert.isObject(stats);
+      assert.isObject(data);
 
-      assert.isObject(stats.pathsToAssets);
-      assert.isObject(stats.webpackConfig);
+      assert.isObject(data.pathsToAssets);
+      assert.isObject(data.webpackConfig);
 
-      var existsAt = stats.pathsToAssets['output.js'];
+      var existsAt = data.pathsToAssets['output.js'];
       assert.isString(existsAt);
 
       _fs2['default'].readFile(existsAt, function (err, contents) {
@@ -167,11 +167,11 @@ describe('build', function () {
         cacheFile: cacheFile,
         logger: null,
         hash: 'foo'
-      }, function (err, stats) {
+      }, function (err, data) {
         assert.isNull(err);
-        assert.isObject(stats);
+        assert.isObject(data);
 
-        assert.deepEqual(stats, { test: { foo: 'bar' } });
+        assert.deepEqual(data.stats, { test: { foo: 'bar' } });
         done();
       });
     });
@@ -184,9 +184,9 @@ describe('build', function () {
         logger: null
       };
 
-      (0, _libIndex2['default'])(opts, function (err, stats) {
+      (0, _libIndex2['default'])(opts, function (err, data) {
         assert.isNull(err);
-        assert.isObject(stats);
+        assert.isObject(data);
 
         assert.isString(opts.cacheFile);
         assert.include(opts.cacheFile, opts.cacheDir);
@@ -203,9 +203,9 @@ describe('build', function () {
         logger: null
       };
 
-      var wrapper = (0, _libIndex2['default'])(opts, function (err, stats) {
+      var wrapper = (0, _libIndex2['default'])(opts, function (err, data) {
         assert.isNull(err);
-        assert.isObject(stats);
+        assert.isObject(data);
 
         assert.strictEqual(wrapper.opts, opts);
 
@@ -245,31 +245,31 @@ describe('build', function () {
         hash: 'foo'
       };
 
-      var wrapper = (0, _libIndex2['default'])(opts, function (err, stats1) {
+      var wrapper = (0, _libIndex2['default'])(opts, function (err, data1) {
         assert.isNull(err);
-        assert.isObject(stats1);
-        assert.deepEqual(stats1, { test: { foo: 'bar' } });
+        assert.isObject(data1);
+        assert.deepEqual(data1.stats, { test: { foo: 'bar' } });
 
         assert.strictEqual(wrapper.opts.cacheFile, cacheFile);
 
         var cache = _libIndex2['default'].caches.get(opts);
         assert.strictEqual(wrapper.cache, cache);
-        assert.strictEqual(stats1, cache.data.stats);
+        assert.strictEqual(data1.stats, cache.data.stats);
         assert.isFalse(cache.delegate);
 
-        (0, _libIndex2['default'])(opts, function (err, stats2) {
+        (0, _libIndex2['default'])(opts, function (err, data2) {
           assert.isNull(err);
-          assert.isObject(stats2);
+          assert.isObject(data2);
 
-          assert.strictEqual(stats2, stats1);
-          assert.deepEqual(stats2, { test: { foo: 'bar' } });
+          assert.strictEqual(data2, data1);
+          assert.deepEqual(data2.stats, { test: { foo: 'bar' } });
           assert.isFalse(cache.delegate);
 
           setTimeout(function () {
-            wrapper.onceDone(function (err, stats3) {
+            wrapper.onceDone(function (err, data3) {
               assert.isNull(err);
-              assert.isObject(stats3);
-              assert.notStrictEqual(stats3, stats2);
+              assert.isObject(data3);
+              assert.notStrictEqual(data3, data2);
 
               assert.isString(cache.data.hash);
               assert.equal(cache.data.hash, opts.hash);
@@ -277,10 +277,10 @@ describe('build', function () {
 
               assert.isTrue(cache.delegate);
 
-              (0, _libIndex2['default'])(opts, function (err, stats4) {
+              (0, _libIndex2['default'])(opts, function (err, data4) {
                 assert.isNull(err);
-                assert.isObject(stats4);
-                assert.deepEqual(stats4, stats3);
+                assert.isObject(data4);
+                assert.deepEqual(data4.stats, data3.stats);
 
                 done();
               });

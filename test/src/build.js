@@ -104,14 +104,14 @@ describe('build', () => {
       config: path.join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config'),
       logger: null,
       cacheDir: CACHE_DIR
-    }, (err, stats) => {
+    }, (err, data) => {
       assert.isNull(err);
-      assert.isObject(stats);
+      assert.isObject(data);
 
-      assert.isObject(stats.pathsToAssets);
-      assert.isObject(stats.webpackConfig);
+      assert.isObject(data.pathsToAssets);
+      assert.isObject(data.webpackConfig);
 
-      let existsAt = stats.pathsToAssets['output.js'];
+      let existsAt = data.pathsToAssets['output.js'];
       assert.isString(existsAt);
 
       fs.readFile(existsAt, (err, contents) => {
@@ -146,11 +146,11 @@ describe('build', () => {
         cacheFile: cacheFile,
         logger: null,
         hash: 'foo'
-      }, (err, stats) => {
+      }, (err, data) => {
         assert.isNull(err);
-        assert.isObject(stats);
+        assert.isObject(data);
 
-        assert.deepEqual(stats, {test: {foo: 'bar'}});
+        assert.deepEqual(data.stats, {test: {foo: 'bar'}});
         done();
       });
     });
@@ -163,9 +163,9 @@ describe('build', () => {
         logger: null
       };
 
-      build(opts, (err, stats) => {
+      build(opts, (err, data) => {
         assert.isNull(err);
-        assert.isObject(stats);
+        assert.isObject(data);
 
         assert.isString(opts.cacheFile);
         assert.include(opts.cacheFile, opts.cacheDir);
@@ -182,9 +182,9 @@ describe('build', () => {
         logger: null
       };
 
-      let wrapper = build(opts, (err, stats) => {
+      let wrapper = build(opts, (err, data) => {
         assert.isNull(err);
-        assert.isObject(stats);
+        assert.isObject(data);
 
         assert.strictEqual(wrapper.opts, opts);
 
@@ -224,31 +224,31 @@ describe('build', () => {
         hash: 'foo'
       };
 
-      let wrapper = build(opts, (err, stats1) => {
+      let wrapper = build(opts, (err, data1) => {
         assert.isNull(err);
-        assert.isObject(stats1);
-        assert.deepEqual(stats1, {test: {foo: 'bar'}});
+        assert.isObject(data1);
+        assert.deepEqual(data1.stats, {test: {foo: 'bar'}});
 
         assert.strictEqual(wrapper.opts.cacheFile, cacheFile);
 
         let cache = build.caches.get(opts);
         assert.strictEqual(wrapper.cache, cache);
-        assert.strictEqual(stats1, cache.data.stats);
+        assert.strictEqual(data1.stats, cache.data.stats);
         assert.isFalse(cache.delegate);
 
-        build(opts, (err, stats2) => {
+        build(opts, (err, data2) => {
           assert.isNull(err);
-          assert.isObject(stats2);
+          assert.isObject(data2);
 
-          assert.strictEqual(stats2, stats1);
-          assert.deepEqual(stats2, {test: {foo: 'bar'}});
+          assert.strictEqual(data2, data1);
+          assert.deepEqual(data2.stats, {test: {foo: 'bar'}});
           assert.isFalse(cache.delegate);
 
           setTimeout(() => {
-            wrapper.onceDone((err, stats3) => {
+            wrapper.onceDone((err, data3) => {
               assert.isNull(err);
-              assert.isObject(stats3);
-              assert.notStrictEqual(stats3, stats2);
+              assert.isObject(data3);
+              assert.notStrictEqual(data3, data2);
 
               assert.isString(cache.data.hash);
               assert.equal(cache.data.hash, opts.hash);
@@ -256,10 +256,10 @@ describe('build', () => {
 
               assert.isTrue(cache.delegate);
 
-              build(opts, (err, stats4) => {
+              build(opts, (err, data4) => {
                 assert.isNull(err);
-                assert.isObject(stats4);
-                assert.deepEqual(stats4, stats3);
+                assert.isObject(data4);
+                assert.deepEqual(data4.stats, data3.stats);
 
                 done();
               });
