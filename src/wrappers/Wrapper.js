@@ -110,10 +110,19 @@ class Wrapper {
   generateOutput(stats) {
     if (!stats) return null;
 
-    let assets = _.transform(
-      stats.compilation.assets,
-      (result, obj, asset) => result[asset] = obj.existsAt
-    );
+    let dependencies = {
+      webpack: require('webpack/package').version,
+      'webpack-build': packageJson.version
+    };
+
+    let statsJson = stats.toJson({
+      modules: false,
+      source: false
+    });
+
+    let webpackConfig = this.config || require(this.opts.config);
+
+    let assets = _.pluck(stats.compilation.assets, 'existsAt');
 
     let output = _.transform(stats.compilation.chunks, (result, chunk) => {
       let obj = {
@@ -137,19 +146,25 @@ class Wrapper {
       result[chunk.name] = obj;
     }, {});
 
-    let dependencies = {
-      webpack: require('webpack/package').version,
-      'webpack-build': packageJson.version
-    };
+    let urls = {};
+    if (this.opts.staticRoot && this.opts.staticUrl) {
+      let absPathToRelUrl = (absPath) => {
+        let relPath = absPath.replace(this.opts.staticRoot, '');
 
-    let statsJson = stats.toJson({
-      modules: false,
-      source: false
-    });
+        let relUrl = relPath.split(path.sep).join('/');
+        if (_.startsWith(relUrl, '/')) {
+          relUrl = relUrl.slice(1);
+        }
 
-    let webpackConfig = this.config || require(this.opts.config);
+        return this.opts.staticUrl + relUrl;
+      };
 
-    let data = {
+      urls = _.transform(output, (result, obj, chunkName) => {
+        return result[chunkName] = _.mapValues(obj, (paths) => paths.map(absPathToRelUrl));
+      });
+    }
+
+    return {
       startTime: stats.startTime,
       endTime: stats.endTime,
       stats: statsJson,
@@ -160,35 +175,9 @@ class Wrapper {
       buildHash: this.opts.buildHash,
       buildOptions: this.opts,
       assets: assets,
-      urls: {},
-      rendered: {
-        script: [],
-        link: []
-      },
-      output: output
+      output: output,
+      urls: urls
     };
-
-    if (this.opts.staticRoot && this.opts.staticUrl) {
-      _.forEach(data.assets, (absPath, asset) => {
-        let relPath = absPath.replace(this.opts.staticRoot, '');
-
-        let relUrl = relPath.split(path.sep).join('/');
-        if (_.startsWith(relUrl, '/')) {
-          relUrl = relUrl.slice(1);
-        }
-
-        let url = this.opts.staticUrl + relUrl;
-        data.urls[asset] = url;
-
-        if (path.extname(relPath) === '.css') {
-          data.rendered.link.push(`<link rel="stylesheet" href="${url}">`);
-        } else if (path.extname(relPath) === '.js') {
-          data.rendered.script.push(`<script src="${url}"></script>`);
-        }
-      });
-    }
-
-    return data;
   }
   handleErrAndStats(err, stats, cb) {
     if (err) {

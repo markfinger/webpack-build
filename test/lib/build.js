@@ -121,11 +121,10 @@ describe('build', function () {
       assert.isNull(err);
       assert.isObject(data);
 
-      debugger;
-      assert.isObject(data.assets);
+      assert.isArray(data.assets);
       assert.isObject(data.webpackConfig);
 
-      var existsAt = data.assets['output.js'];
+      var existsAt = data.assets[0];
       assert.isString(existsAt);
 
       _fs2['default'].readFile(existsAt, function (err, contents) {

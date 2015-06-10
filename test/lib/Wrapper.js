@@ -89,7 +89,7 @@ describe('Wrapper', function () {
       assert.isNull(err);
       assert.isObject(stats);
 
-      var existsAt = stats.assets['output.js'];
+      var existsAt = stats.assets[0];
       assert.isString(existsAt);
       _fs2['default'].readFile(existsAt, function (err, contents) {
         assert.isNull(err);
@@ -263,7 +263,7 @@ describe('Wrapper', function () {
       wrapper.onceDone(function (err, stats) {
         assert.isNull(err);
         assert.isObject(stats);
-        assert.equal(output, stats.assets['output.js']);
+        assert.equal(output, stats.assets[0]);
         var contents = _fs2['default'].readFileSync(output);
         assert.include(contents.toString(), '__REBUILT_TEST_ONE__');
 
@@ -271,7 +271,7 @@ describe('Wrapper', function () {
         wrapper.onceDone(function (err, stats) {
           assert.isNull(err);
           assert.isObject(stats);
-          assert.equal(output, stats.assets['output.js']);
+          assert.equal(output, stats.assets[0]);
           contents = _fs2['default'].readFileSync(output);
           assert.include(contents.toString(), '__REBUILT_TEST_TWO__');
 
@@ -279,7 +279,7 @@ describe('Wrapper', function () {
           wrapper.onceDone(function (err, stats) {
             assert.isNull(err);
             assert.isObject(stats);
-            assert.equal(output, stats.assets['output.js']);
+            assert.equal(output, stats.assets[0]);
             contents = _fs2['default'].readFileSync(output);
             assert.include(contents.toString(), '__REBUILT_TEST_THREE__');
             done();
@@ -352,7 +352,7 @@ describe('Wrapper', function () {
       wrapper.onceDone(function (err, stats) {
         assert.isNull(err);
         assert.isObject(stats);
-        assert.equal(output, stats.assets['output.js']);
+        assert.equal(output, stats.assets[0]);
         var contents = _fs2['default'].readFileSync(output);
         assert.include(contents.toString(), '__WATCH_TEST_ONE__');
 
@@ -363,8 +363,7 @@ describe('Wrapper', function () {
             wrapper.onceDone(function (err, stats) {
               assert.isNull(err);
               assert.isObject(stats);
-              assert.property(stats.assets, 'output.js');
-              assert.equal(output, stats.assets['output.js']);
+              assert.equal(output, stats.assets[0]);
               contents = _fs2['default'].readFileSync(output);
               assert.include(contents.toString(), '__WATCH_TEST_TWO__');
 
@@ -374,7 +373,7 @@ describe('Wrapper', function () {
                 wrapper.onceDone(function (err, stats) {
                   assert.isNull(err);
                   assert.isObject(stats);
-                  assert.equal(output, stats.assets['output.js']);
+                  assert.equal(output, stats.assets[0]);
                   contents = _fs2['default'].readFileSync(output);
                   assert.include(contents.toString(), '__WATCH_TEST_THREE__');
                   done();
@@ -409,7 +408,7 @@ describe('Wrapper', function () {
       wrapper.onceDone(function (err1, stats1) {
         assert.isNull(err1);
         assert.isObject(stats1);
-        assert.equal(output, stats1.assets['output.js']);
+        assert.equal(output, stats1.assets[0]);
         var contents = _fs2['default'].readFileSync(output);
         assert.include(contents.toString(), '__WATCHED_FILE_ERROR_ONE__');
 
@@ -458,7 +457,7 @@ describe('Wrapper', function () {
       wrapper.onceDone(function (err, stats) {
         assert.isNull(err);
         assert.isObject(stats);
-        assert.equal(output, stats.assets['output.js']);
+        assert.equal(output, stats.assets[0]);
         var contents = _fs2['default'].readFileSync(output);
         assert.include(contents.toString(), '__WATCHED_FILE_ERROR_ONE__');
 
@@ -476,7 +475,7 @@ describe('Wrapper', function () {
                 wrapper.onceDone(function (err, stats) {
                   assert.isNull(err);
                   assert.isObject(stats);
-                  assert.equal(output, stats.assets['output.js']);
+                  assert.equal(output, stats.assets[0]);
                   var contents = _fs2['default'].readFileSync(output);
                   assert.include(contents.toString(), '__WATCHED_FILE_ERROR_TWO__');
                   done();
@@ -537,7 +536,7 @@ describe('Wrapper', function () {
       });
     });
   });
-  describe('#stats.urls', function () {
+  describe('#data.urls', function () {
     it('should create urls relative to staticRoot', function (done) {
       var wrapper = new _libWrappersWrapper2['default']({
         config: _path2['default'].join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js'),
@@ -551,7 +550,7 @@ describe('Wrapper', function () {
         assert.isObject(stats);
 
         assert.isObject(stats.urls);
-        assert.equal(stats.urls['output.js'], '/static/url/test/output.js');
+        assert.equal(stats.urls.main.js[0], '/static/url/test/output.js');
 
         done();
       });
@@ -569,31 +568,7 @@ describe('Wrapper', function () {
         assert.isObject(stats);
 
         assert.isObject(stats.urls);
-        assert.equal(stats.urls['output.js'], '/static/url/test/output.js');
-
-        done();
-      });
-    });
-  });
-  describe('#stats.rendered', function () {
-    it('should create rendered elements using staticRoot and staticUrl', function (done) {
-      var wrapper = new _libWrappersWrapper2['default']({
-        config: _path2['default'].join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js'),
-        outputPath: _path2['default'].join(TEST_OUTPUT_DIR, 'url', 'test'),
-        staticRoot: TEST_OUTPUT_DIR,
-        staticUrl: '/static/'
-      });
-
-      wrapper.compile(function (err, stats) {
-        assert.isNull(err);
-        assert.isObject(stats);
-
-        assert.isObject(stats.urls);
-        assert.isObject(stats.rendered);
-        assert.isArray(stats.rendered.link);
-        assert.isArray(stats.rendered.script);
-        assert.equal(stats.rendered.script.length, 1);
-        assert.equal(stats.rendered.script[0], '<script src="/static/url/test/output.js"></script>');
+        assert.equal(stats.urls.main.js[0], '/static/url/test/output.js');
 
         done();
       });

@@ -94,11 +94,10 @@ describe('build', () => {
       assert.isNull(err);
       assert.isObject(data);
 
-      debugger
-      assert.isObject(data.assets);
+      assert.isArray(data.assets);
       assert.isObject(data.webpackConfig);
 
-      let existsAt = data.assets['output.js'];
+      let existsAt = data.assets[0];
       assert.isString(existsAt);
 
       fs.readFile(existsAt, (err, contents) => {
