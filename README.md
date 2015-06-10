@@ -5,7 +5,7 @@ webpack-build
 [![Dependency Status](https://david-dm.org/markfinger/webpack-build.svg)](https://david-dm.org/markfinger/webpack-build)
 [![devDependency Status](https://david-dm.org/markfinger/webpack-build/dev-status.svg)](https://david-dm.org/markfinger/webpack-build#info=devDependencies)
 
-Wraps webpack. Intended for build systems. Does a bunch of things...
+Wraps webpack and play well with build systems. Does a bunch of things...
 
 - Runs multiple concurrent compilers
 - Persistent caching
