@@ -107,19 +107,17 @@ Configuration
 Caching
 -------
 
-A combination of persistent files and in-memory data are used to improve build times.
+Once your a compilation request has completed successfully, the output is cached and subsequent 
+requests will be served from memory until a compiler invalidates it. Cached output is also written 
+to disk, so cold boots are pretty fast.
 
-Once your first compilation request has completed successfully, the output is cached and
-subsequent requests will be served from memory. Cached output is written to disk, so cold
-boots will experience comparable performance.
-
-When serving cached data, a compiler will be spun up in the background and the cache will
-continue to serve data only until the compiler has completed. Spawning a compiler enables
-webpack's incremental compilation to provide almost instantaneous builds.
+When serving cached data, a compiler is spun up in the background so that the cache only has to
+serve data until the compiler has completed. Once the compiler's ready, webpack's incremental 
+compilation provides almost instantaneous builds.
 
 To avoid serving stale data, the wrapper tracks file and package dependencies. File timestamps
-and package versions are checked before serving up any cached data. If the cached data is ever
-deemed to be stale, requests will be blocked until the compiler completes.
+and package versions are checked whenever cached data is requested. If the cache deems that the 
+data is stale, requests will be blocked until the compiler completes.
 
 
 Environment configuration
