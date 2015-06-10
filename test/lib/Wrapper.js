@@ -537,7 +537,7 @@ describe('Wrapper', function () {
       });
     });
   });
-  describe('#stats.urlsToAssets', function () {
+  describe('#stats.urls', function () {
     it('should create urls relative to staticRoot', function (done) {
       var wrapper = new _libWrappersWrapper2['default']({
         config: _path2['default'].join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js'),
@@ -550,8 +550,8 @@ describe('Wrapper', function () {
         assert.isNull(err);
         assert.isObject(stats);
 
-        assert.isObject(stats.urlsToAssets);
-        assert.equal(stats.urlsToAssets['output.js'], '/static/url/test/output.js');
+        assert.isObject(stats.urls);
+        assert.equal(stats.urls['output.js'], '/static/url/test/output.js');
 
         done();
       });
@@ -568,8 +568,8 @@ describe('Wrapper', function () {
         assert.isNull(err);
         assert.isObject(stats);
 
-        assert.isObject(stats.urlsToAssets);
-        assert.equal(stats.urlsToAssets['output.js'], '/static/url/test/output.js');
+        assert.isObject(stats.urls);
+        assert.equal(stats.urls['output.js'], '/static/url/test/output.js');
 
         done();
       });
@@ -588,7 +588,7 @@ describe('Wrapper', function () {
         assert.isNull(err);
         assert.isObject(stats);
 
-        assert.isObject(stats.urlsToAssets);
+        assert.isObject(stats.urls);
         assert.isObject(stats.rendered);
         assert.isArray(stats.rendered.link);
         assert.isArray(stats.rendered.script);

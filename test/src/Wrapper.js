@@ -504,7 +504,7 @@ describe('Wrapper', () => {
       });
     });
   });
-  describe('#stats.urlsToAssets', () => {
+  describe('#stats.urls', () => {
     it('should create urls relative to staticRoot', (done) => {
       let wrapper = new Wrapper({
         config: path.join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js'),
@@ -517,8 +517,8 @@ describe('Wrapper', () => {
         assert.isNull(err);
         assert.isObject(stats);
 
-        assert.isObject(stats.urlsToAssets);
-        assert.equal(stats.urlsToAssets['output.js'], '/static/url/test/output.js');
+        assert.isObject(stats.urls);
+        assert.equal(stats.urls['output.js'], '/static/url/test/output.js');
 
         done();
       });
@@ -535,8 +535,8 @@ describe('Wrapper', () => {
         assert.isNull(err);
         assert.isObject(stats);
 
-        assert.isObject(stats.urlsToAssets);
-        assert.equal(stats.urlsToAssets['output.js'], '/static/url/test/output.js');
+        assert.isObject(stats.urls);
+        assert.equal(stats.urls['output.js'], '/static/url/test/output.js');
 
         done();
       });
@@ -555,7 +555,7 @@ describe('Wrapper', () => {
         assert.isNull(err);
         assert.isObject(stats);
 
-        assert.isObject(stats.urlsToAssets);
+        assert.isObject(stats.urls);
         assert.isObject(stats.rendered);
         assert.isArray(stats.rendered.link);
         assert.isArray(stats.rendered.script);

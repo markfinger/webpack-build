@@ -116,23 +116,25 @@ class Wrapper {
     );
 
     let output = _.transform(stats.compilation.chunks, (result, chunk) => {
-      var output = {
+      let obj = {
         js: [],
         css: [],
         files: []
       };
+
       chunk.files.forEach((filename) => {
         filename = path.join(stats.compilation.outputOptions.path, filename);
         let ext = path.extname(filename);
         if (ext === '.js') {
-          output.js.push(filename);
+          obj.js.push(filename);
         } else if (ext === '.css') {
-          output.css.push(filename);
+          obj.css.push(filename);
         } else {
-          output.files.push(filename);
+          obj.files.push(filename);
         }
       });
-      result[chunk.name] = output;
+
+      result[chunk.name] = obj;
     }, {});
 
     let dependencies = {
@@ -158,7 +160,7 @@ class Wrapper {
       buildHash: this.opts.buildHash,
       buildOptions: this.opts,
       assets: assets,
-      urlsToAssets: {},
+      urls: {},
       rendered: {
         script: [],
         link: []
@@ -176,7 +178,7 @@ class Wrapper {
         }
 
         let url = this.opts.staticUrl + relUrl;
-        data.urlsToAssets[asset] = url;
+        data.urls[asset] = url;
 
         if (path.extname(relPath) === '.css') {
           data.rendered.link.push(`<link rel="stylesheet" href="${url}">`);
