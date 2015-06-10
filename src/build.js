@@ -1,23 +1,16 @@
-import hmr from './hmr';
-import env from './env';
 import options from './options';
 import log from './log';
-import Wrapper from './Wrapper';
 import wrappers from './wrappers';
 import cache from './cache';
 
 const build = (opts, cb) => {
   opts = options(opts);
-
   let logger = log('build', opts);
-
   let wrapper = wrappers.get(opts);
-  if (!wrapper) {
-    logger('creating wrapper');
-    wrapper = new Wrapper(opts);
-  }
 
   // Defer so that we can return the wrapper before `cb` is called
+  // This adds a tiny overhead, but makes testing much easier to
+  // reason about
   process.nextTick(() => {
     logger('requesting data from cache');
     cache.get(opts, function(err, data) {
@@ -42,9 +35,5 @@ const build = (opts, cb) => {
 
   return wrapper;
 };
-
-build.wrappers = wrappers;
-build.hmr = hmr;
-build.env = env;
 
 export default build;

@@ -18,9 +18,9 @@ var _libIndex = require('../../lib/index');
 
 var _libIndex2 = _interopRequireDefault(_libIndex);
 
-var _libWrapper = require('../../lib/Wrapper');
+var _libWrappersWrapper = require('../../lib/wrappers/Wrapper');
 
-var _libWrapper2 = _interopRequireDefault(_libWrapper);
+var _libWrappersWrapper2 = _interopRequireDefault(_libWrappersWrapper);
 
 var _libWrappers = require('../../lib/wrappers');
 
@@ -30,26 +30,22 @@ var _libCache = require('../../lib/cache');
 
 var _libCache2 = _interopRequireDefault(_libCache);
 
-var _libCacheCaches = require('../../lib/cache/caches');
-
-var _libCacheCaches2 = _interopRequireDefault(_libCacheCaches);
-
 var _utils = require('./utils');
 
 var _utils2 = _interopRequireDefault(_utils);
 
+var TEST_OUTPUT_DIR = _utils2['default'].TEST_OUTPUT_DIR;
 var assert = _utils2['default'].assert;
-var CACHE_DIR = _path2['default'].join(_utils2['default'].TEST_OUTPUT_DIR, 'cache_dir');
 
 // Ensure we have a clean slate before and after each test
 beforeEach(function () {
   _libWrappers2['default'].clear();
-  _libCacheCaches2['default'].clear();
+  _libCache2['default'].clear();
   _utils2['default'].cleanTestOutputDir();
 });
 afterEach(function () {
   _libWrappers2['default'].clear();
-  _libCacheCaches2['default'].clear();
+  _libCache2['default'].clear();
   _utils2['default'].cleanTestOutputDir();
 });
 
@@ -59,9 +55,7 @@ describe('build', function () {
   });
   it('should accept options and callback arguments', function () {
     var opts = {
-      config: _path2['default'].join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config'),
-      logger: null,
-      cacheDir: CACHE_DIR
+      config: _path2['default'].join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config')
     };
     (0, _libIndex2['default'])(opts, function () {});
   });
@@ -69,82 +63,69 @@ describe('build', function () {
     var pathToConfig = _path2['default'].join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config');
     var opts1 = {
       config: pathToConfig,
-      watch: true,
-      logger: null,
-      cacheDir: CACHE_DIR
+      watch: true
     };
-    assert.equal(Object.keys(_libIndex2['default'].wrappers.wrappers).length, 0);
+    assert.equal(Object.keys(_libWrappers2['default'].wrappers).length, 0);
 
     var wrapper1 = (0, _libIndex2['default'])(opts1, function () {});
-    assert.equal(Object.keys(_libIndex2['default'].wrappers.wrappers).length, 1);
-    assert.strictEqual(_libIndex2['default'].wrappers.wrappers[opts1.buildHash], wrapper1);
-    assert.strictEqual(_libIndex2['default'].wrappers.wrappers[opts1.buildHash].opts, opts1);
+    assert.equal(Object.keys(_libWrappers2['default'].wrappers).length, 1);
+    assert.strictEqual(_libWrappers2['default'].wrappers[opts1.buildHash], wrapper1);
+    assert.strictEqual(_libWrappers2['default'].wrappers[opts1.buildHash].opts, opts1);
 
     var opts2 = {
       config: pathToConfig,
-      watch: true,
-      logger: null,
-      cacheDir: CACHE_DIR
+      watch: true
     };
     var wrapper2 = (0, _libIndex2['default'])(opts2, function () {});
     assert.strictEqual(wrapper2, wrapper1);
-    assert.equal(Object.keys(_libIndex2['default'].wrappers.wrappers).length, 1);
-    assert.strictEqual(_libIndex2['default'].wrappers.wrappers[opts2.buildHash], wrapper2);
-    assert.strictEqual(_libIndex2['default'].wrappers.wrappers[opts2.buildHash].opts, opts1);
+    assert.equal(Object.keys(_libWrappers2['default'].wrappers).length, 1);
+    assert.strictEqual(_libWrappers2['default'].wrappers[opts2.buildHash], wrapper2);
+    assert.strictEqual(_libWrappers2['default'].wrappers[opts2.buildHash].opts, opts1);
 
     var opts3 = {
       config: pathToConfig,
-      watch: false,
-      logger: null,
-      cacheDir: CACHE_DIR
+      watch: false
     };
     var wrapper3 = (0, _libIndex2['default'])(opts3, function () {});
-    assert.equal(Object.keys(_libIndex2['default'].wrappers.wrappers).length, 2);
-    assert.strictEqual(_libIndex2['default'].wrappers.wrappers[opts3.buildHash], wrapper3);
-    assert.strictEqual(_libIndex2['default'].wrappers.wrappers[opts3.buildHash].opts, opts3);
+    assert.equal(Object.keys(_libWrappers2['default'].wrappers).length, 2);
+    assert.strictEqual(_libWrappers2['default'].wrappers[opts3.buildHash], wrapper3);
+    assert.strictEqual(_libWrappers2['default'].wrappers[opts3.buildHash].opts, opts3);
 
     var opts4 = {
       config: pathToConfig + 'test',
-      watch: false,
-      logger: null,
-      cacheDir: CACHE_DIR
+      watch: false
     };
     var wrapper4 = (0, _libIndex2['default'])(opts4, function () {});
-    assert.equal(Object.keys(_libIndex2['default'].wrappers.wrappers).length, 3);
-    assert.strictEqual(_libIndex2['default'].wrappers.wrappers[opts4.buildHash], wrapper4);
-    assert.strictEqual(_libIndex2['default'].wrappers.wrappers[opts4.buildHash].opts, opts4);
+    assert.equal(Object.keys(_libWrappers2['default'].wrappers).length, 3);
+    assert.strictEqual(_libWrappers2['default'].wrappers[opts4.buildHash], wrapper4);
+    assert.strictEqual(_libWrappers2['default'].wrappers[opts4.buildHash].opts, opts4);
 
     var opts5 = {
       config: pathToConfig + 'test',
-      watch: false,
-      logger: null,
-      cacheDir: CACHE_DIR
+      watch: false
     };
     (0, _libIndex2['default'])(opts5, function () {});
-    assert.equal(Object.keys(_libIndex2['default'].wrappers.wrappers).length, 3);
+    assert.equal(Object.keys(_libWrappers2['default'].wrappers).length, 3);
 
     var opts6 = {
       config: pathToConfig,
-      watch: true,
-      logger: null,
-      cacheDir: CACHE_DIR
+      watch: true
     };
     (0, _libIndex2['default'])(opts6, function () {});
-    assert.equal(Object.keys(_libIndex2['default'].wrappers.wrappers).length, 3);
+    assert.equal(Object.keys(_libWrappers2['default'].wrappers).length, 3);
   });
   it('should be able to generate a bundle', function (done) {
     (0, _libIndex2['default'])({
-      config: _path2['default'].join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config'),
-      logger: null,
-      cacheDir: CACHE_DIR
+      config: _path2['default'].join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config')
     }, function (err, data) {
       assert.isNull(err);
       assert.isObject(data);
 
-      assert.isObject(data.pathsToAssets);
+      debugger;
+      assert.isObject(data.assets);
       assert.isObject(data.webpackConfig);
 
-      var existsAt = data.pathsToAssets['output.js'];
+      var existsAt = data.assets['output.js'];
       assert.isString(existsAt);
 
       _fs2['default'].readFile(existsAt, function (err, contents) {
@@ -158,7 +139,7 @@ describe('build', function () {
   });
   describe('file cache', function () {
     it('should respect the cacheDir and cacheFile options', function (done) {
-      var cacheFile = _path2['default'].join(CACHE_DIR, 'test_cacheFile.json');
+      var cacheFile = _path2['default'].join(TEST_OUTPUT_DIR, 'test_cacheFile.json');
       var configFile = _path2['default'].join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js');
 
       _mkdirp2['default'].sync(_path2['default'].dirname(cacheFile));
@@ -177,7 +158,6 @@ describe('build', function () {
       (0, _libIndex2['default'])({
         config: configFile,
         cacheFile: cacheFile,
-        logger: null,
         buildHash: 'foo'
       }, function (err, data) {
         assert.isNull(err);
@@ -191,9 +171,7 @@ describe('build', function () {
       var configFile = _path2['default'].join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js');
 
       var opts = {
-        config: configFile,
-        cacheDir: CACHE_DIR,
-        logger: null
+        config: configFile
       };
 
       (0, _libIndex2['default'])(opts, function (err, data) {
@@ -211,9 +189,7 @@ describe('build', function () {
 
       var opts = {
         config: configFile,
-        cacheDir: CACHE_DIR,
-        watch: false,
-        logger: null
+        watch: false
       };
 
       var wrapper = (0, _libIndex2['default'])(opts, function (err, data) {
@@ -228,16 +204,16 @@ describe('build', function () {
 
           assert.isString(opts.config);
           assert.isString(opts.buildHash);
-          assert.equal(opts.cacheFile, _path2['default'].join(CACHE_DIR, opts.buildHash + '.json'));
+          assert.equal(opts.cacheFile, _path2['default'].join(opts.cacheDir, opts.buildHash + '.json'));
 
-          assert.equal(_libCacheCaches2['default'].get(opts).filename, opts.cacheFile);
+          assert.equal(_libCache2['default']._caches.get(opts).filename, opts.cacheFile);
 
           done();
         });
       });
     });
     it('should stop serving cached data once a watcher has completed', function (done) {
-      var cacheFile = _path2['default'].join(CACHE_DIR, 'test_cache_stops_once_watcher_done.json');
+      var cacheFile = _path2['default'].join(TEST_OUTPUT_DIR, 'test_cache_stops_once_watcher_done.json');
       var configFile = _path2['default'].join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js');
 
       _mkdirp2['default'].sync(_path2['default'].dirname(cacheFile));
@@ -257,7 +233,6 @@ describe('build', function () {
         config: configFile,
         cacheFile: cacheFile,
         watch: true,
-        logger: null,
         buildHash: 'foo'
       };
 
@@ -268,7 +243,7 @@ describe('build', function () {
 
         assert.strictEqual(wrapper.opts.cacheFile, cacheFile);
 
-        var _cache = _libCacheCaches2['default'].get(opts);
+        var _cache = _libCache2['default']._caches.get(opts);
         assert.deepEqual(data1.stats, _cache.data.stats);
         assert.isFalse(_cache.delegate);
 

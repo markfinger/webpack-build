@@ -35,5 +35,10 @@ export default {
     let delegate = opts.watch;
     let cache = caches.get(opts);
     cache.set(data, delegate);
-  }
+  },
+  clear: () => {
+    // Purges the memory cache, but leaves the file system intact
+    caches.clear();
+  },
+  _caches: caches
 };

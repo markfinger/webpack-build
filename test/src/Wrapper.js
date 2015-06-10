@@ -2,8 +2,8 @@ import fs from 'fs';
 import path from 'path';
 import mkdirp from 'mkdirp';
 import webpack from 'webpack';
-import Wrapper from '../../lib/Wrapper';
-import Watcher from '../../lib/Watcher';
+import Wrapper from '../../lib/wrappers/Wrapper';
+import Watcher from '../../lib/wrappers/Watcher';
 import options from '../../lib/options';
 import cache from '../../lib/cache';
 import caches from '../../lib/cache/caches';
@@ -56,7 +56,7 @@ describe('Wrapper', () => {
       assert.isNull(err);
       assert.isObject(stats);
 
-      let existsAt = stats.pathsToAssets['output.js'];
+      let existsAt = stats.assets['output.js'];
       assert.isString(existsAt);
       fs.readFile(existsAt, (err, contents) => {
         assert.isNull(err);
@@ -230,7 +230,7 @@ describe('Wrapper', () => {
       wrapper.onceDone((err, stats) => {
         assert.isNull(err);
         assert.isObject(stats);
-        assert.equal(output, stats.pathsToAssets['output.js']);
+        assert.equal(output, stats.assets['output.js']);
         let contents = fs.readFileSync(output);
         assert.include(contents.toString(), '__REBUILT_TEST_ONE__');
 
@@ -238,7 +238,7 @@ describe('Wrapper', () => {
         wrapper.onceDone((err, stats) => {
           assert.isNull(err);
           assert.isObject(stats);
-          assert.equal(output, stats.pathsToAssets['output.js']);
+          assert.equal(output, stats.assets['output.js']);
           contents = fs.readFileSync(output);
           assert.include(contents.toString(), '__REBUILT_TEST_TWO__');
 
@@ -246,7 +246,7 @@ describe('Wrapper', () => {
           wrapper.onceDone((err, stats) => {
             assert.isNull(err);
             assert.isObject(stats);
-            assert.equal(output, stats.pathsToAssets['output.js']);
+            assert.equal(output, stats.assets['output.js']);
             contents = fs.readFileSync(output);
             assert.include(contents.toString(), '__REBUILT_TEST_THREE__');
             done();
@@ -319,7 +319,7 @@ describe('Wrapper', () => {
       wrapper.onceDone((err, stats) => {
         assert.isNull(err);
         assert.isObject(stats);
-        assert.equal(output, stats.pathsToAssets['output.js']);
+        assert.equal(output, stats.assets['output.js']);
         let contents = fs.readFileSync(output);
         assert.include(contents.toString(), '__WATCH_TEST_ONE__');
 
@@ -330,8 +330,8 @@ describe('Wrapper', () => {
             wrapper.onceDone((err, stats) => {
               assert.isNull(err);
               assert.isObject(stats);
-              assert.property(stats.pathsToAssets, 'output.js');
-              assert.equal(output, stats.pathsToAssets['output.js']);
+              assert.property(stats.assets, 'output.js');
+              assert.equal(output, stats.assets['output.js']);
               contents = fs.readFileSync(output);
               assert.include(contents.toString(), '__WATCH_TEST_TWO__');
 
@@ -341,7 +341,7 @@ describe('Wrapper', () => {
                 wrapper.onceDone((err, stats) => {
                   assert.isNull(err);
                   assert.isObject(stats);
-                  assert.equal(output, stats.pathsToAssets['output.js']);
+                  assert.equal(output, stats.assets['output.js']);
                   contents = fs.readFileSync(output);
                   assert.include(contents.toString(), '__WATCH_TEST_THREE__');
                   done();
@@ -376,7 +376,7 @@ describe('Wrapper', () => {
       wrapper.onceDone((err1, stats1) => {
         assert.isNull(err1);
         assert.isObject(stats1);
-        assert.equal(output, stats1.pathsToAssets['output.js']);
+        assert.equal(output, stats1.assets['output.js']);
         let contents = fs.readFileSync(output);
         assert.include(contents.toString(), '__WATCHED_FILE_ERROR_ONE__');
 
@@ -425,7 +425,7 @@ describe('Wrapper', () => {
       wrapper.onceDone((err, stats) => {
         assert.isNull(err);
         assert.isObject(stats);
-        assert.equal(output, stats.pathsToAssets['output.js']);
+        assert.equal(output, stats.assets['output.js']);
         let contents = fs.readFileSync(output);
         assert.include(contents.toString(), '__WATCHED_FILE_ERROR_ONE__');
 
@@ -443,7 +443,7 @@ describe('Wrapper', () => {
                 wrapper.onceDone((err, stats) => {
                   assert.isNull(err);
                   assert.isObject(stats);
-                  assert.equal(output, stats.pathsToAssets['output.js']);
+                  assert.equal(output, stats.assets['output.js']);
                   let contents = fs.readFileSync(output);
                   assert.include(contents.toString(), '__WATCHED_FILE_ERROR_TWO__');
                   done();
@@ -486,8 +486,7 @@ describe('Wrapper', () => {
     it('should be able to populate a cache', (done) => {
       let wrapper = new Wrapper({
         config: path.join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js'),
-        watch: false,
-        cacheDir: path.join(TEST_OUTPUT_DIR, 'wrapper_test_cache_dir')
+        watch: false
       });
 
       wrapper.onceDone((err, data) => {

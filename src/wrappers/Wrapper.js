@@ -1,13 +1,13 @@
 import path from 'path';
 import _ from 'lodash';
 import webpack from 'webpack';
+import packageJson from '../../package';
+import options from '../options';
+import hmr from '../hmr';
+import hmrConfig from '../hmr/config';
+import log from '../log';
+import cache from '../cache';
 import Watcher from './Watcher';
-import options from './options';
-import hmr from './hmr';
-import hmrConfig from './hmr/config';
-import log from './log';
-import cache from './cache';
-import packageJson from '../package';
 
 class Wrapper {
   constructor(opts, config) {
@@ -124,7 +124,7 @@ class Wrapper {
       },
       config: this.opts.config,
       buildHash: this.opts.buildHash,
-      pathsToAssets: _.transform(
+      assets: _.transform(
         stats.compilation.assets,
         (result, obj, asset) => result[asset] = obj.existsAt,
         {} // TODO: can probably remove this line
@@ -157,7 +157,7 @@ class Wrapper {
     };
 
     if (this.opts.staticRoot && this.opts.staticUrl) {
-      _.forEach(data.pathsToAssets, (absPath, asset) => {
+      _.forEach(data.assets, (absPath, asset) => {
         let relPath = absPath.replace(this.opts.staticRoot, '');
 
         let relUrl = relPath.split(path.sep).join('/');

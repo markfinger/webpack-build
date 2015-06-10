@@ -22,9 +22,9 @@ var _webpack = require('webpack');
 
 var _webpack2 = _interopRequireDefault(_webpack);
 
-var _libWatcher = require('../../lib/Watcher');
+var _libWrappersWatcher = require('../../lib/wrappers/Watcher');
 
-var _libWatcher2 = _interopRequireDefault(_libWatcher);
+var _libWrappersWatcher2 = _interopRequireDefault(_libWrappersWatcher);
 
 var _libOptions = require('../../lib/options');
 
@@ -47,12 +47,12 @@ afterEach(function () {
 
 describe('Watcher', function () {
   it('should be a function', function () {
-    assert.isFunction(_libWatcher2['default']);
+    assert.isFunction(_libWrappersWatcher2['default']);
   });
   it('should accept compiler and option arguments', function () {
     var compiler = (0, _webpack2['default'])({});
     var opts = { buildHash: 'foo' };
-    var watcher = new _libWatcher2['default'](compiler, opts);
+    var watcher = new _libWrappersWatcher2['default'](compiler, opts);
     assert.strictEqual(watcher.compiler, compiler);
     assert.strictEqual(watcher.opts, opts);
   });
@@ -71,7 +71,7 @@ describe('Watcher', function () {
       _mkdirp2['default'].sync(_path2['default'].dirname(entry));
       _fs2['default'].writeFileSync(entry, 'module.exports = "__HOOK_TEST_ONE__";');
 
-      var watcher = new _libWatcher2['default']((0, _webpack2['default'])(config), (0, _libOptions2['default'])());
+      var watcher = new _libWrappersWatcher2['default']((0, _webpack2['default'])(config), (0, _libOptions2['default'])());
 
       var onInvalidCalls = 0;
       watcher.onInvalid(function () {
@@ -112,7 +112,7 @@ describe('Watcher', function () {
   describe('#onceReady', function () {
     it('should block until a bundle is generated', function (done) {
       var compiler = (0, _webpack2['default'])(require('./test_bundles/basic_bundle/webpack.config'));
-      var watcher = new _libWatcher2['default'](compiler, (0, _libOptions2['default'])());
+      var watcher = new _libWrappersWatcher2['default'](compiler, (0, _libOptions2['default'])());
       watcher.onceDone(function (err, stats) {
         assert.isNull(err);
         assert.isObject(stats);
@@ -138,7 +138,7 @@ describe('Watcher', function () {
       };
       _mkdirp2['default'].sync(_path2['default'].dirname(entry));
       _fs2['default'].writeFileSync(entry, 'module.exports = "__INVALIDATED_BUNDLE_ONE__";');
-      var watcher = new _libWatcher2['default']((0, _webpack2['default'])(config), (0, _libOptions2['default'])({
+      var watcher = new _libWrappersWatcher2['default']((0, _webpack2['default'])(config), (0, _libOptions2['default'])({
         aggregateTimeout: 10
       }));
       watcher.onceDone(function (err, stats) {
@@ -172,7 +172,7 @@ describe('Watcher', function () {
           filename: 'some_file.js'
         }
       };
-      var watcher = new _libWatcher2['default']((0, _webpack2['default'])(config), (0, _libOptions2['default'])());
+      var watcher = new _libWrappersWatcher2['default']((0, _webpack2['default'])(config), (0, _libOptions2['default'])());
 
       watcher.onceDone(function (err) {
         assert.instanceOf(err, Error);
@@ -194,7 +194,7 @@ describe('Watcher', function () {
         }
       });
 
-      var watcher = new _libWatcher2['default'](compiler, (0, _libOptions2['default'])());
+      var watcher = new _libWrappersWatcher2['default'](compiler, (0, _libOptions2['default'])());
 
       _mkdirp2['default'].sync(_path2['default'].dirname(entry));
 
@@ -249,7 +249,7 @@ describe('Watcher', function () {
         }
       });
 
-      var watcher = new _libWatcher2['default'](compiler, (0, _libOptions2['default'])({
+      var watcher = new _libWrappersWatcher2['default'](compiler, (0, _libOptions2['default'])({
         aggregateTimeout: _utils2['default'].aggregateTimeout
       }));
 

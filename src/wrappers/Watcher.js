@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import log from './log';
+import log from '../log';
 
 class Watcher {
   constructor(compiler, opts) {

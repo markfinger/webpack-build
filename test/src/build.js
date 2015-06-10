@@ -2,24 +2,23 @@ import path from 'path';
 import fs from 'fs';
 import mkdirp from 'mkdirp';
 import build from '../../lib/index';
-import Wrapper from '../../lib/Wrapper';
+import Wrapper from '../../lib/wrappers/Wrapper';
 import wrappers from '../../lib/wrappers'
 import cache from '../../lib/cache';
-import caches from '../../lib/cache/caches';
 import utils from './utils';
 
+let TEST_OUTPUT_DIR = utils.TEST_OUTPUT_DIR;
 let assert = utils.assert;
-let CACHE_DIR = path.join(utils.TEST_OUTPUT_DIR, 'cache_dir');
 
 // Ensure we have a clean slate before and after each test
 beforeEach(() => {
   wrappers.clear();
-  caches.clear();
+  cache.clear();
   utils.cleanTestOutputDir();
 });
 afterEach(() => {
   wrappers.clear();
-  caches.clear();
+  cache.clear();
   utils.cleanTestOutputDir();
 });
 
@@ -29,9 +28,7 @@ describe('build', () => {
   });
   it('should accept options and callback arguments', () => {
     let opts = {
-      config: path.join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config'),
-      logger: null,
-      cacheDir: CACHE_DIR
+      config: path.join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config')
     };
     build(opts, () => {});
   });
@@ -39,82 +36,69 @@ describe('build', () => {
     let pathToConfig = path.join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config');
     let opts1 = {
       config: pathToConfig,
-      watch: true,
-      logger: null,
-      cacheDir: CACHE_DIR
+      watch: true
     };
-    assert.equal(Object.keys(build.wrappers.wrappers).length, 0);
+    assert.equal(Object.keys(wrappers.wrappers).length, 0);
 
     let wrapper1 = build(opts1, () => {});
-    assert.equal(Object.keys(build.wrappers.wrappers).length, 1);
-    assert.strictEqual(build.wrappers.wrappers[opts1.buildHash], wrapper1);
-    assert.strictEqual(build.wrappers.wrappers[opts1.buildHash].opts, opts1);
+    assert.equal(Object.keys(wrappers.wrappers).length, 1);
+    assert.strictEqual(wrappers.wrappers[opts1.buildHash], wrapper1);
+    assert.strictEqual(wrappers.wrappers[opts1.buildHash].opts, opts1);
 
     let opts2 = {
       config: pathToConfig,
-      watch: true,
-      logger: null,
-      cacheDir: CACHE_DIR
+      watch: true
     };
     let wrapper2 = build(opts2, () => {});
     assert.strictEqual(wrapper2, wrapper1);
-    assert.equal(Object.keys(build.wrappers.wrappers).length, 1);
-    assert.strictEqual(build.wrappers.wrappers[opts2.buildHash], wrapper2);
-    assert.strictEqual(build.wrappers.wrappers[opts2.buildHash].opts, opts1);
+    assert.equal(Object.keys(wrappers.wrappers).length, 1);
+    assert.strictEqual(wrappers.wrappers[opts2.buildHash], wrapper2);
+    assert.strictEqual(wrappers.wrappers[opts2.buildHash].opts, opts1);
 
     let opts3 = {
       config: pathToConfig,
-      watch: false,
-      logger: null,
-      cacheDir: CACHE_DIR
+      watch: false
     };
     let wrapper3 = build(opts3, () => {});
-    assert.equal(Object.keys(build.wrappers.wrappers).length, 2);
-    assert.strictEqual(build.wrappers.wrappers[opts3.buildHash], wrapper3);
-    assert.strictEqual(build.wrappers.wrappers[opts3.buildHash].opts, opts3);
+    assert.equal(Object.keys(wrappers.wrappers).length, 2);
+    assert.strictEqual(wrappers.wrappers[opts3.buildHash], wrapper3);
+    assert.strictEqual(wrappers.wrappers[opts3.buildHash].opts, opts3);
 
     let opts4 = {
       config: pathToConfig + 'test',
-      watch: false,
-      logger: null,
-      cacheDir: CACHE_DIR
+      watch: false
     };
     let wrapper4 = build(opts4, () => {});
-    assert.equal(Object.keys(build.wrappers.wrappers).length, 3);
-    assert.strictEqual(build.wrappers.wrappers[opts4.buildHash], wrapper4);
-    assert.strictEqual(build.wrappers.wrappers[opts4.buildHash].opts, opts4);
+    assert.equal(Object.keys(wrappers.wrappers).length, 3);
+    assert.strictEqual(wrappers.wrappers[opts4.buildHash], wrapper4);
+    assert.strictEqual(wrappers.wrappers[opts4.buildHash].opts, opts4);
 
     let opts5 = {
       config: pathToConfig + 'test',
-      watch: false,
-      logger: null,
-      cacheDir: CACHE_DIR
+      watch: false
     };
     build(opts5, () => {});
-    assert.equal(Object.keys(build.wrappers.wrappers).length, 3);
+    assert.equal(Object.keys(wrappers.wrappers).length, 3);
 
     let opts6 = {
       config: pathToConfig,
-      watch: true,
-      logger: null,
-      cacheDir: CACHE_DIR
+      watch: true
     };
     build(opts6, () => {});
-    assert.equal(Object.keys(build.wrappers.wrappers).length, 3);
+    assert.equal(Object.keys(wrappers.wrappers).length, 3);
   });
   it('should be able to generate a bundle', (done) => {
     build({
-      config: path.join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config'),
-      logger: null,
-      cacheDir: CACHE_DIR
+      config: path.join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config')
     }, (err, data) => {
       assert.isNull(err);
       assert.isObject(data);
 
-      assert.isObject(data.pathsToAssets);
+      debugger
+      assert.isObject(data.assets);
       assert.isObject(data.webpackConfig);
 
-      let existsAt = data.pathsToAssets['output.js'];
+      let existsAt = data.assets['output.js'];
       assert.isString(existsAt);
 
       fs.readFile(existsAt, (err, contents) => {
@@ -128,7 +112,7 @@ describe('build', () => {
   });
   describe('file cache', () => {
     it('should respect the cacheDir and cacheFile options', (done) => {
-      let cacheFile = path.join(CACHE_DIR, 'test_cacheFile.json');
+      let cacheFile = path.join(TEST_OUTPUT_DIR, 'test_cacheFile.json');
       let configFile = path.join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js');
 
       mkdirp.sync(path.dirname(cacheFile));
@@ -147,7 +131,6 @@ describe('build', () => {
       build({
         config: configFile,
         cacheFile: cacheFile,
-        logger: null,
         buildHash: 'foo'
       }, (err, data) => {
         assert.isNull(err);
@@ -161,9 +144,7 @@ describe('build', () => {
       let configFile = path.join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js');
 
       let opts = {
-        config: configFile,
-        cacheDir: CACHE_DIR,
-        logger: null
+        config: configFile
       };
 
       build(opts, (err, data) => {
@@ -181,9 +162,7 @@ describe('build', () => {
 
       let opts = {
         config: configFile,
-        cacheDir: CACHE_DIR,
-        watch: false,
-        logger: null
+        watch: false
       };
 
       let wrapper = build(opts, (err, data) => {
@@ -198,16 +177,16 @@ describe('build', () => {
 
           assert.isString(opts.config);
           assert.isString(opts.buildHash);
-          assert.equal(opts.cacheFile, path.join(CACHE_DIR, opts.buildHash + '.json'));
+          assert.equal(opts.cacheFile, path.join(opts.cacheDir, opts.buildHash + '.json'));
 
-          assert.equal(caches.get(opts).filename, opts.cacheFile);
+          assert.equal(cache._caches.get(opts).filename, opts.cacheFile);
 
           done();
         });
       });
     });
     it('should stop serving cached data once a watcher has completed', (done) => {
-      let cacheFile = path.join(CACHE_DIR, 'test_cache_stops_once_watcher_done.json');
+      let cacheFile = path.join(TEST_OUTPUT_DIR, 'test_cache_stops_once_watcher_done.json');
       let configFile = path.join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js');
 
       mkdirp.sync(path.dirname(cacheFile));
@@ -227,7 +206,6 @@ describe('build', () => {
         config: configFile,
         cacheFile: cacheFile,
         watch: true,
-        logger: null,
         buildHash: 'foo'
       };
 
@@ -238,7 +216,7 @@ describe('build', () => {
 
         assert.strictEqual(wrapper.opts.cacheFile, cacheFile);
 
-        let _cache = caches.get(opts);
+        let _cache = cache._caches.get(opts);
         assert.deepEqual(data1.stats, _cache.data.stats);
         assert.isFalse(_cache.delegate);
 

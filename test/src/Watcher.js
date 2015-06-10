@@ -3,7 +3,7 @@ import path from 'path';
 import _ from 'lodash';
 import mkdirp from 'mkdirp';
 import webpack from 'webpack';
-import Watcher from '../../lib/Watcher';
+import Watcher from '../../lib/wrappers/Watcher';
 import options from '../../lib/options';
 import utils from './utils';
 

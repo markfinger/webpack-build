@@ -7,11 +7,11 @@ class Wrappers {
   add(wrapper) {
     this.wrappers[wrapper.opts.buildHash] = wrapper;
   }
-  get(opts, cache) {
+  get(opts) {
     let wrapper = this.wrappers[opts.buildHash];
 
     if (!wrapper) {
-      wrapper = new Wrapper(opts, null, cache);
+      wrapper = new Wrapper(opts);
       this.add(wrapper);
     }
 

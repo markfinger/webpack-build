@@ -18,13 +18,13 @@ var _webpack = require('webpack');
 
 var _webpack2 = _interopRequireDefault(_webpack);
 
-var _libWrapper = require('../../lib/Wrapper');
+var _libWrappersWrapper = require('../../lib/wrappers/Wrapper');
 
-var _libWrapper2 = _interopRequireDefault(_libWrapper);
+var _libWrappersWrapper2 = _interopRequireDefault(_libWrappersWrapper);
 
-var _libWatcher = require('../../lib/Watcher');
+var _libWrappersWatcher = require('../../lib/wrappers/Watcher');
 
-var _libWatcher2 = _interopRequireDefault(_libWatcher);
+var _libWrappersWatcher2 = _interopRequireDefault(_libWrappersWatcher);
 
 var _libOptions = require('../../lib/options');
 
@@ -57,12 +57,12 @@ afterEach(function () {
 
 describe('Wrapper', function () {
   it('should be a function', function () {
-    assert.isFunction(_libWrapper2['default']);
+    assert.isFunction(_libWrappersWrapper2['default']);
   });
   it('should accept options and config arguments', function () {
     var opts = {};
     var config = {};
-    var wrapper = new _libWrapper2['default'](opts, config);
+    var wrapper = new _libWrappersWrapper2['default'](opts, config);
     assert.strictEqual(wrapper.opts, opts);
     assert.strictEqual(wrapper.config, config);
     assert.isTrue(wrapper.opts.watch);
@@ -73,7 +73,7 @@ describe('Wrapper', function () {
     assert.equal(wrapper.opts.staticUrl, '');
   });
   it('should accept a string as a config option and import the file specified', function (done) {
-    var wrapper = new _libWrapper2['default']({
+    var wrapper = new _libWrappersWrapper2['default']({
       config: _path2['default'].join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js')
     });
     wrapper.getConfig(function (err, config) {
@@ -83,13 +83,13 @@ describe('Wrapper', function () {
     });
   });
   it('should compile a basic bundle', function (done) {
-    var wrapper = new _libWrapper2['default']({}, require('./test_bundles/basic_bundle/webpack.config'));
+    var wrapper = new _libWrappersWrapper2['default']({}, require('./test_bundles/basic_bundle/webpack.config'));
 
     wrapper.compile(function (err, stats) {
       assert.isNull(err);
       assert.isObject(stats);
 
-      var existsAt = stats.pathsToAssets['output.js'];
+      var existsAt = stats.assets['output.js'];
       assert.isString(existsAt);
       _fs2['default'].readFile(existsAt, function (err, contents) {
         assert.isNull(err);
@@ -101,7 +101,7 @@ describe('Wrapper', function () {
     });
   });
   it('should compile a bundle with multiple chunks', function (done) {
-    var wrapper = new _libWrapper2['default']({
+    var wrapper = new _libWrappersWrapper2['default']({
       config: _path2['default'].join(__dirname, 'test_bundles', 'multiple_chunks', 'webpack.config.js')
     });
 
@@ -129,7 +129,7 @@ describe('Wrapper', function () {
     });
   });
   it('should expose the webpack config on the stats object', function (done) {
-    var wrapper = new _libWrapper2['default']({}, require('./test_bundles/basic_bundle/webpack.config'));
+    var wrapper = new _libWrappersWrapper2['default']({}, require('./test_bundles/basic_bundle/webpack.config'));
 
     wrapper.compile(function (err, stats) {
       assert.isNull(err);
@@ -140,7 +140,7 @@ describe('Wrapper', function () {
   });
   describe('#getCompiler', function () {
     it('should not preserved the compiler', function (done) {
-      var wrapper = new _libWrapper2['default']({}, {});
+      var wrapper = new _libWrappersWrapper2['default']({}, {});
 
       wrapper.getCompiler(function (err, compiler1) {
         assert.isNull(err);
@@ -156,16 +156,16 @@ describe('Wrapper', function () {
   });
   describe('#getWatcher', function () {
     it('should provide an instance of Watcher', function (done) {
-      var wrapper = new _libWrapper2['default']({ watch: true }, {});
+      var wrapper = new _libWrappersWrapper2['default']({ watch: true }, {});
 
       wrapper.getWatcher(function (err, watcher) {
         assert.isNull(err);
-        assert.instanceOf(watcher, _libWatcher2['default']);
+        assert.instanceOf(watcher, _libWrappersWatcher2['default']);
         done();
       });
     });
     it('should preserve the watcher', function (done) {
-      var wrapper = new _libWrapper2['default']({ watch: true }, {});
+      var wrapper = new _libWrappersWrapper2['default']({ watch: true }, {});
 
       wrapper.getWatcher(function (err, watcher1) {
         assert.isNull(err);
@@ -183,7 +183,7 @@ describe('Wrapper', function () {
   });
   describe('#generateOutput', function () {
     it('should produce a serializable form of the compilation\'s output', function (done) {
-      var wrapper = new _libWrapper2['default']({
+      var wrapper = new _libWrappersWrapper2['default']({
         watch: false,
         config: _path2['default'].join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js')
       });
@@ -207,7 +207,7 @@ describe('Wrapper', function () {
   });
   describe('#onceDone', function () {
     it('should not preserve errors and stats from the compilation, if not watching', function (done) {
-      var wrapper = new _libWrapper2['default']({
+      var wrapper = new _libWrappersWrapper2['default']({
         watch: false,
         config: _path2['default'].join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js')
       });
@@ -225,7 +225,7 @@ describe('Wrapper', function () {
       });
     });
     it('should preserve errors and stats from the compilation, if watching', function (done) {
-      var wrapper = new _libWrapper2['default']({
+      var wrapper = new _libWrappersWrapper2['default']({
         watch: true,
         config: _path2['default'].join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js')
       });
@@ -246,7 +246,7 @@ describe('Wrapper', function () {
       var entry = _path2['default'].join(TEST_OUTPUT_DIR, 'rebuilt_bundles', 'entry.js');
       var output = _path2['default'].join(TEST_OUTPUT_DIR, 'rebuilt_bundles', 'output.js');
 
-      var wrapper = new _libWrapper2['default']({
+      var wrapper = new _libWrappersWrapper2['default']({
         watch: false
       }, {
         context: _path2['default'].dirname(entry),
@@ -263,7 +263,7 @@ describe('Wrapper', function () {
       wrapper.onceDone(function (err, stats) {
         assert.isNull(err);
         assert.isObject(stats);
-        assert.equal(output, stats.pathsToAssets['output.js']);
+        assert.equal(output, stats.assets['output.js']);
         var contents = _fs2['default'].readFileSync(output);
         assert.include(contents.toString(), '__REBUILT_TEST_ONE__');
 
@@ -271,7 +271,7 @@ describe('Wrapper', function () {
         wrapper.onceDone(function (err, stats) {
           assert.isNull(err);
           assert.isObject(stats);
-          assert.equal(output, stats.pathsToAssets['output.js']);
+          assert.equal(output, stats.assets['output.js']);
           contents = _fs2['default'].readFileSync(output);
           assert.include(contents.toString(), '__REBUILT_TEST_TWO__');
 
@@ -279,7 +279,7 @@ describe('Wrapper', function () {
           wrapper.onceDone(function (err, stats) {
             assert.isNull(err);
             assert.isObject(stats);
-            assert.equal(output, stats.pathsToAssets['output.js']);
+            assert.equal(output, stats.assets['output.js']);
             contents = _fs2['default'].readFileSync(output);
             assert.include(contents.toString(), '__REBUILT_TEST_THREE__');
             done();
@@ -290,22 +290,22 @@ describe('Wrapper', function () {
   });
   describe('#opts.aggregateTimeout', function () {
     it('should default to 200', function () {
-      var wrapper = new _libWrapper2['default']();
+      var wrapper = new _libWrappersWrapper2['default']();
       assert.equal(wrapper.opts.aggregateTimeout, 200);
 
-      wrapper = new _libWrapper2['default']({
+      wrapper = new _libWrappersWrapper2['default']({
         aggregateTimeout: 300
       });
 
       assert.equal(wrapper.opts.aggregateTimeout, 300);
     });
     it('should be passed to the watcher', function (done) {
-      var wrapper = new _libWrapper2['default']({}, {});
+      var wrapper = new _libWrappersWrapper2['default']({}, {});
       wrapper.getWatcher(function (err, watcher) {
         assert.isNull(err);
         assert.equal(watcher.opts.aggregateTimeout, 200);
 
-        wrapper = new _libWrapper2['default']({
+        wrapper = new _libWrappersWrapper2['default']({
           aggregateTimeout: 300
         }, {});
 
@@ -319,10 +319,10 @@ describe('Wrapper', function () {
   });
   describe('#opts.watch', function () {
     it('should default to true', function () {
-      var wrapper = new _libWrapper2['default']();
+      var wrapper = new _libWrappersWrapper2['default']();
       assert.isTrue(wrapper.opts.watch);
 
-      wrapper = new _libWrapper2['default']({
+      wrapper = new _libWrappersWrapper2['default']({
         watch: false
       });
 
@@ -334,7 +334,7 @@ describe('Wrapper', function () {
       var entry = _path2['default'].join(TEST_OUTPUT_DIR, 'watch_source', 'entry.js');
       var output = _path2['default'].join(TEST_OUTPUT_DIR, 'watch_source', 'output.js');
 
-      var wrapper = new _libWrapper2['default']({
+      var wrapper = new _libWrappersWrapper2['default']({
         watch: true,
         aggregateTimeout: _utils2['default'].aggregateTimeout
       }, {
@@ -352,7 +352,7 @@ describe('Wrapper', function () {
       wrapper.onceDone(function (err, stats) {
         assert.isNull(err);
         assert.isObject(stats);
-        assert.equal(output, stats.pathsToAssets['output.js']);
+        assert.equal(output, stats.assets['output.js']);
         var contents = _fs2['default'].readFileSync(output);
         assert.include(contents.toString(), '__WATCH_TEST_ONE__');
 
@@ -363,8 +363,8 @@ describe('Wrapper', function () {
             wrapper.onceDone(function (err, stats) {
               assert.isNull(err);
               assert.isObject(stats);
-              assert.property(stats.pathsToAssets, 'output.js');
-              assert.equal(output, stats.pathsToAssets['output.js']);
+              assert.property(stats.assets, 'output.js');
+              assert.equal(output, stats.assets['output.js']);
               contents = _fs2['default'].readFileSync(output);
               assert.include(contents.toString(), '__WATCH_TEST_TWO__');
 
@@ -374,7 +374,7 @@ describe('Wrapper', function () {
                 wrapper.onceDone(function (err, stats) {
                   assert.isNull(err);
                   assert.isObject(stats);
-                  assert.equal(output, stats.pathsToAssets['output.js']);
+                  assert.equal(output, stats.assets['output.js']);
                   contents = _fs2['default'].readFileSync(output);
                   assert.include(contents.toString(), '__WATCH_TEST_THREE__');
                   done();
@@ -391,7 +391,7 @@ describe('Wrapper', function () {
       var entry = _path2['default'].join(TEST_OUTPUT_DIR, 'watched_file_error', 'entry.js');
       var output = _path2['default'].join(TEST_OUTPUT_DIR, 'watched_file_error', 'output.js');
 
-      var wrapper = new _libWrapper2['default']({
+      var wrapper = new _libWrappersWrapper2['default']({
         watch: true,
         aggregateTimeout: _utils2['default'].aggregateTimeout
       }, {
@@ -409,7 +409,7 @@ describe('Wrapper', function () {
       wrapper.onceDone(function (err1, stats1) {
         assert.isNull(err1);
         assert.isObject(stats1);
-        assert.equal(output, stats1.pathsToAssets['output.js']);
+        assert.equal(output, stats1.assets['output.js']);
         var contents = _fs2['default'].readFileSync(output);
         assert.include(contents.toString(), '__WATCHED_FILE_ERROR_ONE__');
 
@@ -440,7 +440,7 @@ describe('Wrapper', function () {
       var entry = _path2['default'].join(TEST_OUTPUT_DIR, 'watched_file_continues_to_compile', 'entry.js');
       var output = _path2['default'].join(TEST_OUTPUT_DIR, 'watched_file_continues_to_compile', 'output.js');
 
-      var wrapper = new _libWrapper2['default']({
+      var wrapper = new _libWrappersWrapper2['default']({
         watch: true,
         aggregateTimeout: _utils2['default'].aggregateTimeout
       }, {
@@ -458,7 +458,7 @@ describe('Wrapper', function () {
       wrapper.onceDone(function (err, stats) {
         assert.isNull(err);
         assert.isObject(stats);
-        assert.equal(output, stats.pathsToAssets['output.js']);
+        assert.equal(output, stats.assets['output.js']);
         var contents = _fs2['default'].readFileSync(output);
         assert.include(contents.toString(), '__WATCHED_FILE_ERROR_ONE__');
 
@@ -476,7 +476,7 @@ describe('Wrapper', function () {
                 wrapper.onceDone(function (err, stats) {
                   assert.isNull(err);
                   assert.isObject(stats);
-                  assert.equal(output, stats.pathsToAssets['output.js']);
+                  assert.equal(output, stats.assets['output.js']);
                   var contents = _fs2['default'].readFileSync(output);
                   assert.include(contents.toString(), '__WATCHED_FILE_ERROR_TWO__');
                   done();
@@ -490,17 +490,17 @@ describe('Wrapper', function () {
   });
   describe('#opts.outputPath', function () {
     it('should default to an empty string', function () {
-      var wrapper = new _libWrapper2['default']();
+      var wrapper = new _libWrappersWrapper2['default']();
       assert.equal(wrapper.opts.outputPath, '');
 
-      wrapper = new _libWrapper2['default']({
+      wrapper = new _libWrappersWrapper2['default']({
         outputPath: '/foo/bar'
       });
 
       assert.equal(wrapper.opts.outputPath, '/foo/bar');
     });
     it('should set a config\'s output.path prop', function (done) {
-      var wrapper = new _libWrapper2['default']({
+      var wrapper = new _libWrappersWrapper2['default']({
         config: _path2['default'].join(__dirname, 'test_bundles', 'output_path_bundle', 'webpack.config.js'),
         outputPath: '/some/path/'
       });
@@ -517,10 +517,9 @@ describe('Wrapper', function () {
   });
   describe('#cache', function () {
     it('should be able to populate a cache', function (done) {
-      var wrapper = new _libWrapper2['default']({
+      var wrapper = new _libWrappersWrapper2['default']({
         config: _path2['default'].join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js'),
-        watch: false,
-        cacheDir: _path2['default'].join(TEST_OUTPUT_DIR, 'wrapper_test_cache_dir')
+        watch: false
       });
 
       wrapper.onceDone(function (err, data) {
@@ -540,7 +539,7 @@ describe('Wrapper', function () {
   });
   describe('#stats.urlsToAssets', function () {
     it('should create urls relative to staticRoot', function (done) {
-      var wrapper = new _libWrapper2['default']({
+      var wrapper = new _libWrappersWrapper2['default']({
         config: _path2['default'].join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js'),
         outputPath: _path2['default'].join(TEST_OUTPUT_DIR, 'url', 'test'),
         staticRoot: TEST_OUTPUT_DIR,
@@ -558,7 +557,7 @@ describe('Wrapper', function () {
       });
     });
     it('should handle staticUrl without a trailing slash', function (done) {
-      var wrapper = new _libWrapper2['default']({
+      var wrapper = new _libWrappersWrapper2['default']({
         config: _path2['default'].join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js'),
         outputPath: _path2['default'].join(TEST_OUTPUT_DIR, 'url', 'test'),
         staticRoot: TEST_OUTPUT_DIR,
@@ -578,7 +577,7 @@ describe('Wrapper', function () {
   });
   describe('#stats.rendered', function () {
     it('should create rendered elements using staticRoot and staticUrl', function (done) {
-      var wrapper = new _libWrapper2['default']({
+      var wrapper = new _libWrappersWrapper2['default']({
         config: _path2['default'].join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js'),
         outputPath: _path2['default'].join(TEST_OUTPUT_DIR, 'url', 'test'),
         staticRoot: TEST_OUTPUT_DIR,
@@ -602,7 +601,7 @@ describe('Wrapper', function () {
   });
   describe('#opts.env', function () {
     it('should call the function matched on the config object', function (done) {
-      var wrapper = new _libWrapper2['default']({
+      var wrapper = new _libWrappersWrapper2['default']({
         config: {
           env: {
             foo: function foo() {
@@ -632,12 +631,12 @@ describe('Wrapper', function () {
 
       opts.config = config;
 
-      var wrapper = new _libWrapper2['default'](opts);
+      var wrapper = new _libWrappersWrapper2['default'](opts);
 
       wrapper.getConfig(function () {});
     });
     it('should accept mutations to the config object', function (done) {
-      var wrapper = new _libWrapper2['default']({
+      var wrapper = new _libWrappersWrapper2['default']({
         config: {
           env: {
             foo: function foo(config) {
@@ -661,7 +660,7 @@ describe('Wrapper', function () {
     it('should add hmr settings and entries', function (done) {
       var publicPath = '/static/foo';
 
-      var wrapper = new _libWrapper2['default']({
+      var wrapper = new _libWrappersWrapper2['default']({
         config: {},
         hmr: true,
         hmrRoot: 'http://test.com',
