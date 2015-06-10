@@ -3,6 +3,9 @@ import fs from 'fs';
 import mkdirp from 'mkdirp';
 import build from '../../lib/index';
 import Wrapper from '../../lib/Wrapper';
+import wrappers from '../../lib/wrappers'
+import cache from '../../lib/cache';
+import caches from '../../lib/cache/caches';
 import utils from './utils';
 
 let assert = utils.assert;
@@ -10,13 +13,13 @@ let CACHE_DIR = path.join(utils.TEST_OUTPUT_DIR, 'cache_dir');
 
 // Ensure we have a clean slate before and after each test
 beforeEach(() => {
-  build.wrappers.clear();
-  build.caches.clear();
+  wrappers.clear();
+  caches.clear();
   utils.cleanTestOutputDir();
 });
 afterEach(() => {
-  build.wrappers.clear();
-  build.caches.clear();
+  wrappers.clear();
+  caches.clear();
   utils.cleanTestOutputDir();
 });
 
@@ -179,6 +182,7 @@ describe('build', () => {
       let opts = {
         config: configFile,
         cacheDir: CACHE_DIR,
+        watch: false,
         logger: null
       };
 
@@ -188,15 +192,18 @@ describe('build', () => {
 
         assert.strictEqual(wrapper.opts, opts);
 
-        let cache = build.caches.get(opts);
+        cache.get(opts, (_err, _data) => {
+          assert.isNull(_err);
+          assert.deepEqual(_data, data);
 
-        assert.isString(opts.config);
-        assert.isString(opts.buildHash);
-        assert.equal(opts.cacheFile, path.join(CACHE_DIR, opts.buildHash + '.json'));
+          assert.isString(opts.config);
+          assert.isString(opts.buildHash);
+          assert.equal(opts.cacheFile, path.join(CACHE_DIR, opts.buildHash + '.json'));
 
-        assert.equal(cache.filename, opts.cacheFile);
+          assert.equal(caches.get(opts).filename, opts.cacheFile);
 
-        done();
+          done();
+        });
       });
     });
     it('should stop serving cached data once a watcher has completed', (done) => {
@@ -231,10 +238,9 @@ describe('build', () => {
 
         assert.strictEqual(wrapper.opts.cacheFile, cacheFile);
 
-        let cache = build.caches.get(opts);
-        assert.strictEqual(wrapper.cache, cache);
-        assert.strictEqual(data1.stats, cache.data.stats);
-        assert.isFalse(cache.delegate);
+        let _cache = caches.get(opts);
+        assert.deepEqual(data1.stats, _cache.data.stats);
+        assert.isFalse(_cache.delegate);
 
         build(opts, (err, data2) => {
           assert.isNull(err);
@@ -242,7 +248,7 @@ describe('build', () => {
 
           assert.strictEqual(data2, data1);
           assert.deepEqual(data2.stats, {test: {foo: 'bar'}});
-          assert.isFalse(cache.delegate);
+          assert.isFalse(_cache.delegate);
 
           setTimeout(() => {
             wrapper.onceDone((err, data3) => {
@@ -250,11 +256,11 @@ describe('build', () => {
               assert.isObject(data3);
               assert.notStrictEqual(data3, data2);
 
-              assert.isString(cache.data.buildHash);
-              assert.equal(cache.data.buildHash, opts.buildHash);
-              assert.equal(cache.data.buildHash, wrapper.opts.buildHash);
+              assert.isString(_cache.data.buildHash);
+              assert.equal(_cache.data.buildHash, opts.buildHash);
+              assert.equal(_cache.data.buildHash, wrapper.opts.buildHash);
 
-              assert.isTrue(cache.delegate);
+              assert.isTrue(_cache.delegate);
 
               build(opts, (err, data4) => {
                 assert.isNull(err);

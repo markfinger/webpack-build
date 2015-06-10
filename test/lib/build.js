@@ -22,6 +22,18 @@ var _libWrapper = require('../../lib/Wrapper');
 
 var _libWrapper2 = _interopRequireDefault(_libWrapper);
 
+var _libWrappers = require('../../lib/wrappers');
+
+var _libWrappers2 = _interopRequireDefault(_libWrappers);
+
+var _libCache = require('../../lib/cache');
+
+var _libCache2 = _interopRequireDefault(_libCache);
+
+var _libCacheCaches = require('../../lib/cache/caches');
+
+var _libCacheCaches2 = _interopRequireDefault(_libCacheCaches);
+
 var _utils = require('./utils');
 
 var _utils2 = _interopRequireDefault(_utils);
@@ -31,13 +43,13 @@ var CACHE_DIR = _path2['default'].join(_utils2['default'].TEST_OUTPUT_DIR, 'cach
 
 // Ensure we have a clean slate before and after each test
 beforeEach(function () {
-  _libIndex2['default'].wrappers.clear();
-  _libIndex2['default'].caches.clear();
+  _libWrappers2['default'].clear();
+  _libCacheCaches2['default'].clear();
   _utils2['default'].cleanTestOutputDir();
 });
 afterEach(function () {
-  _libIndex2['default'].wrappers.clear();
-  _libIndex2['default'].caches.clear();
+  _libWrappers2['default'].clear();
+  _libCacheCaches2['default'].clear();
   _utils2['default'].cleanTestOutputDir();
 });
 
@@ -200,6 +212,7 @@ describe('build', function () {
       var opts = {
         config: configFile,
         cacheDir: CACHE_DIR,
+        watch: false,
         logger: null
       };
 
@@ -209,15 +222,18 @@ describe('build', function () {
 
         assert.strictEqual(wrapper.opts, opts);
 
-        var cache = _libIndex2['default'].caches.get(opts);
+        _libCache2['default'].get(opts, function (_err, _data) {
+          assert.isNull(_err);
+          assert.deepEqual(_data, data);
 
-        assert.isString(opts.config);
-        assert.isString(opts.buildHash);
-        assert.equal(opts.cacheFile, _path2['default'].join(CACHE_DIR, opts.buildHash + '.json'));
+          assert.isString(opts.config);
+          assert.isString(opts.buildHash);
+          assert.equal(opts.cacheFile, _path2['default'].join(CACHE_DIR, opts.buildHash + '.json'));
 
-        assert.equal(cache.filename, opts.cacheFile);
+          assert.equal(_libCacheCaches2['default'].get(opts).filename, opts.cacheFile);
 
-        done();
+          done();
+        });
       });
     });
     it('should stop serving cached data once a watcher has completed', function (done) {
@@ -252,10 +268,9 @@ describe('build', function () {
 
         assert.strictEqual(wrapper.opts.cacheFile, cacheFile);
 
-        var cache = _libIndex2['default'].caches.get(opts);
-        assert.strictEqual(wrapper.cache, cache);
-        assert.strictEqual(data1.stats, cache.data.stats);
-        assert.isFalse(cache.delegate);
+        var _cache = _libCacheCaches2['default'].get(opts);
+        assert.deepEqual(data1.stats, _cache.data.stats);
+        assert.isFalse(_cache.delegate);
 
         (0, _libIndex2['default'])(opts, function (err, data2) {
           assert.isNull(err);
@@ -263,7 +278,7 @@ describe('build', function () {
 
           assert.strictEqual(data2, data1);
           assert.deepEqual(data2.stats, { test: { foo: 'bar' } });
-          assert.isFalse(cache.delegate);
+          assert.isFalse(_cache.delegate);
 
           setTimeout(function () {
             wrapper.onceDone(function (err, data3) {
@@ -271,11 +286,11 @@ describe('build', function () {
               assert.isObject(data3);
               assert.notStrictEqual(data3, data2);
 
-              assert.isString(cache.data.buildHash);
-              assert.equal(cache.data.buildHash, opts.buildHash);
-              assert.equal(cache.data.buildHash, wrapper.opts.buildHash);
+              assert.isString(_cache.data.buildHash);
+              assert.equal(_cache.data.buildHash, opts.buildHash);
+              assert.equal(_cache.data.buildHash, wrapper.opts.buildHash);
 
-              assert.isTrue(cache.delegate);
+              assert.isTrue(_cache.delegate);
 
               (0, _libIndex2['default'])(opts, function (err, data4) {
                 assert.isNull(err);

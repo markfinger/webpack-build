@@ -1,5 +1,4 @@
 import Wrapper from './Wrapper';
-import Cache from './Cache';
 
 class Wrappers {
   constructor() {
@@ -23,20 +22,4 @@ class Wrappers {
   }
 }
 
-class Caches {
-  constructor() {
-    this.caches = Object.create(null);
-  }
-  get(opts) {
-    if (!this.caches[opts.cacheFile]) {
-      this.caches[opts.cacheFile] = new Cache(opts);
-    }
-
-    return this.caches[opts.cacheFile];
-  }
-  clear() {
-    this.caches = Object.create(null);
-  }
-}
-
-export {Wrappers, Caches}
+export default new Wrappers();

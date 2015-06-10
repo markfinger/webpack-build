@@ -2,8 +2,8 @@ import fs from 'fs';
 import path from 'path';
 import async from 'async';
 import mkdirp from 'mkdirp';
-import log from './log';
-import packageJson from '../package';
+import log from '../log';
+import packageJson from '../../package';
 
 class Cache {
   constructor(opts) {

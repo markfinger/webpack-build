@@ -30,9 +30,13 @@ var _libOptions = require('../../lib/options');
 
 var _libOptions2 = _interopRequireDefault(_libOptions);
 
-var _libCache = require('../../lib/Cache');
+var _libCache = require('../../lib/cache');
 
 var _libCache2 = _interopRequireDefault(_libCache);
+
+var _libCacheCaches = require('../../lib/cache/caches');
+
+var _libCacheCaches2 = _interopRequireDefault(_libCacheCaches);
 
 var _utils = require('./utils');
 
@@ -44,9 +48,11 @@ var TEST_OUTPUT_DIR = _utils2['default'].TEST_OUTPUT_DIR;
 // Ensure we have a clean slate before and after each test
 beforeEach(function () {
   _utils2['default'].cleanTestOutputDir();
+  _libCacheCaches2['default'].clear();
 });
 afterEach(function () {
   _utils2['default'].cleanTestOutputDir();
+  _libCacheCaches2['default'].clear();
 });
 
 describe('Wrapper', function () {
@@ -511,28 +517,21 @@ describe('Wrapper', function () {
   });
   describe('#cache', function () {
     it('should be able to populate a cache', function (done) {
-      var cache = new _libCache2['default']((0, _libOptions2['default'])({ cacheFile: _path2['default'].join(TEST_OUTPUT_DIR, 'bundle_test_cache.json') }));
-      assert.deepEqual(cache.data, {});
-
       var wrapper = new _libWrapper2['default']({
-        config: _path2['default'].join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js')
-      }, null, cache);
+        config: _path2['default'].join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js'),
+        watch: false,
+        cacheDir: _path2['default'].join(TEST_OUTPUT_DIR, 'wrapper_test_cache_dir')
+      });
 
-      assert.strictEqual(wrapper.cache, cache);
-      assert.isString(wrapper.opts.config);
-
-      wrapper.onceDone(function (err, stats) {
+      wrapper.onceDone(function (err, data) {
         assert.isNull(err);
-        assert.isObject(stats);
+        assert.isObject(data);
 
-        cache.get(function (err, entry) {
-          assert.isNull(err);
-          assert.isObject(entry);
+        _libCache2['default'].get(wrapper.opts, function (_err, _data) {
+          assert.isNull(_err);
+          assert.isObject(_data);
 
-          assert.isNumber(entry.startTime);
-          assert.isArray(entry.fileDependencies);
-          assert.isObject(entry.stats);
-          assert.equal(entry.config, wrapper.opts.config);
+          assert.deepEqual(_data, data);
 
           done();
         });

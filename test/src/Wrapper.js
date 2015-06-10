@@ -5,7 +5,8 @@ import webpack from 'webpack';
 import Wrapper from '../../lib/Wrapper';
 import Watcher from '../../lib/Watcher';
 import options from '../../lib/options';
-import Cache from '../../lib/Cache';
+import cache from '../../lib/cache';
+import caches from '../../lib/cache/caches';
 import utils from './utils';
 
 let assert = utils.assert;
@@ -14,9 +15,11 @@ let TEST_OUTPUT_DIR = utils.TEST_OUTPUT_DIR;
 // Ensure we have a clean slate before and after each test
 beforeEach(() => {
   utils.cleanTestOutputDir();
+  caches.clear();
 });
 afterEach(() => {
   utils.cleanTestOutputDir();
+  caches.clear();
 });
 
 describe('Wrapper', () => {
@@ -481,30 +484,21 @@ describe('Wrapper', () => {
   });
   describe('#cache', () => {
     it('should be able to populate a cache', (done) => {
-      let cache = new Cache(
-        options({cacheFile: path.join(TEST_OUTPUT_DIR, 'bundle_test_cache.json')})
-      );
-      assert.deepEqual(cache.data, {});
-
       let wrapper = new Wrapper({
-        config: path.join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js')
-      }, null, cache);
+        config: path.join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js'),
+        watch: false,
+        cacheDir: path.join(TEST_OUTPUT_DIR, 'wrapper_test_cache_dir')
+      });
 
-      assert.strictEqual(wrapper.cache, cache);
-      assert.isString(wrapper.opts.config);
-
-      wrapper.onceDone((err, stats) => {
+      wrapper.onceDone((err, data) => {
         assert.isNull(err);
-        assert.isObject(stats);
+        assert.isObject(data);
 
-        cache.get((err, entry) => {
-          assert.isNull(err);
-          assert.isObject(entry);
+        cache.get(wrapper.opts, (_err, _data) => {
+          assert.isNull(_err);
+          assert.isObject(_data);
 
-          assert.isNumber(entry.startTime);
-          assert.isArray(entry.fileDependencies);
-          assert.isObject(entry.stats);
-          assert.equal(entry.config, wrapper.opts.config);
+          assert.deepEqual(_data, data);
 
           done();
         });

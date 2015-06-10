@@ -6,10 +6,11 @@ import options from './options';
 import hmr from './hmr';
 import hmrConfig from './hmr/config';
 import log from './log';
+import cache from './cache';
 import packageJson from '../package';
 
 class Wrapper {
-  constructor(opts, config, cache) {
+  constructor(opts, config) {
     this.opts = options(opts);
 
     this.logger = log('wrapper', this.opts);
@@ -18,8 +19,6 @@ class Wrapper {
     // Convenience hook to pass an object in. You can also define
     // `opts.config` as a path to a file
     this.config = config;
-
-    this.cache = cache;
 
     // State
     this.watcher = null;
@@ -81,22 +80,11 @@ class Wrapper {
       compiler.plugin('done', (stats) => {
         if (stats.hasErrors()) {
           this.logger('build error(s)', _.pluck(stats.compilation.errors, 'stack'));
+          cache.set(this.opts, null);
+        } else {
+          cache.set(this.opts, this.generateOutput(stats));
         }
       });
-
-      if (this.opts.config && this.cache) {
-        compiler.plugin('done', (stats) => {
-          // TODO: get startTime/endTime from the stats
-          if (stats.hasErrors()) {
-            this.cache.set(null);
-          } else {
-            this.cache.set(
-              this.generateOutput(stats),
-              this.opts.watch
-            );
-          }
-        });
-      }
 
       if (this.opts.watch && this.opts.hmr && this.opts.hmrRoot) {
         hmr.bindCompiler(compiler, this.opts);
