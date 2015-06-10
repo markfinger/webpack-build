@@ -139,13 +139,33 @@ class Wrapper {
       pathsToAssets: _.transform(
         stats.compilation.assets,
         (result, obj, asset) => result[asset] = obj.existsAt,
-        {}
+        {} // TODO: can probably remove this line
       ),
       urlsToAssets: {},
       rendered: {
         script: [],
         link: []
-      }
+      },
+      output: _.transform(stats.compilation.chunks, (result, chunk) => {
+        var output = {
+          js: [],
+          css: [],
+          files: []
+        };
+        chunk.files.forEach((filename) => {
+          filename = path.join(stats.compilation.outputOptions.path, filename);
+          let ext = path.extname(filename);
+          if (ext === '.js') {
+            output.js.push(filename);
+          } else if (ext === '.css') {
+            output.css.push(filename);
+          } else {
+            output.files.push(filename);
+          }
+        });
+        result[chunk.name] = output;
+      }, {}),
+      buildOptions: this.opts
     };
 
     if (this.opts.staticRoot && this.opts.staticUrl) {

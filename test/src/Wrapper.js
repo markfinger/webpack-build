@@ -64,6 +64,34 @@ describe('Wrapper', () => {
       });
     });
   });
+  it('should compile a bundle with multiple chunks', (done) => {
+    let wrapper = new Wrapper({
+      config: path.join(__dirname, 'test_bundles', 'multiple_chunks', 'webpack.config.js')
+    });
+
+    wrapper.compile((err, data) => {
+      assert.isNull(err);
+      assert.isObject(data);
+
+      assert.isObject(data.output.one);
+      assert.isObject(data.output.two);
+      assert.isObject(data.output.three);
+
+      assert.isString(data.output.one.js[0]);
+      assert.isString(data.output.two.js[0]);
+      assert.isString(data.output.three.js[0]);
+
+      let contents = fs.readFileSync(data.output.one.js[0]).toString();
+      assert.include(contents, '__ONE__');
+
+      contents = fs.readFileSync(data.output.two.js[0]).toString();
+      assert.include(contents, '__TWO__');
+
+      contents = fs.readFileSync(data.output.three.js[0]).toString();
+      assert.include(contents, '__THREE__');
+      done();
+    });
+  });
   it('should expose the webpack config on the stats object', (done) => {
     let wrapper = new Wrapper({}, require('./test_bundles/basic_bundle/webpack.config'));
 
@@ -124,24 +152,20 @@ describe('Wrapper', () => {
         config: path.join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js')
       });
 
-      wrapper.getCompiler((err, compiler) => {
+      wrapper.onceDone((err, data) => {
         assert.isNull(err);
-        assert.isObject(compiler);
+        assert.isObject(data);
 
-        compiler.run((err, stats) => {
-          assert.isNull(err);
-          assert.isObject(stats);
+        // webpack inserts regexes which can't be serialized
+        data.webpackConfig.module = null;
+        // deepEqual checks hasOwnProperty
+        delete data.buildOptions.poll;
 
-          let output = wrapper.generateOutput(stats);
+        let serialized = JSON.stringify(data);
+        //debugger
+        assert.deepEqual(JSON.parse(serialized), data);
 
-          // webpack inserts regexes which can't be serialized
-          output.webpackConfig.module = null;
-
-          let serialized = JSON.stringify(output);
-          assert.deepEqual(JSON.parse(serialized), output);
-
-          done();
-        });
+        done();
       });
     });
   });

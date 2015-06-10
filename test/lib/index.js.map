@@ -1,0 +1,1 @@
+{"version":3,"sources":["../src/index.js"],"names":[],"mappings":";;;;gCAA6B,oBAAoB;;;;;AAGjD,8BAAiB,OAAO,CAAC;AACvB,0BAAwB,EAAE,KAAK;CAChC,CAAC,CAAC","file":"index.js","sourcesContent":["import sourceMapSupport from 'source-map-support';\n\n// Rather than using mocha's `require` hook\nsourceMapSupport.install({\n  handleUncaughtExceptions: false\n});"]}

@@ -94,6 +94,34 @@ describe('Wrapper', function () {
       });
     });
   });
+  it('should compile a bundle with multiple chunks', function (done) {
+    var wrapper = new _libWrapper2['default']({
+      config: _path2['default'].join(__dirname, 'test_bundles', 'multiple_chunks', 'webpack.config.js')
+    });
+
+    wrapper.compile(function (err, data) {
+      assert.isNull(err);
+      assert.isObject(data);
+
+      assert.isObject(data.output.one);
+      assert.isObject(data.output.two);
+      assert.isObject(data.output.three);
+
+      assert.isString(data.output.one.js[0]);
+      assert.isString(data.output.two.js[0]);
+      assert.isString(data.output.three.js[0]);
+
+      var contents = _fs2['default'].readFileSync(data.output.one.js[0]).toString();
+      assert.include(contents, '__ONE__');
+
+      contents = _fs2['default'].readFileSync(data.output.two.js[0]).toString();
+      assert.include(contents, '__TWO__');
+
+      contents = _fs2['default'].readFileSync(data.output.three.js[0]).toString();
+      assert.include(contents, '__THREE__');
+      done();
+    });
+  });
   it('should expose the webpack config on the stats object', function (done) {
     var wrapper = new _libWrapper2['default']({}, require('./test_bundles/basic_bundle/webpack.config'));
 
@@ -154,24 +182,20 @@ describe('Wrapper', function () {
         config: _path2['default'].join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js')
       });
 
-      wrapper.getCompiler(function (err, compiler) {
+      wrapper.onceDone(function (err, data) {
         assert.isNull(err);
-        assert.isObject(compiler);
+        assert.isObject(data);
 
-        compiler.run(function (err, stats) {
-          assert.isNull(err);
-          assert.isObject(stats);
+        // webpack inserts regexes which can't be serialized
+        data.webpackConfig.module = null;
+        // deepEqual checks hasOwnProperty
+        delete data.buildOptions.poll;
 
-          var output = wrapper.generateOutput(stats);
+        var serialized = JSON.stringify(data);
+        //debugger
+        assert.deepEqual(JSON.parse(serialized), data);
 
-          // webpack inserts regexes which can't be serialized
-          output.webpackConfig.module = null;
-
-          var serialized = JSON.stringify(output);
-          assert.deepEqual(JSON.parse(serialized), output);
-
-          done();
-        });
+        done();
       });
     });
   });

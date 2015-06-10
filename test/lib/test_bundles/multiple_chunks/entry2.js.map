@@ -1,0 +1,1 @@
+{"version":3,"sources":["../../../src/test_bundles/multiple_chunks/entry2.js"],"names":[],"mappings":";;AAAA,MAAM,CAAC,OAAO,GAAG,SAAS,CAAC","file":"entry2.js","sourcesContent":["module.exports = '__TWO__';"]}
