@@ -110,50 +110,60 @@ class Wrapper {
   generateOutput(stats) {
     if (!stats) return null;
 
+    let assets = _.transform(
+      stats.compilation.assets,
+      (result, obj, asset) => result[asset] = obj.existsAt
+    );
+
+    let output = _.transform(stats.compilation.chunks, (result, chunk) => {
+      var output = {
+        js: [],
+        css: [],
+        files: []
+      };
+      chunk.files.forEach((filename) => {
+        filename = path.join(stats.compilation.outputOptions.path, filename);
+        let ext = path.extname(filename);
+        if (ext === '.js') {
+          output.js.push(filename);
+        } else if (ext === '.css') {
+          output.css.push(filename);
+        } else {
+          output.files.push(filename);
+        }
+      });
+      result[chunk.name] = output;
+    }, {});
+
+    let dependencies = {
+      webpack: require('webpack/package').version,
+      'webpack-build': packageJson.version
+    };
+
+    let statsJson = stats.toJson({
+      modules: false,
+      source: false
+    });
+
+    let webpackConfig = this.config || require(this.opts.config);
+
     let data = {
       startTime: stats.startTime,
       endTime: stats.endTime,
-      stats: stats.toJson({
-        modules: false,
-        source: false
-      }),
+      stats: statsJson,
       fileDependencies: stats.compilation.fileDependencies,
-      dependencies: {
-        webpack: require('webpack/package').version,
-        'webpack-build': packageJson.version
-      },
+      dependencies: dependencies,
       config: this.opts.config,
+      webpackConfig: webpackConfig,
       buildHash: this.opts.buildHash,
-      assets: _.transform(
-        stats.compilation.assets,
-        (result, obj, asset) => result[asset] = obj.existsAt,
-        {} // TODO: can probably remove this line
-      ),
+      buildOptions: this.opts,
+      assets: assets,
       urlsToAssets: {},
       rendered: {
         script: [],
         link: []
       },
-      output: _.transform(stats.compilation.chunks, (result, chunk) => {
-        var output = {
-          js: [],
-          css: [],
-          files: []
-        };
-        chunk.files.forEach((filename) => {
-          filename = path.join(stats.compilation.outputOptions.path, filename);
-          let ext = path.extname(filename);
-          if (ext === '.js') {
-            output.js.push(filename);
-          } else if (ext === '.css') {
-            output.css.push(filename);
-          } else {
-            output.files.push(filename);
-          }
-        });
-        result[chunk.name] = output;
-      }, {}),
-      buildOptions: this.opts
+      output: output
     };
 
     if (this.opts.staticRoot && this.opts.staticUrl) {
@@ -174,14 +184,6 @@ class Wrapper {
           data.rendered.script.push(`<script src="${url}"></script>`);
         }
       });
-    }
-
-    if (this.config) {
-      data.webpackConfig = this.config;
-    } else if (this.opts.config) {
-      try {
-        data.webpackConfig = require(this.opts.config);
-      } catch(err) {}
     }
 
     return data;
