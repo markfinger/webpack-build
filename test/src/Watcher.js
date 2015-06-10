@@ -24,7 +24,7 @@ describe('Watcher', () => {
   });
   it('should accept compiler and option arguments', () => {
     let compiler = webpack({});
-    let opts = {hash:'foo'};
+    let opts = {buildHash:'foo'};
     let watcher = new Watcher(compiler, opts);
     assert.strictEqual(watcher.compiler, compiler);
     assert.strictEqual(watcher.opts, opts);

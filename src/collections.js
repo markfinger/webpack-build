@@ -6,10 +6,10 @@ class Wrappers {
     this.wrappers = Object.create(null)
   }
   add(wrapper) {
-    this.wrappers[wrapper.opts.hash] = wrapper;
+    this.wrappers[wrapper.opts.buildHash] = wrapper;
   }
   get(opts, cache) {
-    let wrapper = this.wrappers[opts.hash];
+    let wrapper = this.wrappers[opts.buildHash];
 
     if (!wrapper) {
       wrapper = new Wrapper(opts, null, cache);

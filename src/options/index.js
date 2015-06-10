@@ -17,15 +17,13 @@ export default (opts) => {
     opts.publicPath += '/';
   }
 
-  if (!opts.hash) {
-    let serializable = _.omit(opts, _.isObject);
-    let json = JSON.stringify(serializable);
-    let content = json + packageJson.version;
-    opts.hash = crypto.createHash('md5').update(content).digest('hex');
+  if (!opts.buildHash) {
+    let serializedOpts = JSON.stringify(opts);
+    opts.buildHash = crypto.createHash('sha1').update(serializedOpts).digest('hex');
   }
 
   if (!opts.cacheFile) {
-    opts.cacheFile = path.join(opts.cacheDir, `${opts.hash}.json`);
+    opts.cacheFile = path.join(opts.cacheDir, `${opts.buildHash}.json`);
   }
 
   if (opts.hmrRoot && _.endsWith(opts.hmrRoot, '/')) {
@@ -33,7 +31,7 @@ export default (opts) => {
   }
 
   if (!opts.hmrNamespace) {
-    opts.hmrNamespace = `/${opts.hash}`;
+    opts.hmrNamespace = `/${opts.buildHash}`;
   }
 
   return opts;

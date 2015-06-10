@@ -65,8 +65,8 @@ describe('build', function () {
 
     var wrapper1 = (0, _libIndex2['default'])(opts1, function () {});
     assert.equal(Object.keys(_libIndex2['default'].wrappers.wrappers).length, 1);
-    assert.strictEqual(_libIndex2['default'].wrappers.wrappers[opts1.hash], wrapper1);
-    assert.strictEqual(_libIndex2['default'].wrappers.wrappers[opts1.hash].opts, opts1);
+    assert.strictEqual(_libIndex2['default'].wrappers.wrappers[opts1.buildHash], wrapper1);
+    assert.strictEqual(_libIndex2['default'].wrappers.wrappers[opts1.buildHash].opts, opts1);
 
     var opts2 = {
       config: pathToConfig,
@@ -77,8 +77,8 @@ describe('build', function () {
     var wrapper2 = (0, _libIndex2['default'])(opts2, function () {});
     assert.strictEqual(wrapper2, wrapper1);
     assert.equal(Object.keys(_libIndex2['default'].wrappers.wrappers).length, 1);
-    assert.strictEqual(_libIndex2['default'].wrappers.wrappers[opts2.hash], wrapper2);
-    assert.strictEqual(_libIndex2['default'].wrappers.wrappers[opts2.hash].opts, opts1);
+    assert.strictEqual(_libIndex2['default'].wrappers.wrappers[opts2.buildHash], wrapper2);
+    assert.strictEqual(_libIndex2['default'].wrappers.wrappers[opts2.buildHash].opts, opts1);
 
     var opts3 = {
       config: pathToConfig,
@@ -88,8 +88,8 @@ describe('build', function () {
     };
     var wrapper3 = (0, _libIndex2['default'])(opts3, function () {});
     assert.equal(Object.keys(_libIndex2['default'].wrappers.wrappers).length, 2);
-    assert.strictEqual(_libIndex2['default'].wrappers.wrappers[opts3.hash], wrapper3);
-    assert.strictEqual(_libIndex2['default'].wrappers.wrappers[opts3.hash].opts, opts3);
+    assert.strictEqual(_libIndex2['default'].wrappers.wrappers[opts3.buildHash], wrapper3);
+    assert.strictEqual(_libIndex2['default'].wrappers.wrappers[opts3.buildHash].opts, opts3);
 
     var opts4 = {
       config: pathToConfig + 'test',
@@ -99,8 +99,8 @@ describe('build', function () {
     };
     var wrapper4 = (0, _libIndex2['default'])(opts4, function () {});
     assert.equal(Object.keys(_libIndex2['default'].wrappers.wrappers).length, 3);
-    assert.strictEqual(_libIndex2['default'].wrappers.wrappers[opts4.hash], wrapper4);
-    assert.strictEqual(_libIndex2['default'].wrappers.wrappers[opts4.hash].opts, opts4);
+    assert.strictEqual(_libIndex2['default'].wrappers.wrappers[opts4.buildHash], wrapper4);
+    assert.strictEqual(_libIndex2['default'].wrappers.wrappers[opts4.buildHash].opts, opts4);
 
     var opts5 = {
       config: pathToConfig + 'test',
@@ -159,14 +159,14 @@ describe('build', function () {
           test: { foo: 'bar' }
         },
         config: configFile,
-        hash: 'foo'
+        buildHash: 'foo'
       }));
 
       (0, _libIndex2['default'])({
         config: configFile,
         cacheFile: cacheFile,
         logger: null,
-        hash: 'foo'
+        buildHash: 'foo'
       }, function (err, data) {
         assert.isNull(err);
         assert.isObject(data);
@@ -212,8 +212,8 @@ describe('build', function () {
         var cache = _libIndex2['default'].caches.get(opts);
 
         assert.isString(opts.config);
-        assert.isString(opts.hash);
-        assert.equal(opts.cacheFile, _path2['default'].join(CACHE_DIR, opts.hash + '.json'));
+        assert.isString(opts.buildHash);
+        assert.equal(opts.cacheFile, _path2['default'].join(CACHE_DIR, opts.buildHash + '.json'));
 
         assert.equal(cache.filename, opts.cacheFile);
 
@@ -234,7 +234,7 @@ describe('build', function () {
           test: { foo: 'bar' }
         },
         config: configFile,
-        hash: 'foo'
+        buildHash: 'foo'
       }));
 
       var opts = {
@@ -242,7 +242,7 @@ describe('build', function () {
         cacheFile: cacheFile,
         watch: true,
         logger: null,
-        hash: 'foo'
+        buildHash: 'foo'
       };
 
       var wrapper = (0, _libIndex2['default'])(opts, function (err, data1) {
@@ -271,9 +271,9 @@ describe('build', function () {
               assert.isObject(data3);
               assert.notStrictEqual(data3, data2);
 
-              assert.isString(cache.data.hash);
-              assert.equal(cache.data.hash, opts.hash);
-              assert.equal(cache.data.hash, wrapper.opts.hash);
+              assert.isString(cache.data.buildHash);
+              assert.equal(cache.data.buildHash, opts.buildHash);
+              assert.equal(cache.data.buildHash, wrapper.opts.buildHash);
 
               assert.isTrue(cache.delegate);
 

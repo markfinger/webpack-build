@@ -38,7 +38,7 @@ class Cache {
       return cb(null, null);
     }
 
-    let requiredProps = ['startTime', 'fileDependencies', 'stats', 'config', 'hash', 'dependencies'];
+    let requiredProps = ['startTime', 'fileDependencies', 'stats', 'config', 'buildHash', 'dependencies'];
 
     for (let prop of requiredProps) {
       if (!data[prop]) {

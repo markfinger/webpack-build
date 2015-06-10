@@ -135,7 +135,7 @@ class Wrapper {
         'webpack-build': packageJson.version
       },
       config: this.opts.config,
-      hash: this.opts.hash,
+      buildHash: this.opts.buildHash,
       pathsToAssets: _.transform(
         stats.compilation.assets,
         (result, obj, asset) => result[asset] = obj.existsAt,

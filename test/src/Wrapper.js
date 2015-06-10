@@ -654,7 +654,7 @@ describe('Wrapper', () => {
 
         assert.equal(config.output.publicPath, publicPath + '/');
 
-        assert.equal(config.recordsPath, '/foo/bar/webpack.records-' + wrapper.opts.hash + '.json');
+        assert.equal(config.recordsPath, '/foo/bar/webpack.records-' + wrapper.opts.buildHash + '.json');
 
         done();
       });

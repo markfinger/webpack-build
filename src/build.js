@@ -42,8 +42,8 @@ const build = (opts, cb) => {
           return wrapper.onceDone(cb);
         }
 
-        if (data.hash !== opts.hash) {
-          logger(`cached hash "${data.hash}" does not match the expected`);
+        if (data.buildHash !== opts.buildHash) {
+          logger(`cached build hash "${data.buildHash}" does not match "${opts.buildHash}"`);
           cache.set(null);
           return wrapper.onceDone(cb);
         }

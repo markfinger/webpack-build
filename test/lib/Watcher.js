@@ -51,7 +51,7 @@ describe('Watcher', function () {
   });
   it('should accept compiler and option arguments', function () {
     var compiler = (0, _webpack2['default'])({});
-    var opts = { hash: 'foo' };
+    var opts = { buildHash: 'foo' };
     var watcher = new _libWatcher2['default'](compiler, opts);
     assert.strictEqual(watcher.compiler, compiler);
     assert.strictEqual(watcher.opts, opts);

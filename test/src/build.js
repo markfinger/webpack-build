@@ -44,8 +44,8 @@ describe('build', () => {
 
     let wrapper1 = build(opts1, () => {});
     assert.equal(Object.keys(build.wrappers.wrappers).length, 1);
-    assert.strictEqual(build.wrappers.wrappers[opts1.hash], wrapper1);
-    assert.strictEqual(build.wrappers.wrappers[opts1.hash].opts, opts1);
+    assert.strictEqual(build.wrappers.wrappers[opts1.buildHash], wrapper1);
+    assert.strictEqual(build.wrappers.wrappers[opts1.buildHash].opts, opts1);
 
     let opts2 = {
       config: pathToConfig,
@@ -56,8 +56,8 @@ describe('build', () => {
     let wrapper2 = build(opts2, () => {});
     assert.strictEqual(wrapper2, wrapper1);
     assert.equal(Object.keys(build.wrappers.wrappers).length, 1);
-    assert.strictEqual(build.wrappers.wrappers[opts2.hash], wrapper2);
-    assert.strictEqual(build.wrappers.wrappers[opts2.hash].opts, opts1);
+    assert.strictEqual(build.wrappers.wrappers[opts2.buildHash], wrapper2);
+    assert.strictEqual(build.wrappers.wrappers[opts2.buildHash].opts, opts1);
 
     let opts3 = {
       config: pathToConfig,
@@ -67,8 +67,8 @@ describe('build', () => {
     };
     let wrapper3 = build(opts3, () => {});
     assert.equal(Object.keys(build.wrappers.wrappers).length, 2);
-    assert.strictEqual(build.wrappers.wrappers[opts3.hash], wrapper3);
-    assert.strictEqual(build.wrappers.wrappers[opts3.hash].opts, opts3);
+    assert.strictEqual(build.wrappers.wrappers[opts3.buildHash], wrapper3);
+    assert.strictEqual(build.wrappers.wrappers[opts3.buildHash].opts, opts3);
 
     let opts4 = {
       config: pathToConfig + 'test',
@@ -78,8 +78,8 @@ describe('build', () => {
     };
     let wrapper4 = build(opts4, () => {});
     assert.equal(Object.keys(build.wrappers.wrappers).length, 3);
-    assert.strictEqual(build.wrappers.wrappers[opts4.hash], wrapper4);
-    assert.strictEqual(build.wrappers.wrappers[opts4.hash].opts, opts4);
+    assert.strictEqual(build.wrappers.wrappers[opts4.buildHash], wrapper4);
+    assert.strictEqual(build.wrappers.wrappers[opts4.buildHash].opts, opts4);
 
     let opts5 = {
       config: pathToConfig + 'test',
@@ -138,14 +138,14 @@ describe('build', () => {
           test: {foo: 'bar'}
         },
         config: configFile,
-        hash: 'foo'
+        buildHash: 'foo'
       }));
 
       build({
         config: configFile,
         cacheFile: cacheFile,
         logger: null,
-        hash: 'foo'
+        buildHash: 'foo'
       }, (err, data) => {
         assert.isNull(err);
         assert.isObject(data);
@@ -191,8 +191,8 @@ describe('build', () => {
         let cache = build.caches.get(opts);
 
         assert.isString(opts.config);
-        assert.isString(opts.hash);
-        assert.equal(opts.cacheFile, path.join(CACHE_DIR, opts.hash + '.json'));
+        assert.isString(opts.buildHash);
+        assert.equal(opts.cacheFile, path.join(CACHE_DIR, opts.buildHash + '.json'));
 
         assert.equal(cache.filename, opts.cacheFile);
 
@@ -213,7 +213,7 @@ describe('build', () => {
           test: {foo: 'bar'}
         },
         config: configFile,
-        hash: 'foo'
+        buildHash: 'foo'
       }));
 
       let opts = {
@@ -221,7 +221,7 @@ describe('build', () => {
         cacheFile: cacheFile,
         watch: true,
         logger: null,
-        hash: 'foo'
+        buildHash: 'foo'
       };
 
       let wrapper = build(opts, (err, data1) => {
@@ -250,9 +250,9 @@ describe('build', () => {
               assert.isObject(data3);
               assert.notStrictEqual(data3, data2);
 
-              assert.isString(cache.data.hash);
-              assert.equal(cache.data.hash, opts.hash);
-              assert.equal(cache.data.hash, wrapper.opts.hash);
+              assert.isString(cache.data.buildHash);
+              assert.equal(cache.data.buildHash, opts.buildHash);
+              assert.equal(cache.data.buildHash, wrapper.opts.buildHash);
 
               assert.isTrue(cache.delegate);
 

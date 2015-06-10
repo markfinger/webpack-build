@@ -47,7 +47,7 @@ const hmrConfig = (config, opts) => {
 
   config.output.publicPath = opts.publicPath;
 
-  config.recordsPath = path.join(opts.outputPath, `webpack.records-${opts.hash}.json`);
+  config.recordsPath = path.join(opts.outputPath, `webpack.records-${opts.buildHash}.json`);
 };
 
 export default hmrConfig;

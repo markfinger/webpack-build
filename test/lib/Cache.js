@@ -130,7 +130,7 @@ describe('Cache', function () {
                   assert.isNull(err);
                   assert.isNull(entry);
 
-                  cache.data.hash = 'foo';
+                  cache.data.buildHash = 'foo';
                   cache.get(function (err, entry) {
                     assert.isNull(err);
                     assert.isNull(entry);
@@ -177,7 +177,7 @@ describe('Cache', function () {
         dependencies: {},
         stats: { test: 1 },
         config: testFile,
-        hash: 'foo1'
+        buildHash: 'foo1'
       }));
 
       _fs2['default'].writeFileSync(filename2, JSON.stringify({
@@ -186,7 +186,7 @@ describe('Cache', function () {
         dependencies: {},
         stats: { test: 2 },
         config: testFile,
-        hash: 'foo2'
+        buildHash: 'foo2'
       }));
 
       _fs2['default'].writeFileSync(testFile, '{}');
