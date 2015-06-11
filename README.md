@@ -22,6 +22,7 @@ Documentation
 - [Caching](#caching)
 - [Environment configuration](#environment-configuration)
 - [HMR](#hmr)
+- [Build server](#build-server)
 - [Debugging](#debugging)
 - [Dev notes](#dev-notes)
 - [Colophon](#colophon)
