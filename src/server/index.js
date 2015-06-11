@@ -1,6 +1,6 @@
 import http from 'http';
 import express from 'express';
-import {addHmrTo} from '../hmr';
+import hmr from '../hmr';
 import middleware from './middleware'
 import bodyParser from 'body-parser';
 
@@ -10,6 +10,6 @@ let server = http.Server(app);
 app.use(bodyParser.json());
 app.use(middleware);
 
-addHmrTo(server);
+hmr.addToServer(server);
 
 export default server;

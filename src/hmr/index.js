@@ -4,7 +4,7 @@ import options from '../options';
 
 let io = null;
 
-export const addHmrTo = (server, path) => {
+export const addToServer = (server, path) => {
   path = path || options().hmrPath;
 
   io = socketIo(server, {path: path});
@@ -57,3 +57,9 @@ export const bindCompiler = (compiler, opts) => {
     send(nsp, stats.toJson());
   });
 };
+
+export default {
+  addToServer,
+  send,
+  bindCompiler
+}
