@@ -167,16 +167,16 @@ class Wrapper {
     return {
       startTime: stats.startTime,
       endTime: stats.endTime,
-      stats: statsJson,
-      fileDependencies: stats.compilation.fileDependencies,
-      dependencies: dependencies,
       config: this.opts.config,
-      webpackConfig: webpackConfig,
       buildHash: this.opts.buildHash,
       buildOptions: this.opts,
+      webpackConfig: webpackConfig,
       assets: assets,
       output: output,
-      urls: urls
+      urls: urls,
+      stats: statsJson,
+      fileDependencies: stats.compilation.fileDependencies,
+      dependencies: dependencies
     };
   }
   handleErrAndStats(err, stats, cb) {
