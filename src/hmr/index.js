@@ -1,6 +1,7 @@
 import path from 'path';
 import socketIo from 'socket.io';
 import options from '../options';
+import log from '../log';
 
 let io = null;
 
@@ -34,19 +35,20 @@ export const send = (nsp, stats) => {
 
 export const bindCompiler = (compiler, opts) => {
   const namespace = opts.hmrNamespace;
-  const logger = opts.logger;
+  const logger = log('hmr', opts);
+
   const nsp = io.of(namespace);
 
   logger(`bound compiler under hmr namespace: ${namespace}`);
 
   nsp.on('connection', (socket) => {
-    logger(`hmr namespace ${namespace} opened connection ${socket.id}`);
+    logger(`namespace ${namespace} opened connection ${socket.id}`);
 
     socket.emit('hot');
   });
 
   compiler.plugin('invalid', () => {
-    logger(`sending hmr invalid signal to ${namespace}`);
+    logger(`sending invalid signal to ${namespace}`);
 
     nsp.emit('invalid');
   });
