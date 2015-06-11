@@ -5,7 +5,10 @@ import cache from './cache';
 
 const build = (opts, cb) => {
   opts = options(opts);
+
   let logger = log('build', opts);
+  logger(`build request lodged for ${opts.config}`);
+
   let wrapper = wrappers.get(opts);
 
   // Defer so that we can return the wrapper before `cb` is called

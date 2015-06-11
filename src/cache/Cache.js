@@ -103,7 +103,7 @@ class Cache {
             return cb(err);
           }
 
-          this.logger('serving cached data');
+          this.logger('cached data successfully retrieved');
           cb(null, data);
         }
       );
@@ -119,15 +119,16 @@ class Cache {
       this.delegate = true;
     }
 
-    if (data) {
-      this.logger('updated cache file');
-    } else {
-      this.logger('cleared cache file');
-    }
-
+    this.logger('requesting write to cache file');
     this.write();
   }
   write() {
+    if (this.data && Object.keys(this.data)) {
+      this.logger('updating cache file');
+    } else {
+      this.logger('clearing cache file');
+    }
+
     let json = JSON.stringify(this.data, null, 2);
 
     try {
@@ -141,8 +142,6 @@ class Cache {
     } catch(err) {
       throw new Error(`Failed to write webpack cache file: ${this.filename}`);
     }
-
-    this.logger('updated cache file');
   }
 }
 

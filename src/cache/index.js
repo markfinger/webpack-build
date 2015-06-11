@@ -1,39 +1,63 @@
+import log from '../log';
 import caches from './caches';
 
 export default {
   get: (opts, cb) => {
-    if (!opts.cache) return cb();
+    let logger = log('cache-manager', opts);
 
+    if (!opts.cache) {
+      logger('cache deactivated');
+      return cb(null, null);
+    }
+
+    logger('fetching cache');
     let cache = caches.get(opts);
 
     if (cache.delegate) {
-      cache.logger('delegating');
-      return cb();
+      logger('cache has delegated');
+      return cb(null, null);
     }
 
+    logger('requesting data from cache');
     cache.get((err, data) => {
       if (err) {
-        return cb(err);
+        logger('cache encountered an error, passing error up');
+        return cb(err, null);
       }
 
       if (!data) {
-        return cb();
+        logger('cache failed to provide data');
+        return cb(null, null);
       }
 
       if (data.buildHash !== opts.buildHash) {
-        cache.logger(`cached build hash "${data.buildHash}" does not match "${opts.buildHash}"`);
+        logger(`cached build hash "${data.buildHash}" does not match "${opts.buildHash}"`);
         cache.set(null);
-        return cb();
+        return cb(null, null);
       }
 
+      logger('providing cached data');
       cb(null, data);
     });
   },
   set: (opts, data) => {
-    if (!opts.cache) return;
+    let logger = log('cache-manager', opts);
+
+    if (!opts.cache) {
+      logger('caching has been deactivated, data will not be persisted');
+      return;
+    }
 
     let delegate = opts.watch;
+
+    logger('fetching cache');
     let cache = caches.get(opts);
+
+    if (delegate && !cache.delegate) {
+      logger('cache will now delegate future requests');
+    }
+
+    logger('updating cache');
     cache.set(data, delegate);
   },
   clear: () => {

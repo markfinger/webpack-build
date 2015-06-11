@@ -27,6 +27,8 @@ class Wrapper {
     this._onceDone = [];
   }
   getConfig(cb) {
+    this.logger('fetching config object');
+
     if (this.config) {
       return cb(null, this.config);
     }
@@ -72,14 +74,19 @@ class Wrapper {
     cb(null, this.config)
   }
   getCompiler(cb) {
+    this.logger('creating compiler');
     this.getConfig((err, config) => {
       if (err) return cb(err);
 
       let compiler = webpack(config);
 
+      this.logger('adding cache hooks to compiler');
       compiler.plugin('done', (stats) => {
         if (stats.hasErrors()) {
-          this.logger('build error(s)', _.pluck(stats.compilation.errors, 'stack'));
+          this.logger('build error(s)...');
+          for (let err of stats.compilation.errors) {
+            this.logger(`... => ${err.stack}`);
+          }
           cache.set(this.opts, null);
         } else {
           cache.set(this.opts, this.generateOutput(stats));
@@ -87,6 +94,7 @@ class Wrapper {
       });
 
       if (this.opts.watch && this.opts.hmr && this.opts.hmrRoot) {
+        this.logger('adding hmr hooks to compiler');
         hmr.bindCompiler(compiler, this.opts);
       }
 
@@ -97,6 +105,7 @@ class Wrapper {
     this.getCompiler((err, compiler) => {
       if (err) return cb(err);
 
+      this.logger('starting compiler');
       compiler.run((err, stats) => {
         if (!err && stats.hasErrors()) {
           err = _.first(stats.compilation.errors);
@@ -109,6 +118,8 @@ class Wrapper {
   }
   generateOutput(stats) {
     if (!stats) return null;
+
+    this.logger('generating output object');
 
     let dependencies = {
       webpack: require('webpack/package').version,
@@ -191,12 +202,16 @@ class Wrapper {
     cb(err, this.generateOutput(stats));
   }
   getWatcher(cb) {
+    this.logger('fetching watcher');
+
     if (this.watcher) {
       return cb(null, this.watcher);
     }
 
     this.getCompiler((err, compiler) => {
       if (err) return cb(err);
+
+      this.logger('creating watcher');
 
       try {
         this.watcher = new Watcher(compiler, this.opts);
