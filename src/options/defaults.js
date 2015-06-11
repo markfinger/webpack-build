@@ -24,7 +24,7 @@ export default {
   // Hot module replacement
   hmr: false,
   hmrRoot: '',
-  hmrPath: '/__webpack_hmr__',
+  hmrPath: '/__hmr__',
 
   // Dynamically created props
   buildHash: '',

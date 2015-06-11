@@ -27,7 +27,8 @@ describe('Cache', () => {
     let cache = new Cache(options({cacheFile: filename}));
     assert.equal(cache.filename, filename);
     assert.deepEqual(cache.data, {});
-    assert.equal(fs.readFileSync(filename).toString(), '{}');
+    cache.set(null);
+    assert.equal(fs.readFileSync(filename).toString(), 'null');
   });
   it('should be able to persist an entry to a file', () => {
     let cache = new Cache(

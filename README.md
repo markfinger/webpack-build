@@ -99,10 +99,11 @@ Configuration
 
   hmr: false, // if true, hmr code is injected
   hmrRoot: '', // The address of the build server
-  hmrPath: '/__webpack_hmr__', // the mount point of the socket handler
+  hmrPath: '/__hmr__', // the mount point of the socket handler
 
 }
 ```
+
 
 Caching
 -------
@@ -241,6 +242,42 @@ build({
 When assets are rendered on the front-end, they open sockets to the build server and
 attempt to hot update whenever possible. If hot updates are not possible, console logs
 will indicate the need to refresh for updates to be applied.
+
+
+Build server
+------------
+
+A prebuilt build server is available via a CLI interface, `webpack-build-server`. Run the
+binary and connect via the network to request builds and introspect the server.
+
+The server maps all requests based on their method:
+
+- `GET` responds with a HTML document listing the server's state
+- `POST` reads in a JSON body, pipes it to the `build` function and responds with a JSON
+  representation of the function's output.
+
+Successful build requests will receive
+
+```javascript
+{
+  "error": null,
+  "data": {
+    // ..
+  }
+}
+```
+
+Unsuccessful build requests will receive a stack trace in the `error` prop. Depending on how far
+the request passed through the build process, the response may or may not have a non-null value
+for `data`. If the error was produced by the compiler, there may be multiple errors within
+`data.stats.errors` or multiple warnings in `data.stats.warnings`.
+
+```javascript
+{
+  "error": '...',
+  "data": null
+}
+```
 
 
 Debugging

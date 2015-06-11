@@ -54,7 +54,8 @@ describe('Cache', function () {
     var cache = new _libCacheCache2['default']((0, _libOptions2['default'])({ cacheFile: filename }));
     assert.equal(cache.filename, filename);
     assert.deepEqual(cache.data, {});
-    assert.equal(_fs2['default'].readFileSync(filename).toString(), '{}');
+    cache.set(null);
+    assert.equal(_fs2['default'].readFileSync(filename).toString(), 'null');
   });
   it('should be able to persist an entry to a file', function () {
     var cache = new _libCacheCache2['default']((0, _libOptions2['default'])({ cacheFile: _path2['default'].join(TEST_OUTPUT_DIR, 'cache_persist.json') }));

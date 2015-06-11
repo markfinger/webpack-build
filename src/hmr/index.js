@@ -1,11 +1,11 @@
 import path from 'path';
 import socketIo from 'socket.io';
-import * as options from '../options';
+import options from '../options';
 
 let io = null;
 
-export const addTo = (server, path) => {
-  path = path || options.generate().hmrPath;
+export const addHmrTo = (server, path) => {
+  path = path || options().hmrPath;
 
   io = socketIo(server, {path: path});
 };

@@ -25,9 +25,6 @@ class Cache {
     if (!this.data) {
       this.data = {};
     }
-
-    // Update the file with the current state
-    this.write();
   }
   get(cb) {
     let data = this.data;
