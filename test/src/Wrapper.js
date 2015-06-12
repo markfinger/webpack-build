@@ -95,13 +95,14 @@ describe('Wrapper', () => {
       done();
     });
   });
-  it('should expose the webpack config on the stats object', (done) => {
-    let wrapper = new Wrapper({}, require('./test_bundles/basic_bundle/webpack.config'));
+  it('should expose the output options object', (done) => {
+    let wrapper = new Wrapper({}, require('./test_bundles/library_bundle/webpack.config'));
 
-    wrapper.compile((err, stats) => {
+    wrapper.compile((err, data) => {
       assert.isNull(err);
-      assert.isObject(stats);
-      assert.strictEqual(stats.webpackConfig, require('./test_bundles/basic_bundle/webpack.config'));
+      assert.isObject(data.outputOptions);
+      assert.equal(data.outputOptions.library, 'foo');
+      assert.equal(data.outputOptions.libraryTarget, 'var');
       done();
     });
   });
@@ -159,13 +160,10 @@ describe('Wrapper', () => {
         assert.isNull(err);
         assert.isObject(data);
 
-        // webpack inserts regexes which can't be serialized
-        data.webpackConfig.module = null;
         // deepEqual checks hasOwnProperty
         delete data.buildOptions.poll;
 
         let serialized = JSON.stringify(data);
-        //debugger
         assert.deepEqual(JSON.parse(serialized), data);
 
         done();

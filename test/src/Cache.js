@@ -81,61 +81,35 @@ describe('Cache', () => {
         assert.isNull(err);
         assert.isNull(entry);
 
-        cache.data = {};
+        cache.data = {
+          startTime: startTime,
+          fileDependencies: [],
+          stats: {},
+          config: testFile,
+          buildHash: 'foo',
+          assets: [],
+          dependencies: {
+            webpack: webpackPackageJson.version,
+            'webpack-build': null
+          }
+        };
+
         cache.get((err, entry) => {
           assert.isNull(err);
           assert.isNull(entry);
 
-          cache.data.startTime = startTime;
+          cache.data.dependencies = {
+            webpack: webpackPackageJson.version,
+            'webpack-build': packageJson.version
+          };
+
           cache.get((err, entry) => {
             assert.isNull(err);
-            assert.isNull(entry);
+            assert.isObject(entry);
 
-            cache.data.fileDependencies = [];
-            cache.get((err, entry) => {
-              assert.isNull(err);
-              assert.isNull(entry);
+            assert.strictEqual(entry, cache.data);
 
-              cache.data.stats = {};
-              cache.get((err, entry) => {
-                assert.isNull(err);
-                assert.isNull(entry);
-
-                cache.data.config = testFile;
-                cache.get((err, entry) => {
-                  assert.isNull(err);
-                  assert.isNull(entry);
-
-                  cache.data.buildHash = 'foo';
-                  cache.get((err, entry) => {
-                    assert.isNull(err);
-                    assert.isNull(entry);
-
-                    cache.data.dependencies = {
-                      webpack: webpackPackageJson.version,
-                      'webpack-build': null
-                    };
-                    cache.get((err, entry) => {
-                      assert.isNull(err);
-                      assert.isNull(entry);
-
-                      cache.data.dependencies = {
-                        webpack: webpackPackageJson.version,
-                        'webpack-build': packageJson.version
-                      };
-                      cache.get((err, entry) => {
-                        assert.isNull(err);
-                        assert.isObject(entry);
-
-                        assert.strictEqual(entry, cache.data);
-
-                        done();
-                      });
-                    });
-                  });
-                });
-              });
-            });
+            done();
           });
         });
       });
@@ -153,7 +127,8 @@ describe('Cache', () => {
         dependencies: {},
         stats: {test: 1},
         config: testFile,
-        buildHash: 'foo1'
+        buildHash: 'foo1',
+        assets: []
       }));
 
       fs.writeFileSync(filename2, JSON.stringify({
@@ -162,7 +137,8 @@ describe('Cache', () => {
         dependencies: {},
         stats: {test: 2},
         config: testFile,
-        buildHash: 'foo2'
+        buildHash: 'foo2',
+        assets: []
       }));
 
       fs.writeFileSync(testFile, '{}');

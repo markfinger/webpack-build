@@ -122,7 +122,7 @@ describe('build', function () {
       assert.isObject(data);
 
       assert.isArray(data.assets);
-      assert.isObject(data.webpackConfig);
+      assert.isObject(data.outputOptions);
 
       var existsAt = data.assets[0];
       assert.isString(existsAt);
@@ -151,7 +151,8 @@ describe('build', function () {
           test: { foo: 'bar' }
         },
         config: configFile,
-        buildHash: 'foo'
+        buildHash: 'foo',
+        assets: []
       }));
 
       (0, _libIndex2['default'])({
@@ -225,7 +226,8 @@ describe('build', function () {
           test: { foo: 'bar' }
         },
         config: configFile,
-        buildHash: 'foo'
+        buildHash: 'foo',
+        assets: []
       }));
 
       var opts = {

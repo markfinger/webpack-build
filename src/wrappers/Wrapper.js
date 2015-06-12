@@ -131,8 +131,6 @@ class Wrapper {
       source: false
     });
 
-    let webpackConfig = this.config || require(this.opts.config);
-
     let assets = _.pluck(stats.compilation.assets, 'existsAt');
 
     let output = _.transform(stats.compilation.chunks, (result, chunk) => {
@@ -170,8 +168,8 @@ class Wrapper {
         return this.opts.staticUrl + relUrl;
       };
 
-      urls = _.transform(output, (result, obj, chunkName) => {
-        return result[chunkName] = _.mapValues(obj, (paths) => paths.map(absPathToRelUrl));
+      urls = _.transform(output, (result, group, chunkName) => {
+        return result[chunkName] = _.mapValues(group, (paths) => paths.map(absPathToRelUrl));
       });
     }
 
@@ -181,7 +179,7 @@ class Wrapper {
       config: this.opts.config,
       buildHash: this.opts.buildHash,
       buildOptions: this.opts,
-      webpackConfig: webpackConfig,
+      outputOptions: stats.compilation.outputOptions,
       assets: assets,
       output: output,
       urls: urls,
@@ -262,9 +260,7 @@ class Wrapper {
     let _onceDone = this._onceDone;
     this._onceDone = [];
 
-    _onceDone.forEach(
-      (cb) => cb(err, stats)
-    );
+    _onceDone.forEach(cb => cb(err, stats));
   }
 }
 

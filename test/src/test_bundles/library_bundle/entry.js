@@ -1,0 +1,1 @@
+module.exports = '__LIBRARY_BUNDLE__';

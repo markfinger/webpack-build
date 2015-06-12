@@ -5,10 +5,10 @@ webpack-build
 [![Dependency Status](https://david-dm.org/markfinger/webpack-build.svg)](https://david-dm.org/markfinger/webpack-build)
 [![devDependency Status](https://david-dm.org/markfinger/webpack-build/dev-status.svg)](https://david-dm.org/markfinger/webpack-build#info=devDependencies)
 
-Wraps webpack and plays well with build systems. Does a bunch of things...
+Wraps webpack so that it plays well with build systems and tool chains. Does a bunch of things...
 
 - Runs multiple concurrent compilers
-- Persistent caching
+- Persistent file caching
 - HMR support
 - Environment configuration
 
@@ -31,7 +31,7 @@ Documentation
 Installation
 ------------
 
-```bash
+```
 npm install webpack-build
 ```
 
@@ -57,7 +57,7 @@ The `data` object includes:
   file type
 - `urls`: a map from the entries to urls matching their assets, grouped by file type.
   These values are generated from the `staticRoot` and `staticUrl` options
-- `webpackConfig`: the config object generated and passed to webpack
+- `outputOptions`: the compiler's output options
 
 
 Configuration
@@ -111,15 +111,22 @@ Caching
 
 Once your a compilation request has completed successfully, the output is cached and subsequent 
 requests will be served from memory until a compiler invalidates it. Cached output is also written 
-to disk, so cold boots are pretty fast.
+to disk, so cold boots are fast.
 
 When serving cached data, a compiler is spun up in the background so that the cache only has to
 serve data until the compiler has completed. Once the compiler's ready, webpack's incremental 
-compilation provides almost instantaneous builds.
+compilation provides fast rebuilds.
 
-To avoid serving stale data, the wrapper tracks file and package dependencies. File timestamps
-and package versions are checked whenever cached data is requested. If the cache deems that the 
-data is stale, requests will be blocked until the compiler completes.
+To avoid serving stale data, the cache tracks file dependencies, package dependencies, and the
+emitted assets. Whenever cached data is available, the following checks occur before serving it:
+
+- The config file's timestamp is checked against the cached output's start time
+- Each file dependency's timestamp is checked against the cached output's start time
+- webpack and webpack-build versions are checked against the versions used to populate the cache
+- The emitted assets listed in the cache are checked for existence
+
+If any of the checks fail, requests are handed off to a compiler which will repopulate the cache
+on completion.
 
 
 Environment configuration
@@ -230,9 +237,8 @@ var build = require('webpack-build');
 build({
   config: '/path/to/webpack.config.js',
   hmr: true,
-  hmrRoot: 'http://127.0.0.1:8000',
-  outputPath: '/path/to/output/dir',
-  publicPath: '/static/output/dir',
+  outputPath: '/path/to/static/dir',
+  publicPath: '/static/dir',
 }, function(err, stats) {
   // ...
 });
@@ -246,16 +252,30 @@ will indicate the need to refresh for updates to be applied.
 Build server
 ------------
 
-A prebuilt build server is available via a CLI interface, `webpack-build-server`. Run the
-binary and connect via the network to request builds and introspect the server.
+A build server is available via a CLI interface, `webpack-build-server`. Run the
+binary and connect via the network to request builds. The build server is pre-configured
+to support HMR.
 
-The server maps all requests based on their method:
+```
+webpack-build-server
+
+// or
+
+node_modules/.bin/webpack-build-server
+```
+
+The following arguments are accepted:
+
+- `-a` or `--address` the address to listen at, defaults to `127.0.0.1`
+- `-p` or `--port` the port to listen at, defaults to `9009`
+
+Incoming requests are mapped by their method:
 
 - `GET` responds with a HTML document listing the server's state
 - `POST` reads in a JSON body, pipes it to the `build` function and responds with a JSON
   representation of the function's output.
 
-Successful build requests will receive
+Successful build requests receive
 
 ```javascript
 {
@@ -266,17 +286,22 @@ Successful build requests will receive
 }
 ```
 
-Unsuccessful build requests will receive a stack trace in the `error` prop. Depending on how far
-the request passed through the build process, the response may or may not have a non-null value
-for `data`. If the error was produced by the compiler, there may be multiple errors within
-`data.stats.errors` or multiple warnings in `data.stats.warnings`.
+Unsuccessful build requests receive
 
 ```javascript
 {
-  "error": '...',
+  "error": {
+    "type": "...",
+    "message": "...",
+    "stack": "..."
+  },
   "data": null
 }
 ```
+
+Depending on how far the request passed through the build process, the response may or may
+not have a non-null value for `data`. If the error was produced by the compiler, there may
+be multiple errors within `data.stats.errors` and multiple warnings in `data.stats.warnings`.
 
 
 Debugging
@@ -303,7 +328,7 @@ Dev notes
 
 ### Build the project
 
-```bash
+```
 npm run build
 
 # or
@@ -313,7 +338,7 @@ npm run build -- --watch
 
 ### Run the tests
 
-```bash
+```
 npm test
 ```
 

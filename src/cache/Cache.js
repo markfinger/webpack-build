@@ -35,7 +35,7 @@ class Cache {
       return cb(null, null);
     }
 
-    let requiredProps = ['startTime', 'fileDependencies', 'stats', 'config', 'buildHash', 'dependencies'];
+    let requiredProps = ['startTime', 'fileDependencies', 'stats', 'config', 'buildHash', 'dependencies', 'assets'];
 
     for (let prop of requiredProps) {
       if (!data[prop]) {
@@ -99,12 +99,29 @@ class Cache {
         },
         (err) => {
           if (err) {
-            this.logger(`cache retrieval error: ${err.message}`);
+            this.logger(`File dependency error: ${err.message}`);
             return cb(err);
           }
 
-          this.logger('cached data successfully retrieved');
-          cb(null, data);
+          async.each(
+            data.assets,
+            (filename, cb) => {
+              fs.stat(filename, (err) => {
+                if (err) return cb(err);
+
+                cb(null, true);
+              });
+            },
+            (err) => {
+              if (err) {
+                this.logger(`emmitted asset check error: ${err.message}`);
+                return cb(err);
+              }
+
+              this.logger('cached data successfully retrieved');
+              cb(null, data);
+            }
+          );
         }
       );
     });

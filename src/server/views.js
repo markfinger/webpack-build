@@ -45,8 +45,17 @@ export const buildRequest = (req, res) => {
       log('build-server', opts)('build request produced an error', err.stack);
     }
 
+    let error = null;
+    if (err) {
+      error = {
+        type: err.constructor.name,
+        message: err.message,
+        stack: err.stack
+      }
+    }
+
     res.json({
-      error: err ? err.stack : null,
+      error: error,
       data: data || null
     });
   })

@@ -1,0 +1,1 @@
+{"version":3,"sources":["../../../src/test_bundles/library_bundle/entry.js"],"names":[],"mappings":";;AAAA,MAAM,CAAC,OAAO,GAAG,oBAAoB,CAAC","file":"entry.js","sourcesContent":["module.exports = '__LIBRARY_BUNDLE__';"]}
