@@ -33,9 +33,11 @@ describe('build', () => {
     build(opts, () => {});
   });
   it('should populate the bundle list', () => {
-    let pathToConfig = path.join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config');
+    let basicBundle = path.join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js');
+    let libraryBundle = path.join(__dirname, 'test_bundles', 'library_bundle', 'webpack.config.js');
+
     let opts1 = {
-      config: pathToConfig,
+      config: basicBundle,
       watch: true
     };
     assert.equal(Object.keys(wrappers.wrappers).length, 0);
@@ -46,7 +48,7 @@ describe('build', () => {
     assert.strictEqual(wrappers.wrappers[opts1.buildHash].opts, opts1);
 
     let opts2 = {
-      config: pathToConfig,
+      config: basicBundle,
       watch: true
     };
     let wrapper2 = build(opts2, () => {});
@@ -56,7 +58,7 @@ describe('build', () => {
     assert.strictEqual(wrappers.wrappers[opts2.buildHash].opts, opts1);
 
     let opts3 = {
-      config: pathToConfig,
+      config: basicBundle,
       watch: false
     };
     let wrapper3 = build(opts3, () => {});
@@ -65,7 +67,7 @@ describe('build', () => {
     assert.strictEqual(wrappers.wrappers[opts3.buildHash].opts, opts3);
 
     let opts4 = {
-      config: pathToConfig + 'test',
+      config: libraryBundle,
       watch: false
     };
     let wrapper4 = build(opts4, () => {});
@@ -74,14 +76,14 @@ describe('build', () => {
     assert.strictEqual(wrappers.wrappers[opts4.buildHash].opts, opts4);
 
     let opts5 = {
-      config: pathToConfig + 'test',
+      config: libraryBundle,
       watch: false
     };
     build(opts5, () => {});
     assert.equal(Object.keys(wrappers.wrappers).length, 3);
 
     let opts6 = {
-      config: pathToConfig,
+      config: basicBundle,
       watch: true
     };
     build(opts6, () => {});
@@ -89,7 +91,7 @@ describe('build', () => {
   });
   it('should be able to generate a bundle', (done) => {
     build({
-      config: path.join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config')
+      config: path.join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js')
     }, (err, data) => {
       assert.isNull(err);
       assert.isObject(data);
@@ -107,6 +109,33 @@ describe('build', () => {
         assert.include(compiledBundle, '__BASIC_BUNDLE_REQUIRE_TEST__');
         done();
       });
+    });
+  });
+  it('should check mtimes to detect stale config files', (done) => {
+    let configFile = path.join(TEST_OUTPUT_DIR, 'stale_config_file.js');
+
+    mkdirp.sync(path.dirname(configFile));
+    fs.writeFileSync(configFile, 'module.exports = {}');
+    let initialMTime = +fs.statSync(configFile).mtime;
+
+    build({
+      config: configFile
+    }, (err, data) => {
+      assert.isNull(err);
+      assert.isObject(data);
+
+      // Need to delay due to file system accuracy issues
+      setTimeout(function() {
+        fs.writeFileSync(configFile, 'module.exports = {test: 1}');
+        assert.notEqual(+fs.statSync(configFile).mtime, initialMTime);
+
+        build({
+          config: configFile
+        }, (err, data) => {
+          assert.instanceOf(err, Error);
+          done();
+        });
+      }, 1000);
     });
   });
   describe('file cache', () => {

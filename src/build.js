@@ -1,10 +1,56 @@
+import fs from 'fs';
 import options from './options';
 import log from './log';
 import wrappers from './wrappers';
 import cache from './cache';
 
+let fileTimestamps = Object.create(null);
+
+let checkConfigfile = (configFile, cb) => {
+  // Synchronous check to ensure that config files have
+  // not changed since they were loaded
+
+  if (!configFile) return true;
+
+  if (!fileTimestamps[configFile]) {
+    try {
+      require(configFile);
+    } catch(err) {
+      cb(err);
+      return false;
+    }
+
+    try {
+      fileTimestamps[configFile] = +fs.statSync(configFile).mtime;
+    } catch(err) {
+      cb(err);
+      return false;
+    }
+  } else {
+    let timestamp;
+    try {
+      timestamp = +fs.statSync(configFile).mtime;
+    } catch(err) {
+      cb(err);
+      return false;
+    }
+
+    if (timestamp > fileTimestamps[configFile]) {
+      cb(new Error('Config file has changed since being loaded into memory. Restart the process'));
+      return false;
+    }
+  }
+
+  return true;
+};
+
 const build = (opts, cb) => {
   opts = options(opts);
+
+  // Ensure that our version of the config file is fresh
+  if (!checkConfigfile(opts.config, cb)) {
+    return;
+  }
 
   let logger = log('build', opts);
   logger(`build request lodged for ${opts.config}`);

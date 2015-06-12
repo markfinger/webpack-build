@@ -27,7 +27,7 @@ afterEach(() => {
 describe('server', () => {
   it('should accept POST requests and pass them to `build`', (done) => {
     let opts = {
-      config: path.join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config')
+      config: path.join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js')
     };
     server.listen(9009, function() {
       request.post({

@@ -60,9 +60,11 @@ describe('build', function () {
     (0, _libIndex2['default'])(opts, function () {});
   });
   it('should populate the bundle list', function () {
-    var pathToConfig = _path2['default'].join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config');
+    var basicBundle = _path2['default'].join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js');
+    var libraryBundle = _path2['default'].join(__dirname, 'test_bundles', 'library_bundle', 'webpack.config.js');
+
     var opts1 = {
-      config: pathToConfig,
+      config: basicBundle,
       watch: true
     };
     assert.equal(Object.keys(_libWrappers2['default'].wrappers).length, 0);
@@ -73,7 +75,7 @@ describe('build', function () {
     assert.strictEqual(_libWrappers2['default'].wrappers[opts1.buildHash].opts, opts1);
 
     var opts2 = {
-      config: pathToConfig,
+      config: basicBundle,
       watch: true
     };
     var wrapper2 = (0, _libIndex2['default'])(opts2, function () {});
@@ -83,7 +85,7 @@ describe('build', function () {
     assert.strictEqual(_libWrappers2['default'].wrappers[opts2.buildHash].opts, opts1);
 
     var opts3 = {
-      config: pathToConfig,
+      config: basicBundle,
       watch: false
     };
     var wrapper3 = (0, _libIndex2['default'])(opts3, function () {});
@@ -92,7 +94,7 @@ describe('build', function () {
     assert.strictEqual(_libWrappers2['default'].wrappers[opts3.buildHash].opts, opts3);
 
     var opts4 = {
-      config: pathToConfig + 'test',
+      config: libraryBundle,
       watch: false
     };
     var wrapper4 = (0, _libIndex2['default'])(opts4, function () {});
@@ -101,14 +103,14 @@ describe('build', function () {
     assert.strictEqual(_libWrappers2['default'].wrappers[opts4.buildHash].opts, opts4);
 
     var opts5 = {
-      config: pathToConfig + 'test',
+      config: libraryBundle,
       watch: false
     };
     (0, _libIndex2['default'])(opts5, function () {});
     assert.equal(Object.keys(_libWrappers2['default'].wrappers).length, 3);
 
     var opts6 = {
-      config: pathToConfig,
+      config: basicBundle,
       watch: true
     };
     (0, _libIndex2['default'])(opts6, function () {});
@@ -116,7 +118,7 @@ describe('build', function () {
   });
   it('should be able to generate a bundle', function (done) {
     (0, _libIndex2['default'])({
-      config: _path2['default'].join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config')
+      config: _path2['default'].join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js')
     }, function (err, data) {
       assert.isNull(err);
       assert.isObject(data);
@@ -134,6 +136,33 @@ describe('build', function () {
         assert.include(compiledBundle, '__BASIC_BUNDLE_REQUIRE_TEST__');
         done();
       });
+    });
+  });
+  it('should check mtimes to detect stale config files', function (done) {
+    var configFile = _path2['default'].join(TEST_OUTPUT_DIR, 'stale_config_file.js');
+
+    _mkdirp2['default'].sync(_path2['default'].dirname(configFile));
+    _fs2['default'].writeFileSync(configFile, 'module.exports = {}');
+    var initialMTime = +_fs2['default'].statSync(configFile).mtime;
+
+    (0, _libIndex2['default'])({
+      config: configFile
+    }, function (err, data) {
+      assert.isNull(err);
+      assert.isObject(data);
+
+      // Need to delay due to file system accuracy issues
+      setTimeout(function () {
+        _fs2['default'].writeFileSync(configFile, 'module.exports = {test: 1}');
+        assert.notEqual(+_fs2['default'].statSync(configFile).mtime, initialMTime);
+
+        (0, _libIndex2['default'])({
+          config: configFile
+        }, function (err, data) {
+          assert.instanceOf(err, Error);
+          done();
+        });
+      }, 1000);
     });
   });
   describe('file cache', function () {

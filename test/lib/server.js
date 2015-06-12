@@ -60,7 +60,7 @@ afterEach(function () {
 describe('server', function () {
   it('should accept POST requests and pass them to `build`', function (done) {
     var opts = {
-      config: _path2['default'].join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config')
+      config: _path2['default'].join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js')
     };
     _libServer2['default'].listen(9009, function () {
       _request2['default'].post({
