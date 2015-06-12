@@ -26,6 +26,7 @@ class Watcher {
     this.compiler.plugin('failed', this.handleFailure.bind(this));
   }
   watch() {
+    this.logger('starting compiler');
     this.isWatching = true;
     this.watcher = this.compiler.watch(
       {
@@ -34,7 +35,6 @@ class Watcher {
       },
       () => {/* no-op */}
     );
-    this.logger('started watching');
   }
   onDone(cb) {
     this._onDone.push(cb);
@@ -79,10 +79,13 @@ class Watcher {
       if (!this.isReady) return;
 
       if (stats.hasErrors()) {
+        this.logger('errors encountered during compilation');
         this.err = _.first(stats.compilation.errors);
       }
 
       this.stats = stats;
+
+      this.logger('passing data up');
 
       this._onDone.forEach(
         (cb) => cb(this.err, this.stats)

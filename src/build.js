@@ -54,9 +54,18 @@ const build = (opts, cb) => {
       logger('cache produced an error', err.message);
     }
 
+    let emit = (err, data) => {
+      if (err) {
+        logger('error encountered during build', err);
+      } else {
+        logger('serving data from build');
+      }
+      cb(err, data)
+    };
+
     if (data) {
-      logger('serving cached output');
-      cb(null, data);
+      logger('cached data received');
+      emit(null, data);
     } else {
       logger('cache has no matching data or has delegated, calling wrapper');
     }
@@ -73,7 +82,7 @@ const build = (opts, cb) => {
       let wrapper = wrappers.get(opts);
 
       if (!data) {
-        return wrapper.onceDone(cb);
+        return wrapper.onceDone(emit);
       }
 
       if (opts.watch && !wrapper.watcher) {
