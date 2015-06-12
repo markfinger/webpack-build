@@ -74,7 +74,9 @@ describe('Cache', function () {
       startTime: startTime,
       fileDependencies: [filename],
       stats: { test: 'bar' },
-      config: '/foo/bar'
+      config: {
+        file: '/foo/bar'
+      }
     }));
 
     _fs2['default'].writeFileSync(testFile, '{}');
@@ -86,7 +88,7 @@ describe('Cache', function () {
     assert.equal(cache.data.startTime, startTime);
     assert.deepEqual(cache.data.fileDependencies, [filename]);
     assert.deepEqual(cache.data.stats, { test: 'bar' });
-    assert.equal(cache.data.config, '/foo/bar');
+    assert.equal(cache.data.config.file, '/foo/bar');
   });
   describe('#get', function () {
     it('should validate an entry\'s props', function (done) {
@@ -110,7 +112,9 @@ describe('Cache', function () {
           startTime: startTime,
           fileDependencies: [],
           stats: {},
-          config: testFile,
+          config: {
+            file: testFile
+          },
           buildHash: 'foo',
           assets: [],
           dependencies: {
@@ -151,7 +155,9 @@ describe('Cache', function () {
         fileDependencies: [filename1],
         dependencies: {},
         stats: { test: 1 },
-        config: testFile,
+        config: {
+          file: testFile
+        },
         buildHash: 'foo1',
         assets: []
       }));
@@ -161,7 +167,9 @@ describe('Cache', function () {
         fileDependencies: [filename2],
         dependencies: {},
         stats: { test: 2 },
-        config: testFile,
+        config: {
+          file: testFile
+        },
         buildHash: 'foo2',
         assets: []
       }));

@@ -71,7 +71,7 @@ class Cache {
     }
 
     // Check the modified times on the config file
-    let configFile = data.config;
+    let configFile = data.config.file;
     fs.stat(configFile, (err, stats) => {
       if (err) return cb(err);
 

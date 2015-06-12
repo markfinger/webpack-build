@@ -176,7 +176,9 @@ class Wrapper {
     return {
       startTime: stats.startTime,
       endTime: stats.endTime,
-      config: this.opts.config,
+      config: {
+        file: this.opts.config
+      },
       buildHash: this.opts.buildHash,
       buildOptions: this.opts,
       outputOptions: stats.compilation.outputOptions,

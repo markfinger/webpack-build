@@ -123,7 +123,9 @@ describe('build', () => {
         stats: {
           test: {foo: 'bar'}
         },
-        config: configFile,
+        config: {
+          file: configFile
+        },
         buildHash: 'foo',
         assets: []
       }));
@@ -198,7 +200,9 @@ describe('build', () => {
         stats: {
           test: {foo: 'bar'}
         },
-        config: configFile,
+        config: {
+          file: configFile
+        },
         buildHash: 'foo',
         assets: []
       }));
