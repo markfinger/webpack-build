@@ -1,88 +1,87 @@
 import fs from 'fs';
+import _ from 'lodash';
 import options from './options';
 import log from './log';
 import wrappers from './wrappers';
 import cache from './cache';
 
-let fileTimestamps = Object.create(null);
+const fileTimestamps = Object.create(null);
 
-let checkConfigfile = (configFile, cb) => {
-  // Synchronous check to ensure that config files have
-  // not changed since they were loaded
+const checkConfigfile = (configFile) => {
+  if (!configFile) {
+    return new Error('Config file not defined');
+  }
 
-  if (!configFile) return true;
+  if (!_.isString(configFile)) {
+    return new Error('Config file option must be a string');
+  }
 
-  if (!fileTimestamps[configFile]) {
+  if (fileTimestamps[configFile]) {
+    let timestamp;
+    try {
+      timestamp = +fs.statSync(configFile).mtime;
+    } catch(err) {
+      return err;
+    }
+
+    if (timestamp > fileTimestamps[configFile]) {
+      return new Error('Config file has changed since being loaded into memory. Restart the process');
+    }
+  } else {
     try {
       require(configFile);
     } catch(err) {
-      cb(err);
-      return false;
+      return err;
     }
 
     try {
       fileTimestamps[configFile] = +fs.statSync(configFile).mtime;
     } catch(err) {
-      cb(err);
-      return false;
-    }
-  } else {
-    let timestamp;
-    try {
-      timestamp = +fs.statSync(configFile).mtime;
-    } catch(err) {
-      cb(err);
-      return false;
-    }
-
-    if (timestamp > fileTimestamps[configFile]) {
-      cb(new Error('Config file has changed since being loaded into memory. Restart the process'));
-      return false;
+      return err;
     }
   }
-
-  return true;
 };
 
 const build = (opts, cb) => {
   opts = options(opts);
 
-  // Ensure that our version of the config file is fresh
-  if (!checkConfigfile(opts.config, cb)) {
-    return;
-  }
-
   let logger = log('build', opts);
   logger(`build request lodged for ${opts.config}`);
 
-  let wrapper = wrappers.get(opts);
+  logger('requesting data from cache');
+  cache.get(opts, function(err, data) {
+    if (err) {
+      logger('cache produced an error', err.message);
+    }
 
-  // Defer so that we can return the wrapper before `cb` is called
-  // This adds a tiny overhead, but makes testing much easier to
-  // reason about
-  process.nextTick(() => {
-    logger('requesting data from cache');
-    cache.get(opts, function(err, data) {
-      if (err) {
-        logger('cache produced an error', err.message);
+    if (data) {
+      logger('serving cached output');
+      cb(null, data);
+    } else {
+      logger('cache has no matching data or has delegated, calling wrapper');
+    }
+
+    if (!data || opts.watch) {
+      // Ensure that the imported version of the config file is fresh
+      logger(`checking timestamps on ${opts.config}`);
+      let configErr = checkConfigfile(opts.config, cb);
+      if (configErr) {
+        logger(`error encountered when checking timestamps on ${opts.config}`, configErr.stack);
+        return cb(configErr);
       }
 
+      let wrapper = wrappers.get(opts);
+
       if (!data) {
-        logger('cache failed to provide data, calling wrapper');
         return wrapper.onceDone(cb);
       }
 
-      if (opts.watch) {
-        logger('Ensuring watcher has started');
-        wrapper.onceDone(() => { /* no-op */});
+      if (opts.watch && !wrapper.watcher) {
+        logger('Starting watcher in the background');
+        wrapper.onceWatcherDone(() => { /* no-op */});
       }
-
-      logger('serving cached output');
-      return cb(null, data);
-    });
+    }
   });
-
-  return wrapper;
 };
 
 export default build;

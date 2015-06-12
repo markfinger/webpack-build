@@ -1,5 +1,6 @@
 import path from 'path';
 import fs from 'fs';
+import _ from 'lodash';
 import mkdirp from 'mkdirp';
 import build from '../../lib/index';
 import Wrapper from '../../lib/wrappers/Wrapper';
@@ -32,9 +33,8 @@ describe('build', () => {
     };
     build(opts, () => {});
   });
-  it('should populate the bundle list', () => {
+  it('should populate the wrappers list', (done) => {
     let basicBundle = path.join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js');
-    let libraryBundle = path.join(__dirname, 'test_bundles', 'library_bundle', 'webpack.config.js');
 
     let opts1 = {
       config: basicBundle,
@@ -42,52 +42,48 @@ describe('build', () => {
     };
     assert.equal(Object.keys(wrappers.wrappers).length, 0);
 
-    let wrapper1 = build(opts1, () => {});
-    assert.equal(Object.keys(wrappers.wrappers).length, 1);
-    assert.strictEqual(wrappers.wrappers[opts1.buildHash], wrapper1);
-    assert.strictEqual(wrappers.wrappers[opts1.buildHash].opts, opts1);
+    build(opts1, (err) => assert.isNull(err));
 
-    let opts2 = {
-      config: basicBundle,
-      watch: true
-    };
-    let wrapper2 = build(opts2, () => {});
-    assert.strictEqual(wrapper2, wrapper1);
-    assert.equal(Object.keys(wrappers.wrappers).length, 1);
-    assert.strictEqual(wrappers.wrappers[opts2.buildHash], wrapper2);
-    assert.strictEqual(wrappers.wrappers[opts2.buildHash].opts, opts1);
+    _.defer(() => {
+      assert.equal(Object.keys(wrappers.wrappers).length, 1);
+      assert.strictEqual(wrappers.wrappers[opts1.buildHash].opts, opts1);
 
-    let opts3 = {
-      config: basicBundle,
-      watch: false
-    };
-    let wrapper3 = build(opts3, () => {});
-    assert.equal(Object.keys(wrappers.wrappers).length, 2);
-    assert.strictEqual(wrappers.wrappers[opts3.buildHash], wrapper3);
-    assert.strictEqual(wrappers.wrappers[opts3.buildHash].opts, opts3);
+      let opts2 = {
+        config: basicBundle,
+        watch: true
+      };
+      build(opts2, (err) => assert.isNull(err));
 
-    let opts4 = {
-      config: libraryBundle,
-      watch: false
-    };
-    let wrapper4 = build(opts4, () => {});
-    assert.equal(Object.keys(wrappers.wrappers).length, 3);
-    assert.strictEqual(wrappers.wrappers[opts4.buildHash], wrapper4);
-    assert.strictEqual(wrappers.wrappers[opts4.buildHash].opts, opts4);
+      _.defer(() => {
+        assert.strictEqual(wrappers.wrappers[opts2.buildHash], wrappers.wrappers[opts1.buildHash]);
+        assert.equal(Object.keys(wrappers.wrappers).length, 1);
+        assert.strictEqual(wrappers.wrappers[opts2.buildHash].opts, opts1);
 
-    let opts5 = {
-      config: libraryBundle,
-      watch: false
-    };
-    build(opts5, () => {});
-    assert.equal(Object.keys(wrappers.wrappers).length, 3);
+        let opts3 = {
+          config: basicBundle,
+          watch: false
+        };
+        build(opts3, (err) => assert.isNull(err));
 
-    let opts6 = {
-      config: basicBundle,
-      watch: true
-    };
-    build(opts6, () => {});
-    assert.equal(Object.keys(wrappers.wrappers).length, 3);
+        _.defer(() => {
+          assert.equal(Object.keys(wrappers.wrappers).length, 2);
+          assert.strictEqual(wrappers.wrappers[opts3.buildHash].opts, opts3);
+
+          let opts4 = {
+            config: basicBundle,
+            watch: false
+          };
+          build(opts4, (err) => assert.isNull(err));
+
+          _.defer(() => {
+            assert.equal(Object.keys(wrappers.wrappers).length, 2);
+            assert.deepEqual(wrappers.wrappers[opts4.buildHash].opts, opts4);
+
+            done();
+          });
+        });
+      });
+    });
   });
   it('should be able to generate a bundle', (done) => {
     build({
@@ -196,11 +192,11 @@ describe('build', () => {
         watch: false
       };
 
-      let wrapper = build(opts, (err, data) => {
+      build(opts, (err, data) => {
         assert.isNull(err);
         assert.isObject(data);
 
-        assert.strictEqual(wrapper.opts, opts);
+        assert.strictEqual(wrappers.wrappers[opts.buildHash].opts, opts);
 
         cache.get(opts, (_err, _data) => {
           assert.isNull(_err);
@@ -243,12 +239,10 @@ describe('build', () => {
         buildHash: 'foo'
       };
 
-      let wrapper = build(opts, (err, data1) => {
+      build(opts, (err, data1) => {
         assert.isNull(err);
         assert.isObject(data1);
         assert.deepEqual(data1.stats, {test: {foo: 'bar'}});
-
-        assert.strictEqual(wrapper.opts.cacheFile, cacheFile);
 
         let _cache = cache._caches.get(opts);
         assert.deepEqual(data1.stats, _cache.data.stats);
@@ -263,6 +257,8 @@ describe('build', () => {
           assert.isFalse(_cache.delegate);
 
           setTimeout(() => {
+            let wrapper = wrappers.wrappers[opts.buildHash];
+
             wrapper.onceDone((err, data3) => {
               assert.isNull(err);
               assert.isObject(data3);

@@ -10,6 +10,10 @@ var _fs = require('fs');
 
 var _fs2 = _interopRequireDefault(_fs);
 
+var _lodash = require('lodash');
+
+var _lodash2 = _interopRequireDefault(_lodash);
+
 var _mkdirp = require('mkdirp');
 
 var _mkdirp2 = _interopRequireDefault(_mkdirp);
@@ -59,9 +63,8 @@ describe('build', function () {
     };
     (0, _libIndex2['default'])(opts, function () {});
   });
-  it('should populate the bundle list', function () {
+  it('should populate the wrappers list', function (done) {
     var basicBundle = _path2['default'].join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js');
-    var libraryBundle = _path2['default'].join(__dirname, 'test_bundles', 'library_bundle', 'webpack.config.js');
 
     var opts1 = {
       config: basicBundle,
@@ -69,52 +72,56 @@ describe('build', function () {
     };
     assert.equal(Object.keys(_libWrappers2['default'].wrappers).length, 0);
 
-    var wrapper1 = (0, _libIndex2['default'])(opts1, function () {});
-    assert.equal(Object.keys(_libWrappers2['default'].wrappers).length, 1);
-    assert.strictEqual(_libWrappers2['default'].wrappers[opts1.buildHash], wrapper1);
-    assert.strictEqual(_libWrappers2['default'].wrappers[opts1.buildHash].opts, opts1);
+    (0, _libIndex2['default'])(opts1, function (err) {
+      return assert.isNull(err);
+    });
 
-    var opts2 = {
-      config: basicBundle,
-      watch: true
-    };
-    var wrapper2 = (0, _libIndex2['default'])(opts2, function () {});
-    assert.strictEqual(wrapper2, wrapper1);
-    assert.equal(Object.keys(_libWrappers2['default'].wrappers).length, 1);
-    assert.strictEqual(_libWrappers2['default'].wrappers[opts2.buildHash], wrapper2);
-    assert.strictEqual(_libWrappers2['default'].wrappers[opts2.buildHash].opts, opts1);
+    _lodash2['default'].defer(function () {
+      assert.equal(Object.keys(_libWrappers2['default'].wrappers).length, 1);
+      assert.strictEqual(_libWrappers2['default'].wrappers[opts1.buildHash].opts, opts1);
 
-    var opts3 = {
-      config: basicBundle,
-      watch: false
-    };
-    var wrapper3 = (0, _libIndex2['default'])(opts3, function () {});
-    assert.equal(Object.keys(_libWrappers2['default'].wrappers).length, 2);
-    assert.strictEqual(_libWrappers2['default'].wrappers[opts3.buildHash], wrapper3);
-    assert.strictEqual(_libWrappers2['default'].wrappers[opts3.buildHash].opts, opts3);
+      var opts2 = {
+        config: basicBundle,
+        watch: true
+      };
+      (0, _libIndex2['default'])(opts2, function (err) {
+        return assert.isNull(err);
+      });
 
-    var opts4 = {
-      config: libraryBundle,
-      watch: false
-    };
-    var wrapper4 = (0, _libIndex2['default'])(opts4, function () {});
-    assert.equal(Object.keys(_libWrappers2['default'].wrappers).length, 3);
-    assert.strictEqual(_libWrappers2['default'].wrappers[opts4.buildHash], wrapper4);
-    assert.strictEqual(_libWrappers2['default'].wrappers[opts4.buildHash].opts, opts4);
+      _lodash2['default'].defer(function () {
+        assert.strictEqual(_libWrappers2['default'].wrappers[opts2.buildHash], _libWrappers2['default'].wrappers[opts1.buildHash]);
+        assert.equal(Object.keys(_libWrappers2['default'].wrappers).length, 1);
+        assert.strictEqual(_libWrappers2['default'].wrappers[opts2.buildHash].opts, opts1);
 
-    var opts5 = {
-      config: libraryBundle,
-      watch: false
-    };
-    (0, _libIndex2['default'])(opts5, function () {});
-    assert.equal(Object.keys(_libWrappers2['default'].wrappers).length, 3);
+        var opts3 = {
+          config: basicBundle,
+          watch: false
+        };
+        (0, _libIndex2['default'])(opts3, function (err) {
+          return assert.isNull(err);
+        });
 
-    var opts6 = {
-      config: basicBundle,
-      watch: true
-    };
-    (0, _libIndex2['default'])(opts6, function () {});
-    assert.equal(Object.keys(_libWrappers2['default'].wrappers).length, 3);
+        _lodash2['default'].defer(function () {
+          assert.equal(Object.keys(_libWrappers2['default'].wrappers).length, 2);
+          assert.strictEqual(_libWrappers2['default'].wrappers[opts3.buildHash].opts, opts3);
+
+          var opts4 = {
+            config: basicBundle,
+            watch: false
+          };
+          (0, _libIndex2['default'])(opts4, function (err) {
+            return assert.isNull(err);
+          });
+
+          _lodash2['default'].defer(function () {
+            assert.equal(Object.keys(_libWrappers2['default'].wrappers).length, 2);
+            assert.deepEqual(_libWrappers2['default'].wrappers[opts4.buildHash].opts, opts4);
+
+            done();
+          });
+        });
+      });
+    });
   });
   it('should be able to generate a bundle', function (done) {
     (0, _libIndex2['default'])({
@@ -223,11 +230,11 @@ describe('build', function () {
         watch: false
       };
 
-      var wrapper = (0, _libIndex2['default'])(opts, function (err, data) {
+      (0, _libIndex2['default'])(opts, function (err, data) {
         assert.isNull(err);
         assert.isObject(data);
 
-        assert.strictEqual(wrapper.opts, opts);
+        assert.strictEqual(_libWrappers2['default'].wrappers[opts.buildHash].opts, opts);
 
         _libCache2['default'].get(opts, function (_err, _data) {
           assert.isNull(_err);
@@ -270,12 +277,10 @@ describe('build', function () {
         buildHash: 'foo'
       };
 
-      var wrapper = (0, _libIndex2['default'])(opts, function (err, data1) {
+      (0, _libIndex2['default'])(opts, function (err, data1) {
         assert.isNull(err);
         assert.isObject(data1);
         assert.deepEqual(data1.stats, { test: { foo: 'bar' } });
-
-        assert.strictEqual(wrapper.opts.cacheFile, cacheFile);
 
         var _cache = _libCache2['default']._caches.get(opts);
         assert.deepEqual(data1.stats, _cache.data.stats);
@@ -290,6 +295,8 @@ describe('build', function () {
           assert.isFalse(_cache.delegate);
 
           setTimeout(function () {
+            var wrapper = _libWrappers2['default'].wrappers[opts.buildHash];
+
             wrapper.onceDone(function (err, data3) {
               assert.isNull(err);
               assert.isObject(data3);

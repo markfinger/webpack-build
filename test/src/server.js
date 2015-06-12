@@ -29,25 +29,30 @@ describe('server', () => {
     let opts = {
       config: path.join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js')
     };
-    server.listen(9009, function() {
-      request.post({
-        url: 'http://127.0.0.1:9009',
-        json: true,
-        body: opts
-      }, function(err, res, body) {
-        assert.isNull(err);
-        assert.isObject(body);
-        assert.isNull(body.error);
-        assert.isObject(body.data);
-        build(opts, function(err, data) {
+    request('http://127.0.0.1:9009', (err) => {
+      assert.instanceOf(err, Error, 'Sanity check to make sure there isn\'t another server running');
+      server.listen(9009, function() {
+        request.post({
+          url: 'http://127.0.0.1:9009',
+          json: true,
+          body: opts
+        }, function(err, res, body) {
           assert.isNull(err);
-          assert.isObject(data);
-          assert.deepEqual(
-            body.data,
-            JSON.parse(JSON.stringify(data))
-          );
-          server.close();
-          done();
+          assert.isObject(body);
+          assert.isNull(body.error);
+          assert.isObject(body.data);
+          assert.equal(body.data.config.file, opts.config);
+          build(opts, function(err, data) {
+            assert.isNull(err);
+            assert.isObject(data);
+            assert.equal(body.data.config.file, opts.config);
+            assert.deepEqual(
+              body.data,
+              JSON.parse(JSON.stringify(data))
+            );
+            server.close();
+            done();
+          });
         });
       });
     });

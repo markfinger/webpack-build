@@ -62,22 +62,27 @@ describe('server', function () {
     var opts = {
       config: _path2['default'].join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js')
     };
-    _libServer2['default'].listen(9009, function () {
-      _request2['default'].post({
-        url: 'http://127.0.0.1:9009',
-        json: true,
-        body: opts
-      }, function (err, res, body) {
-        assert.isNull(err);
-        assert.isObject(body);
-        assert.isNull(body.error);
-        assert.isObject(body.data);
-        (0, _libIndex2['default'])(opts, function (err, data) {
+    (0, _request2['default'])('http://127.0.0.1:9009', function (err) {
+      assert.instanceOf(err, Error, 'Sanity check to make sure there isn\'t another server running');
+      _libServer2['default'].listen(9009, function () {
+        _request2['default'].post({
+          url: 'http://127.0.0.1:9009',
+          json: true,
+          body: opts
+        }, function (err, res, body) {
           assert.isNull(err);
-          assert.isObject(data);
-          assert.deepEqual(body.data, JSON.parse(JSON.stringify(data)));
-          _libServer2['default'].close();
-          done();
+          assert.isObject(body);
+          assert.isNull(body.error);
+          assert.isObject(body.data);
+          assert.equal(body.data.config.file, opts.config);
+          (0, _libIndex2['default'])(opts, function (err, data) {
+            assert.isNull(err);
+            assert.isObject(data);
+            assert.equal(body.data.config.file, opts.config);
+            assert.deepEqual(body.data, JSON.parse(JSON.stringify(data)));
+            _libServer2['default'].close();
+            done();
+          });
         });
       });
     });
