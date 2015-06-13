@@ -6,6 +6,9 @@ import wrappers from '../wrappers';
 import options from '../options';
 import log from '../log';
 import packageJson from '../../package';
+import cache from '../cache';
+import {processData} from './utils';
+import {workers, send} from './workers';
 
 export const index = (req, res) => {
   let title = `webpack-build-server v${packageJson.version}`;
@@ -40,23 +43,66 @@ export const index = (req, res) => {
 
 export const buildRequest = (req, res) => {
   let opts = options(req.body);
-  build(opts, (err, data) => {
+  let logger = log('build-server', opts);
+
+  let workerOpts = _.cloneDeep(opts);
+  workerOpts.cache = false;
+
+  /*
+  TODO
+  scrap non-workers pathway (too fiddly to maintain two branches)
+  fix hmr
+  prevent workers from accessing the cache
+  read/write cache entries at this level
+   */
+
+  let emit = (err, data) => {
     if (err) {
-      log('build-server', opts)('build request produced an error', err.stack);
+      logger('error encountered during build', err);
+      return res.status(500).end(err.stack);
+    } else {
+      logger('serving data from build');
+      return res.json(data);
+    }
+  };
+
+  logger('checking cache');
+  cache.get(opts, (err, cachedData) => {
+    if (err) {
+      logger(`cache error: ${err}`);
     }
 
-    let error = null;
-    if (err) {
-      error = {
-        type: err.constructor.name,
-        message: err.message,
-        stack: err.stack
-      }
+    if (cachedData) {
+      logger('cached data received');
+      emit(null, processData(null, cachedData));
+    } else {
+      logger('cache has no matching data or has delegated, calling worker');
     }
 
-    res.json({
-      error: error,
-      data: data || null
-    });
-  })
+    if (!cachedData || opts.watch) {
+      logger('submitting build request to worker');
+      send(workerOpts, (err, data) => {
+        logger('populating cache');
+        if (err) logger(`worker error: ${err}`);
+
+        let {error: buildError, data: buildData} = data;
+
+        /*
+         TODO: concurrent requests populate the cache multiple times
+
+         might need to set the cache to flush sporadically
+         */
+        if (buildError) {
+          logger(`worker build error: ${buildError}`);
+          cache.set(opts, null);
+        } else {
+          cache.set(opts, buildData, opts.watch);
+        }
+
+        if (!cachedData) {
+          emit(err, data);
+        }
+      });
+    }
+  });
 };

@@ -4,17 +4,17 @@ import packageJson from '../../package';
 let loggers = Object.create(null);
 
 let log = (name, opts) => {
-  let packageName = log.namespace;
-  let id = opts.buildHash.slice(0, 6);
-  let namespace = `${packageName}:${id}:${name}`;
+  let namespace = log.namespace;
+
+  if (opts) {
+    let id = opts.buildHash.slice(0, 6);
+    namespace = `${namespace}:${id}:${name}`;
+  } else if (name) {
+    namespace = `${namespace}:${name}`;
+  }
 
   if (!loggers[namespace]) {
-    let logger = debug(namespace);
-
-    // Send messages to stdout
-    logger.log = console.log.bind(console);
-
-    loggers[namespace] = logger;
+    loggers[namespace] = debug(namespace);
   }
 
   return loggers[namespace];

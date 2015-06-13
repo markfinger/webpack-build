@@ -15,6 +15,11 @@ var argv = require('yargs')
     description: 'Specify the server\'s address',
     default: '127.0.0.1'
   })
+  .option('w', {
+    alias: 'workers',
+    description: 'Specifies the number of workers to use',
+    default: 1
+  })
   .version(function() {
     return packageJson.version;
   }).alias('v', 'version')
@@ -26,7 +31,17 @@ require('source-map-support').install();
 require('debug').enable(packageJson.name + ':*');
 
 var _ = require('lodash');
+
+if (!_.isNumber(argv.workers)) {
+  throw new Error('workers options must be a number');
+}
+
+if (!argv.workers >= 1) {
+  throw new Error('workers options must be at least 1');
+}
+
 var server = require('../lib/server');
+var workers = require('../lib/server/workers');
 var defaults = require('../lib/options/defaults');
 
 server.listen(argv.port, argv.address, function() {
@@ -45,4 +60,8 @@ server.listen(argv.port, argv.address, function() {
       _.repeat('~', width)
     ].join('\n') + '\n'
   );
+
+  for (var i=0; i < argv.workers; i++) {
+    workers.addWorker();
+  }
 });
