@@ -37,7 +37,7 @@ class Workers {
 
     if (!worker) {
       worker = this.get(worker);
-      this.matches[opts.buildHash] = worker.pid;
+      this.matches[opts.buildHash] = worker.id;
     }
 
     worker.build(opts, cb);
@@ -47,9 +47,9 @@ class Workers {
     // to have a warm compiler
 
     let key = opts.buildHash;
-    let pid = this.matches[key];
-    if (pid) {
-      return _.find(this.workers, { pid });
+    let id = this.matches[key];
+    if (id) {
+      return _.find(this.workers, {id});
     }
   }
   get() {

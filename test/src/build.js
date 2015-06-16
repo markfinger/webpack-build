@@ -307,7 +307,7 @@ describe('build', () => {
 
         assert.equal(Object.keys(wrappers.wrappers).length, 0);
         assert.equal(Object.keys(workers.matches).length, 1);
-        assert.equal(workers.matches[opts.buildHash], workers.workers[0].pid);
+        assert.equal(workers.matches[opts.buildHash], workers.workers[0].id);
         assert.strictEqual(workers.match(opts), workers.workers[0]);
 
         build(opts, (_err, _data) => {
@@ -316,7 +316,7 @@ describe('build', () => {
 
           assert.equal(Object.keys(wrappers.wrappers).length, 0);
           assert.equal(Object.keys(workers.matches).length, 1);
-          assert.equal(workers.matches[opts.buildHash], workers.workers[0].pid);
+          assert.equal(workers.matches[opts.buildHash], workers.workers[0].id);
           assert.strictEqual(workers.match(opts), workers.workers[0]);
 
           assert.deepEqual(_data, data);

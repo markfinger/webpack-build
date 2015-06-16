@@ -7,11 +7,17 @@ import packageJson from '../../package';
 //import debug from 'debug';
 //debug.enable(packageJson.name + ':*');
 
+import cluster from 'cluster';
+
+if (!cluster.isWorker) {
+  throw new Error(`${__filename} should only be used by workers`);
+}
+
 import log from '../log';
-import {compile} from '../build';
+import compile from '../compile';
 import processData from '../utils/process_data';
 
-log.namespace += `:worker:${process.pid}`;
+log.namespace += `:worker:${cluster.worker.id}`;
 
 let logger = log();
 

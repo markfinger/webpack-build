@@ -1,9 +1,15 @@
 import os from 'os';
 import path from 'path';
-import child_process from 'child_process';
+import cluster from 'cluster';
 import _ from 'lodash';
 import options from '../options';
 import log from '../log';
+
+cluster.setupMaster({
+  exec: path.join(__dirname, 'entry.js'),
+  // Prevent the workers from running their own debugger
+  args: _.without(process.argv.slice(2), '--debug-brk', 'debug')
+});
 
 class Worker {
   constructor() {
@@ -13,22 +19,19 @@ class Worker {
     this._onStatus = [];
     this._onBuild = Object.create(null);
 
-    this.worker = child_process.fork(path.join(__dirname, 'entry.js'), {
-      // Prevent the workers from running a debugger
-      execArgv: _.without(process.execArgv, '--debug-brk')
-    });
-    this.pid = this.worker.pid;
+    this.worker = cluster.fork();
+    this.id = this.worker.id;
 
-    this.logger = log(`worker-manager:${this.pid}`);
+    this.logger = log(`worker-manager:${this.id}`);
 
     this.worker.on('message', this.handleMessage.bind(this));
     this.worker.on('error', this.handleError.bind(this));
     this.worker.on('exit', this.handleExit.bind(this));
 
-    process.on('exit', this.kill.bind(this));
-    process.on('uncaughtException', this.kill.bind(this));
+    this.worker.process.on('exit', this.kill.bind(this));
+    this.worker.process.on('uncaughtException', this.kill.bind(this));
 
-    this.logger(`started worker ${this.pid}`);
+    this.logger(`started worker ${this.id}`);
   }
   build(opts, cb) {
     opts = options(opts);
@@ -52,14 +55,14 @@ class Worker {
           return this._callBuildRequests(buildHash, err, null);
         }
 
-        this.logger(`sending build request for ${buildHash} to worker ${this.pid}`);
+        this.logger(`sending build request for ${buildHash} to worker ${this.id}`);
         this.worker.send({
           type: 'build',
           data: opts
         });
       });
     } else {
-      this.logger(`enqueuing build request for ${buildHash}, awaiting worker ${this.pid}`);
+      this.logger(`enqueuing build request for ${buildHash}, awaiting worker ${this.id}`);
     }
   }
   getStatus(cb) {
@@ -68,7 +71,7 @@ class Worker {
 
       this._onStatus.push(cb);
 
-      this.logger(`sending status request to worker ${this.pid}`);
+      this.logger(`sending status request to worker ${this.id}`);
       this.worker.send({
         type: 'status'
       });
@@ -94,19 +97,19 @@ class Worker {
 
     if (type === 'ready') {
 
-      this.logger(`worker ${this.pid} ready`);
+      this.logger(`worker ${this.id} ready`);
       this.isReady = true;
       this._callReady(null);
 
     } else if (type === 'status') {
 
-      this.logger(`worker ${this.pid} responded to status request`);
+      this.logger(`worker ${this.id} responded to status request`);
       this._callStatusRequests(null, data);
 
     } else if (type === 'build') {
 
       let {buildHash, buildData} = data;
-      this.logger(`worker ${this.pid} responded to build request ${buildHash}`);
+      this.logger(`worker ${this.id} responded to build request ${buildHash}`);
       this._callBuildRequests(buildHash, buildData.error, buildData.data);
 
     // TODO hmr update support
@@ -116,7 +119,7 @@ class Worker {
     }
   }
   handleError(err) {
-    this.logger(`worker process ${this.pid} error: ${err}`);
+    this.logger(`worker process ${this.id} error: ${err}`);
 
     this.err = err;
     this.isReady = false;
@@ -124,11 +127,11 @@ class Worker {
     this._flushCallbacks(err);
   }
   handleExit(code) {
-    this.logger(`worker process ${this.pid} exited with code ${code}`);
+    this.logger(`worker process ${this.id} exited with code ${code}`);
     this.isReady = false;
 
     if (!this.err) {
-      this.err = new Error(`worker process ${this.pid} has already exited with code ${code}`)
+      this.err = new Error(`worker process ${this.id} has already exited with code ${code}`)
     }
 
     this._flushCallbacks(this.err);
@@ -164,8 +167,8 @@ class Worker {
     }
   }
   kill() {
-    if (this.worker.connected) {
-      this.logger(`killing worker process ${this.pid}`);
+    if (!this.worker.isDead()) {
+      this.logger(`killing worker process ${this.id}`);
       this.worker.kill();
     }
   }

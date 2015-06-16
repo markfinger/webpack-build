@@ -347,7 +347,7 @@ describe('build', function () {
 
         assert.equal(Object.keys(_libWrappers2['default'].wrappers).length, 0);
         assert.equal(Object.keys(_libWorkers2['default'].matches).length, 1);
-        assert.equal(_libWorkers2['default'].matches[opts.buildHash], _libWorkers2['default'].workers[0].pid);
+        assert.equal(_libWorkers2['default'].matches[opts.buildHash], _libWorkers2['default'].workers[0].id);
         assert.strictEqual(_libWorkers2['default'].match(opts), _libWorkers2['default'].workers[0]);
 
         (0, _lib2['default'])(opts, function (_err, _data) {
@@ -356,7 +356,7 @@ describe('build', function () {
 
           assert.equal(Object.keys(_libWrappers2['default'].wrappers).length, 0);
           assert.equal(Object.keys(_libWorkers2['default'].matches).length, 1);
-          assert.equal(_libWorkers2['default'].matches[opts.buildHash], _libWorkers2['default'].workers[0].pid);
+          assert.equal(_libWorkers2['default'].matches[opts.buildHash], _libWorkers2['default'].workers[0].id);
           assert.strictEqual(_libWorkers2['default'].match(opts), _libWorkers2['default'].workers[0]);
 
           assert.deepEqual(_data, data);
