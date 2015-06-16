@@ -17,7 +17,7 @@ import log from '../log';
 import compile from '../compile';
 import processData from '../utils/process_data';
 
-log.namespace += `:worker:${cluster.worker.id}`;
+log.namespace += `:worker-${cluster.worker.id}`;
 
 let logger = log();
 

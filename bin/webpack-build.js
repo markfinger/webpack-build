@@ -17,7 +17,8 @@ var argv = require('yargs')
   })
   .option('w', {
     alias: 'workers',
-    description: 'Specifies the number of workers to use'
+    description: 'Specifies the number of workers to use',
+    default: 1
   })
   .version(function() {
     return packageJson.version;

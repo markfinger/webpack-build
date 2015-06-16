@@ -1,4 +1,5 @@
 import os from 'os';
+import cluster from 'cluster';
 import _ from 'lodash';
 import options from '../options';
 import Worker from './Worker';

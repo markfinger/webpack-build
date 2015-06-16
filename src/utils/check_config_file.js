@@ -9,7 +9,7 @@ const checkConfigFile = (configFile) => {
   }
 
   if (!_.isString(configFile)) {
-    return new Error('Config file option must be a string');
+    return new Error('Config option must be a string');
   }
 
   if (fileTimestamps[configFile]) {
@@ -21,7 +21,9 @@ const checkConfigFile = (configFile) => {
     }
 
     if (timestamp > fileTimestamps[configFile]) {
-      return new Error('Config file has changed since being loaded into memory. Restart the process');
+      return new Error(
+        'Config file has changed since being loaded into memory. The process controlling webpack-build should be restarted'
+      );
     }
   } else {
     try {

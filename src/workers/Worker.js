@@ -7,12 +7,14 @@ import caches from '../caches';
 import options from '../options';
 import log from '../log';
 
-cluster.setupMaster({
-  exec: path.join(__dirname, 'entry.js'),
-  // Prevent the workers from running their own debugger
-  args: _.without(process.argv.slice(2), '--debug-brk', 'debug'),
-  execArgv: _.without(process.execArgv, '--debug-brk', 'debug')
-});
+if (!cluster.isWorker) {
+  cluster.setupMaster({
+    exec: path.join(__dirname, 'entry.js'),
+    // Prevent the workers from running their own debugger
+    args: _.without(process.argv.slice(2), '--debug-brk', 'debug'),
+    execArgv: _.without(process.execArgv, '--debug-brk', 'debug')
+  });
+}
 
 class Worker {
   constructor() {
@@ -22,10 +24,15 @@ class Worker {
     this._onStatus = [];
     this._onBuild = Object.create(null);
 
+    // Sanity check
+    if (cluster.isWorker) {
+      throw new Error('workers should not create their own workers');
+    }
+
     this.worker = cluster.fork();
     this.id = this.worker.id;
 
-    this.logger = log(`worker-manager:${this.id}`);
+    this.logger = log(`worker-manager-${this.id}`);
 
     this.worker.on('message', this.handleMessage.bind(this));
     this.worker.on('error', this.handleError.bind(this));

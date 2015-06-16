@@ -29,7 +29,7 @@ const build = (opts, cb) => {
       logger('cached data received');
       emit(null, data);
     } else {
-      logger('cache has no matching data or has delegated, passing to compiler');
+      logger('cache has no matching data or has delegated');
     }
 
     if (!data) {
