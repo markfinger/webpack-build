@@ -1,14 +1,12 @@
 import path from 'path';
 import socketIo from 'socket.io';
-import options from '../options';
+import defaults from '../options/defaults';
 import log from '../log';
 
 let io = null;
 
-export const addToServer = (server, path) => {
-  path = path || options().hmrPath;
-
-  io = socketIo(server, {path: path});
+export const addToServer = (server) => {
+  io = socketIo(server, {path: defaults.hmrPath});
 };
 
 export const send = (nsp, stats) => {

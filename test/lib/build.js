@@ -30,9 +30,9 @@ var _libWrappers = require('../../lib/wrappers');
 
 var _libWrappers2 = _interopRequireDefault(_libWrappers);
 
-var _libCache = require('../../lib/cache');
+var _libCaches = require('../../lib/caches');
 
-var _libCache2 = _interopRequireDefault(_libCache);
+var _libCaches2 = _interopRequireDefault(_libCaches);
 
 var _utils = require('./utils');
 
@@ -44,12 +44,12 @@ var assert = _utils2['default'].assert;
 // Ensure we have a clean slate before and after each test
 beforeEach(function () {
   _libWrappers2['default'].clear();
-  _libCache2['default'].clear();
+  _libCaches2['default'].clear();
   _utils2['default'].cleanTestOutputDir();
 });
 afterEach(function () {
   _libWrappers2['default'].clear();
-  _libCache2['default'].clear();
+  _libCaches2['default'].clear();
   _utils2['default'].cleanTestOutputDir();
 });
 
@@ -236,7 +236,7 @@ describe('build', function () {
 
         assert.strictEqual(_libWrappers2['default'].wrappers[opts.buildHash].opts, opts);
 
-        _libCache2['default'].get(opts, function (_err, _data) {
+        _libCaches2['default'].get(opts, function (_err, _data) {
           assert.isNull(_err);
           assert.deepEqual(_data, data);
 
@@ -244,7 +244,7 @@ describe('build', function () {
           assert.isString(opts.buildHash);
           assert.equal(opts.cacheFile, _path2['default'].join(opts.cacheDir, opts.buildHash + '.json'));
 
-          assert.equal(_libCache2['default']._caches.get(opts).filename, opts.cacheFile);
+          assert.equal(_libCaches2['default']._caches.get(opts).filename, opts.cacheFile);
 
           done();
         });
@@ -282,9 +282,9 @@ describe('build', function () {
         assert.isObject(data1);
         assert.deepEqual(data1.stats, { test: { foo: 'bar' } });
 
-        var _cache = _libCache2['default']._caches.get(opts);
-        assert.deepEqual(data1.stats, _cache.data.stats);
-        assert.isFalse(_cache.delegate);
+        var cache = _libCaches2['default']._caches.get(opts);
+        assert.deepEqual(data1.stats, cache.data.stats);
+        assert.isFalse(cache.delegate);
 
         (0, _libIndex2['default'])(opts, function (err, data2) {
           assert.isNull(err);
@@ -292,7 +292,7 @@ describe('build', function () {
 
           assert.strictEqual(data2, data1);
           assert.deepEqual(data2.stats, { test: { foo: 'bar' } });
-          assert.isFalse(_cache.delegate);
+          assert.isFalse(cache.delegate);
 
           setTimeout(function () {
             var wrapper = _libWrappers2['default'].wrappers[opts.buildHash];
@@ -302,11 +302,11 @@ describe('build', function () {
               assert.isObject(data3);
               assert.notStrictEqual(data3, data2);
 
-              assert.isString(_cache.data.buildHash);
-              assert.equal(_cache.data.buildHash, opts.buildHash);
-              assert.equal(_cache.data.buildHash, wrapper.opts.buildHash);
+              assert.isString(cache.data.buildHash);
+              assert.equal(cache.data.buildHash, opts.buildHash);
+              assert.equal(cache.data.buildHash, wrapper.opts.buildHash);
 
-              assert.isTrue(_cache.delegate);
+              assert.isTrue(cache.delegate);
 
               (0, _libIndex2['default'])(opts, function (err, data4) {
                 assert.isNull(err);

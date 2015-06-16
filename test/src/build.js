@@ -5,7 +5,7 @@ import mkdirp from 'mkdirp';
 import build from '../../lib/index';
 import Wrapper from '../../lib/wrappers/Wrapper';
 import wrappers from '../../lib/wrappers'
-import cache from '../../lib/cache';
+import caches from '../../lib/caches';
 import utils from './utils';
 
 let TEST_OUTPUT_DIR = utils.TEST_OUTPUT_DIR;
@@ -14,12 +14,12 @@ let assert = utils.assert;
 // Ensure we have a clean slate before and after each test
 beforeEach(() => {
   wrappers.clear();
-  cache.clear();
+  caches.clear();
   utils.cleanTestOutputDir();
 });
 afterEach(() => {
   wrappers.clear();
-  cache.clear();
+  caches.clear();
   utils.cleanTestOutputDir();
 });
 
@@ -198,7 +198,7 @@ describe('build', () => {
 
         assert.strictEqual(wrappers.wrappers[opts.buildHash].opts, opts);
 
-        cache.get(opts, (_err, _data) => {
+        caches.get(opts, (_err, _data) => {
           assert.isNull(_err);
           assert.deepEqual(_data, data);
 
@@ -206,7 +206,7 @@ describe('build', () => {
           assert.isString(opts.buildHash);
           assert.equal(opts.cacheFile, path.join(opts.cacheDir, opts.buildHash + '.json'));
 
-          assert.equal(cache._caches.get(opts).filename, opts.cacheFile);
+          assert.equal(caches._caches.get(opts).filename, opts.cacheFile);
 
           done();
         });
@@ -244,9 +244,10 @@ describe('build', () => {
         assert.isObject(data1);
         assert.deepEqual(data1.stats, {test: {foo: 'bar'}});
 
-        let _cache = cache._caches.get(opts);
-        assert.deepEqual(data1.stats, _cache.data.stats);
-        assert.isFalse(_cache.delegate);
+
+        let cache = caches._caches.get(opts);
+        assert.deepEqual(data1.stats, cache.data.stats);
+        assert.isFalse(cache.delegate);
 
         build(opts, (err, data2) => {
           assert.isNull(err);
@@ -254,7 +255,7 @@ describe('build', () => {
 
           assert.strictEqual(data2, data1);
           assert.deepEqual(data2.stats, {test: {foo: 'bar'}});
-          assert.isFalse(_cache.delegate);
+          assert.isFalse(cache.delegate);
 
           setTimeout(() => {
             let wrapper = wrappers.wrappers[opts.buildHash];
@@ -264,11 +265,11 @@ describe('build', () => {
               assert.isObject(data3);
               assert.notStrictEqual(data3, data2);
 
-              assert.isString(_cache.data.buildHash);
-              assert.equal(_cache.data.buildHash, opts.buildHash);
-              assert.equal(_cache.data.buildHash, wrapper.opts.buildHash);
+              assert.isString(cache.data.buildHash);
+              assert.equal(cache.data.buildHash, opts.buildHash);
+              assert.equal(cache.data.buildHash, wrapper.opts.buildHash);
 
-              assert.isTrue(_cache.delegate);
+              assert.isTrue(cache.delegate);
 
               build(opts, (err, data4) => {
                 assert.isNull(err);

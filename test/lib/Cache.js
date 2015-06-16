@@ -14,9 +14,9 @@ var _mkdirp = require('mkdirp');
 
 var _mkdirp2 = _interopRequireDefault(_mkdirp);
 
-var _libCacheCache = require('../../lib/cache/Cache');
+var _libCachesCache = require('../../lib/caches/Cache');
 
-var _libCacheCache2 = _interopRequireDefault(_libCacheCache);
+var _libCachesCache2 = _interopRequireDefault(_libCachesCache);
 
 var _libOptions = require('../../lib/options');
 
@@ -47,18 +47,18 @@ afterEach(function () {
 
 describe('Cache', function () {
   it('should be a function', function () {
-    assert.isFunction(_libCacheCache2['default']);
+    assert.isFunction(_libCachesCache2['default']);
   });
   it('should accept a filename argument', function () {
     var filename = _path2['default'].join(TEST_OUTPUT_DIR, 'cache_init_test.json');
-    var cache = new _libCacheCache2['default']((0, _libOptions2['default'])({ cacheFile: filename }));
+    var cache = new _libCachesCache2['default']((0, _libOptions2['default'])({ cacheFile: filename }));
     assert.equal(cache.filename, filename);
     assert.deepEqual(cache.data, {});
     cache.set(null);
     assert.equal(_fs2['default'].readFileSync(filename).toString(), 'null');
   });
   it('should be able to persist an entry to a file', function () {
-    var cache = new _libCacheCache2['default']((0, _libOptions2['default'])({ cacheFile: _path2['default'].join(TEST_OUTPUT_DIR, 'cache_persist.json') }));
+    var cache = new _libCachesCache2['default']((0, _libOptions2['default'])({ cacheFile: _path2['default'].join(TEST_OUTPUT_DIR, 'cache_persist.json') }));
     cache.set({ foo: { bar: 'woz' } });
     var json = require(TEST_OUTPUT_DIR + '/cache_persist.json');
     assert.deepEqual(json, { foo: { bar: 'woz' } });
@@ -81,7 +81,7 @@ describe('Cache', function () {
 
     _fs2['default'].writeFileSync(testFile, '{}');
 
-    var cache = new _libCacheCache2['default']((0, _libOptions2['default'])({ cacheFile: filename }), true);
+    var cache = new _libCachesCache2['default']((0, _libOptions2['default'])({ cacheFile: filename }), true);
 
     assert.equal(cache.filename, filename);
     assert.isObject(cache.data);
@@ -102,7 +102,7 @@ describe('Cache', function () {
       _fs2['default'].writeFileSync(filename, '{}');
       _fs2['default'].writeFileSync(testFile, '{}');
 
-      var cache = new _libCacheCache2['default']((0, _libOptions2['default'])({ cacheFile: filename }));
+      var cache = new _libCachesCache2['default']((0, _libOptions2['default'])({ cacheFile: filename }));
 
       cache.get(function (err, entry) {
         assert.isNull(err);
@@ -176,8 +176,8 @@ describe('Cache', function () {
 
       _fs2['default'].writeFileSync(testFile, '{}');
 
-      var cache1 = new _libCacheCache2['default']((0, _libOptions2['default'])({ cacheFile: filename1 }));
-      var cache2 = new _libCacheCache2['default']((0, _libOptions2['default'])({ cacheFile: filename2 }));
+      var cache1 = new _libCachesCache2['default']((0, _libOptions2['default'])({ cacheFile: filename1 }));
+      var cache2 = new _libCachesCache2['default']((0, _libOptions2['default'])({ cacheFile: filename2 }));
 
       cache1.get(function (err, entry) {
         assert.instanceOf(err, Error);
@@ -201,7 +201,7 @@ describe('Cache', function () {
       var filename = _path2['default'].join(TEST_OUTPUT_DIR, 'cache_set.json');
       _mkdirp2['default'].sync(_path2['default'].dirname(filename));
 
-      var cache = new _libCacheCache2['default']((0, _libOptions2['default'])({ cacheFile: filename }));
+      var cache = new _libCachesCache2['default']((0, _libOptions2['default'])({ cacheFile: filename }));
 
       cache.set({ foo: { bar: 'woz' } });
 

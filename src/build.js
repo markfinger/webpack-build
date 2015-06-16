@@ -3,7 +3,7 @@ import _ from 'lodash';
 import options from './options';
 import log from './log';
 import wrappers from './wrappers';
-import cache from './cache';
+import caches from './caches';
 
 const fileTimestamps = Object.create(null);
 
@@ -48,8 +48,8 @@ const build = (opts, cb) => {
   let logger = log('build', opts);
   logger(`build request lodged for ${opts.config}`);
 
-  logger('requesting data from cache');
-  cache.get(opts, function(err, data) {
+  logger('requesting data from caches');
+  caches.get(opts, function(err, data) {
     if (err) {
       logger('cache produced an error', err.message);
     }

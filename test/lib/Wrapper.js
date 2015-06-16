@@ -30,13 +30,9 @@ var _libOptions = require('../../lib/options');
 
 var _libOptions2 = _interopRequireDefault(_libOptions);
 
-var _libCache = require('../../lib/cache');
+var _libCaches = require('../../lib/caches');
 
-var _libCache2 = _interopRequireDefault(_libCache);
-
-var _libCacheCaches = require('../../lib/cache/caches');
-
-var _libCacheCaches2 = _interopRequireDefault(_libCacheCaches);
+var _libCaches2 = _interopRequireDefault(_libCaches);
 
 var _utils = require('./utils');
 
@@ -48,11 +44,11 @@ var TEST_OUTPUT_DIR = _utils2['default'].TEST_OUTPUT_DIR;
 // Ensure we have a clean slate before and after each test
 beforeEach(function () {
   _utils2['default'].cleanTestOutputDir();
-  _libCacheCaches2['default'].clear();
+  _libCaches2['default'].clear();
 });
 afterEach(function () {
   _utils2['default'].cleanTestOutputDir();
-  _libCacheCaches2['default'].clear();
+  _libCaches2['default'].clear();
 });
 
 describe('Wrapper', function () {
@@ -523,7 +519,7 @@ describe('Wrapper', function () {
         assert.isNull(err);
         assert.isObject(data);
 
-        _libCache2['default'].get(wrapper.opts, function (_err, _data) {
+        _libCaches2['default'].get(wrapper.opts, function (_err, _data) {
           assert.isNull(_err);
           assert.isObject(_data);
 

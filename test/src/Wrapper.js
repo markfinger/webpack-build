@@ -5,8 +5,7 @@ import webpack from 'webpack';
 import Wrapper from '../../lib/wrappers/Wrapper';
 import Watcher from '../../lib/wrappers/Watcher';
 import options from '../../lib/options';
-import cache from '../../lib/cache';
-import caches from '../../lib/cache/caches';
+import caches from '../../lib/caches';
 import utils from './utils';
 
 let assert = utils.assert;
@@ -490,7 +489,7 @@ describe('Wrapper', () => {
         assert.isNull(err);
         assert.isObject(data);
 
-        cache.get(wrapper.opts, (_err, _data) => {
+        caches.get(wrapper.opts, (_err, _data) => {
           assert.isNull(_err);
           assert.isObject(_data);
 

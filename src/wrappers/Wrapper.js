@@ -6,7 +6,7 @@ import options from '../options';
 import hmr from '../hmr';
 import hmrConfig from '../hmr/config';
 import log from '../log';
-import cache from '../cache';
+import caches from '../caches';
 import Watcher from './Watcher';
 
 class Wrapper {
@@ -87,9 +87,9 @@ class Wrapper {
           for (let err of stats.compilation.errors) {
             this.logger(`... => ${err.stack}`);
           }
-          cache.set(this.opts, null);
+          caches.set(this.opts, null);
         } else {
-          cache.set(this.opts, this.generateOutput(stats));
+          caches.set(this.opts, this.generateOutput(stats));
         }
       });
 

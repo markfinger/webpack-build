@@ -1,6 +1,6 @@
 export const processData = (err, data) => {
   let error = null;
-  if (err) {
+  if (err && err instanceof Error) {
     error = {
       type: err.constructor.name,
       message: err.message,
