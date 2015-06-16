@@ -1,13 +1,16 @@
 #!/usr/bin/env node
 
-// Builds the project
-// Usage: ./build.js
-// Usage: ./build.js --watch
+var argv = require('yargs')
+  .option('w', {
+    alias: 'watch',
+    description: 'Build and watch'
+  })
+  .help('h').alias('h', 'help')
+  .strict()
+  .argv;
 
 var path = require('path');
 var child_process = require('child_process');
-
-var watch = process.argv.indexOf('--watch') !== -1;
 
 var src = path.join(__dirname, '..', 'src');
 var lib = path.join(__dirname, '..', 'lib');
@@ -31,7 +34,7 @@ for (var i=0; i<outputDirs.length; i++) {
   // Rebuild
   var babel;
   var babelArgs = [inputDirs[i], '--out-dir', outputDirs[i], '--source-maps'];
-  if (watch) {
+  if (argv.watch) {
     babelArgs.push('--watch');
     babel = child_process.spawn(path.join(__dirname, '..', 'node_modules', '.bin', 'babel'), babelArgs);
 

@@ -61,6 +61,7 @@ const build = (opts, cb) => {
       }
     } else if (opts.watch) {
       logger('Ensuring compiler is running in the background');
+
       let noop = () => {/* no-op */};
       if (workers.available()) {
         workers.build(opts, noop);
