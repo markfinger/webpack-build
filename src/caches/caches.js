@@ -16,5 +16,4 @@ class Caches {
   }
 }
 
-
 export default new Caches();
