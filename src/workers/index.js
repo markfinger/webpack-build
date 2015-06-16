@@ -12,10 +12,13 @@ class Workers {
   available() {
     return this.workers.length > 0;
   }
+  count() {
+    return this.workers.length;
+  }
   spawn(number) {
     // Spawns the number of workers specified
 
-    number = number || os.cpus().length;
+    number = number || 1;
 
     _.range(number).forEach(() => {
       this.workers.push(new Worker());

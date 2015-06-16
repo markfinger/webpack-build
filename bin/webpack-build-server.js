@@ -17,8 +17,7 @@ var argv = require('yargs')
   })
   .option('w', {
     alias: 'workers',
-    description: 'Specifies the number of workers to use',
-    default: 1
+    description: 'Specifies the number of workers to use'
   })
   .version(function() {
     return packageJson.version;
@@ -28,21 +27,13 @@ var argv = require('yargs')
   .argv;
 
 require('source-map-support').install();
-require('debug').enable(packageJson.name + ':*');
 
 var _ = require('lodash');
-
-if (!_.isNumber(argv.workers)) {
-  throw new Error('workers options must be a number');
-}
-
-if (!argv.workers >= 1) {
-  throw new Error('workers options must be at least 1');
-}
-
 var server = require('../lib/server');
-var workers = require('../lib/server/workers');
+var workers = require('../lib/workers');
 var defaults = require('../lib/options/defaults');
+
+workers.spawn(argv.workers);
 
 server.listen(argv.port, argv.address, function() {
   var address = server.address();
@@ -57,11 +48,8 @@ server.listen(argv.port, argv.address, function() {
       _.pad('webpack-build-server v' + packageJson.version, width),
       _.pad((new Date).toLocaleString(), width),
       _.pad(fullAddress, width),
+      _.pad(workers.count() + ' worker' + (workers.count() > 1 ? 's' : ''), width),
       _.repeat('~', width)
     ].join('\n') + '\n'
   );
-
-  for (var i=0; i < argv.workers; i++) {
-    workers.addWorker();
-  }
 });
