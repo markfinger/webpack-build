@@ -45,7 +45,7 @@ server.listen(argv.port, argv.address, function() {
   console.log(
     [
       _.repeat('~', width),
-      _.pad('webpack-build-server v' + packageJson.version, width),
+      _.pad('webpack-build v' + packageJson.version, width),
       _.pad((new Date).toLocaleString(), width),
       _.pad(fullAddress, width),
       _.pad(workers.count() + ' worker' + (workers.count() > 1 ? 's' : ''), width),

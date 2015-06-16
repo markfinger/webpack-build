@@ -252,22 +252,22 @@ will indicate the need to refresh for updates to be applied.
 Build server
 ------------
 
-A build server is available via a CLI interface, `webpack-build-server`. Run the
-binary and connect via the network to request builds. The build server is pre-configured
-to support HMR.
+A build server is available via a CLI interface, `webpack-build`. Run the binary and connect
+via the network to request builds. The build server is pre-configured to support HMR.
 
 ```
-webpack-build-server
+webpack-build
 
 // or
 
-node_modules/.bin/webpack-build-server
+node_modules/.bin/webpack-build
 ```
 
 The following arguments are accepted:
 
 - `-a` or `--address` the address to listen at, defaults to `127.0.0.1`
 - `-p` or `--port` the port to listen at, defaults to `9009`
+- `-w` or `--workers` the number of workers to use, defaults to 1
 
 Incoming requests are mapped by their method:
 
@@ -291,9 +291,7 @@ Unsuccessful build requests receive
 ```javascript
 {
   "error": {
-    "type": "...",
-    "message": "...",
-    "stack": "..."
+    // ...
   },
   "data": null
 }
