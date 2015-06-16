@@ -10,7 +10,7 @@ import options from '../options';
 import log from '../log';
 import packageJson from '../../package';
 import cache from '../cache';
-import {processData} from '../utils';
+import processData from '../utils/process_data';
 import workers from '../workers';
 import hmr from '../hmr';
 

@@ -1,4 +1,4 @@
-export const processData = (err, data) => {
+const processData = (err, data) => {
   let error = null;
   if (err && err instanceof Error) {
     error = {
@@ -13,3 +13,5 @@ export const processData = (err, data) => {
     data: data || null
   };
 };
+
+export default processData;

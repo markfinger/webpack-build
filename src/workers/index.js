@@ -9,7 +9,7 @@ class Workers {
     this.next = 0;
     this.matches = Object.create(null);
   }
-  hasWorkers() {
+  available() {
     return this.workers.length > 0;
   }
   spawn(number) {
@@ -26,7 +26,7 @@ class Workers {
 
     opts = options(opts);
 
-    if (!this.hasWorkers()) {
+    if (!this.available()) {
       return cb(new Error('No workers available'));
     }
 

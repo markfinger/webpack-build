@@ -164,8 +164,10 @@ class Worker {
     }
   }
   kill() {
-    this.logger(`killing worker process ${this.pid}`);
-    this.worker.kill();
+    if (this.worker.connected) {
+      this.logger(`killing worker process ${this.pid}`);
+      this.worker.kill();
+    }
   }
 }
 

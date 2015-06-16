@@ -18,9 +18,9 @@ var _mkdirp = require('mkdirp');
 
 var _mkdirp2 = _interopRequireDefault(_mkdirp);
 
-var _libIndex = require('../../lib/index');
+var _lib = require('../../lib');
 
-var _libIndex2 = _interopRequireDefault(_libIndex);
+var _lib2 = _interopRequireDefault(_lib);
 
 var _libWrappersWrapper = require('../../lib/wrappers/Wrapper');
 
@@ -29,6 +29,10 @@ var _libWrappersWrapper2 = _interopRequireDefault(_libWrappersWrapper);
 var _libWrappers = require('../../lib/wrappers');
 
 var _libWrappers2 = _interopRequireDefault(_libWrappers);
+
+var _libWorkers = require('../../lib/workers');
+
+var _libWorkers2 = _interopRequireDefault(_libWorkers);
 
 var _libCaches = require('../../lib/caches');
 
@@ -45,23 +49,25 @@ var assert = _utils2['default'].assert;
 beforeEach(function () {
   _libWrappers2['default'].clear();
   _libCaches2['default'].clear();
+  _libWorkers2['default'].clear();
   _utils2['default'].cleanTestOutputDir();
 });
 afterEach(function () {
   _libWrappers2['default'].clear();
   _libCaches2['default'].clear();
+  _libWorkers2['default'].clear();
   _utils2['default'].cleanTestOutputDir();
 });
 
 describe('build', function () {
   it('should be a function', function () {
-    assert.isFunction(_libIndex2['default']);
+    assert.isFunction(_lib2['default']);
   });
   it('should accept options and callback arguments', function () {
     var opts = {
       config: _path2['default'].join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config')
     };
-    (0, _libIndex2['default'])(opts, function () {});
+    (0, _lib2['default'])(opts, function () {});
   });
   it('should populate the wrappers list', function (done) {
     var basicBundle = _path2['default'].join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js');
@@ -72,7 +78,7 @@ describe('build', function () {
     };
     assert.equal(Object.keys(_libWrappers2['default'].wrappers).length, 0);
 
-    (0, _libIndex2['default'])(opts1, function (err) {
+    (0, _lib2['default'])(opts1, function (err) {
       return assert.isNull(err);
     });
 
@@ -84,7 +90,7 @@ describe('build', function () {
         config: basicBundle,
         watch: true
       };
-      (0, _libIndex2['default'])(opts2, function (err) {
+      (0, _lib2['default'])(opts2, function (err) {
         return assert.isNull(err);
       });
 
@@ -97,7 +103,7 @@ describe('build', function () {
           config: basicBundle,
           watch: false
         };
-        (0, _libIndex2['default'])(opts3, function (err) {
+        (0, _lib2['default'])(opts3, function (err) {
           return assert.isNull(err);
         });
 
@@ -109,7 +115,7 @@ describe('build', function () {
             config: basicBundle,
             watch: false
           };
-          (0, _libIndex2['default'])(opts4, function (err) {
+          (0, _lib2['default'])(opts4, function (err) {
             return assert.isNull(err);
           });
 
@@ -124,7 +130,7 @@ describe('build', function () {
     });
   });
   it('should be able to generate a bundle', function (done) {
-    (0, _libIndex2['default'])({
+    (0, _lib2['default'])({
       config: _path2['default'].join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js')
     }, function (err, data) {
       assert.isNull(err);
@@ -152,7 +158,7 @@ describe('build', function () {
     _fs2['default'].writeFileSync(configFile, 'module.exports = {}');
     var initialMTime = +_fs2['default'].statSync(configFile).mtime;
 
-    (0, _libIndex2['default'])({
+    (0, _lib2['default'])({
       config: configFile
     }, function (err, data) {
       assert.isNull(err);
@@ -163,7 +169,7 @@ describe('build', function () {
         _fs2['default'].writeFileSync(configFile, 'module.exports = {test: 1}');
         assert.notEqual(+_fs2['default'].statSync(configFile).mtime, initialMTime);
 
-        (0, _libIndex2['default'])({
+        (0, _lib2['default'])({
           config: configFile
         }, function (err, data) {
           assert.instanceOf(err, Error);
@@ -193,7 +199,7 @@ describe('build', function () {
         assets: []
       }));
 
-      (0, _libIndex2['default'])({
+      (0, _lib2['default'])({
         config: configFile,
         cacheFile: cacheFile,
         buildHash: 'foo'
@@ -212,7 +218,7 @@ describe('build', function () {
         config: configFile
       };
 
-      (0, _libIndex2['default'])(opts, function (err, data) {
+      (0, _lib2['default'])(opts, function (err, data) {
         assert.isNull(err);
         assert.isObject(data);
 
@@ -230,7 +236,7 @@ describe('build', function () {
         watch: false
       };
 
-      (0, _libIndex2['default'])(opts, function (err, data) {
+      (0, _lib2['default'])(opts, function (err, data) {
         assert.isNull(err);
         assert.isObject(data);
 
@@ -277,7 +283,7 @@ describe('build', function () {
         buildHash: 'foo'
       };
 
-      (0, _libIndex2['default'])(opts, function (err, data1) {
+      (0, _lib2['default'])(opts, function (err, data1) {
         assert.isNull(err);
         assert.isObject(data1);
         assert.deepEqual(data1.stats, { test: { foo: 'bar' } });
@@ -286,7 +292,7 @@ describe('build', function () {
         assert.deepEqual(data1.stats, cache.data.stats);
         assert.isFalse(cache.delegate);
 
-        (0, _libIndex2['default'])(opts, function (err, data2) {
+        (0, _lib2['default'])(opts, function (err, data2) {
           assert.isNull(err);
           assert.isObject(data2);
 
@@ -308,7 +314,7 @@ describe('build', function () {
 
               assert.isTrue(cache.delegate);
 
-              (0, _libIndex2['default'])(opts, function (err, data4) {
+              (0, _lib2['default'])(opts, function (err, data4) {
                 assert.isNull(err);
                 assert.isObject(data4);
                 assert.deepEqual(data4.stats, data3.stats);
@@ -317,6 +323,45 @@ describe('build', function () {
               });
             });
           }, 50);
+        });
+      });
+    });
+  });
+  describe('workers', function () {
+    it('should use workers if they are available', function (done) {
+      _lib2['default'].workers.spawn(2);
+
+      assert.isTrue(_libWorkers2['default'].available());
+
+      var opts = {
+        config: _path2['default'].join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js')
+      };
+
+      assert.equal(Object.keys(_libWrappers2['default'].wrappers).length, 0);
+      assert.equal(Object.keys(_libWorkers2['default'].matches).length, 0);
+      assert.isUndefined(_libWorkers2['default'].match(opts));
+
+      (0, _lib2['default'])(opts, function (err, data) {
+        assert.isNull(err);
+        assert.isObject(data);
+
+        assert.equal(Object.keys(_libWrappers2['default'].wrappers).length, 0);
+        assert.equal(Object.keys(_libWorkers2['default'].matches).length, 1);
+        assert.equal(_libWorkers2['default'].matches[opts.buildHash], _libWorkers2['default'].workers[0].pid);
+        assert.strictEqual(_libWorkers2['default'].match(opts), _libWorkers2['default'].workers[0]);
+
+        (0, _lib2['default'])(opts, function (_err, _data) {
+          assert.isNull(_err);
+          assert.isObject(_data);
+
+          assert.equal(Object.keys(_libWrappers2['default'].wrappers).length, 0);
+          assert.equal(Object.keys(_libWorkers2['default'].matches).length, 1);
+          assert.equal(_libWorkers2['default'].matches[opts.buildHash], _libWorkers2['default'].workers[0].pid);
+          assert.strictEqual(_libWorkers2['default'].match(opts), _libWorkers2['default'].workers[0]);
+
+          assert.deepEqual(_data, data);
+
+          done();
         });
       });
     });

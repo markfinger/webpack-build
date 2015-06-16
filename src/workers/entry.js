@@ -8,8 +8,8 @@ import packageJson from '../../package';
 //debug.enable(packageJson.name + ':*');
 
 import log from '../log';
-import build from '../build';
-import {processData} from '../utils';
+import {compile} from '../build';
+import processData from '../utils/process_data';
 
 log.namespace += `:worker:${process.pid}`;
 
@@ -33,7 +33,7 @@ process.on('message', function(msg) {
   } else if (type === 'build') {
     logger(`build request received for ${data.buildHash}`);
 
-    build(data, (err, _data) => {
+    compile(data, (err, _data) => {
       process.send({
         type: 'build',
         data: {

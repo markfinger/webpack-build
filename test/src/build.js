@@ -2,9 +2,10 @@ import path from 'path';
 import fs from 'fs';
 import _ from 'lodash';
 import mkdirp from 'mkdirp';
-import build from '../../lib/index';
+import build from '../../lib';
 import Wrapper from '../../lib/wrappers/Wrapper';
-import wrappers from '../../lib/wrappers'
+import wrappers from '../../lib/wrappers';
+import workers from '../../lib/workers';
 import caches from '../../lib/caches';
 import utils from './utils';
 
@@ -15,11 +16,13 @@ let assert = utils.assert;
 beforeEach(() => {
   wrappers.clear();
   caches.clear();
+  workers.clear();
   utils.cleanTestOutputDir();
 });
 afterEach(() => {
   wrappers.clear();
   caches.clear();
+  workers.clear();
   utils.cleanTestOutputDir();
 });
 
@@ -280,6 +283,45 @@ describe('build', () => {
               });
             });
           }, 50);
+        });
+      });
+    });
+  });
+  describe('workers', () => {
+    it('should use workers if they are available', (done) => {
+      build.workers.spawn(2);
+
+      assert.isTrue(workers.available());
+
+      let opts = {
+        config: path.join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js')
+      };
+
+      assert.equal(Object.keys(wrappers.wrappers).length, 0);
+      assert.equal(Object.keys(workers.matches).length, 0);
+      assert.isUndefined(workers.match(opts));
+
+      build(opts, (err, data) => {
+        assert.isNull(err);
+        assert.isObject(data);
+
+        assert.equal(Object.keys(wrappers.wrappers).length, 0);
+        assert.equal(Object.keys(workers.matches).length, 1);
+        assert.equal(workers.matches[opts.buildHash], workers.workers[0].pid);
+        assert.strictEqual(workers.match(opts), workers.workers[0]);
+
+        build(opts, (_err, _data) => {
+          assert.isNull(_err);
+          assert.isObject(_data);
+
+          assert.equal(Object.keys(wrappers.wrappers).length, 0);
+          assert.equal(Object.keys(workers.matches).length, 1);
+          assert.equal(workers.matches[opts.buildHash], workers.workers[0].pid);
+          assert.strictEqual(workers.match(opts), workers.workers[0]);
+
+          assert.deepEqual(_data, data);
+
+          done();
         });
       });
     });
