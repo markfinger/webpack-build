@@ -418,7 +418,7 @@ describe('Wrapper', function () {
                 assert.instanceOf(err3, Error);
                 assert.isObject(stats3);
                 assert.strictEqual(err3, err2);
-                assert.strictEqual(stats3, stats2);
+                assert.deepEqual(stats3, stats2);
 
                 done();
               });

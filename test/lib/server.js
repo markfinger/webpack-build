@@ -26,6 +26,10 @@ var _libWrappers = require('../../lib/wrappers');
 
 var _libWrappers2 = _interopRequireDefault(_libWrappers);
 
+var _libWorkers = require('../../lib/workers');
+
+var _libWorkers2 = _interopRequireDefault(_libWorkers);
+
 var _libCaches = require('../../lib/caches');
 
 var _libCaches2 = _interopRequireDefault(_libCaches);
@@ -49,11 +53,13 @@ var assert = _utils2['default'].assert;
 beforeEach(function () {
   _libWrappers2['default'].clear();
   _libCaches2['default'].clear();
+  _libWorkers2['default'].clear();
   _utils2['default'].cleanTestOutputDir();
 });
 afterEach(function () {
   _libWrappers2['default'].clear();
   _libCaches2['default'].clear();
+  _libWorkers2['default'].clear();
   _utils2['default'].cleanTestOutputDir();
 });
 
@@ -64,23 +70,24 @@ describe('server', function () {
     };
     (0, _request2['default'])('http://127.0.0.1:9009', function (err) {
       assert.instanceOf(err, Error, 'Sanity check to make sure there isn\'t another server running');
-      setTimeout(function () {
-        _libServer2['default'].listen(9009, function () {
-          _request2['default'].post({
-            url: 'http://127.0.0.1:9009',
-            json: true,
-            body: opts
-          }, function (err, res, body) {
-            assert.isNull(err);
-            assert.isObject(body);
-            assert.isNull(body.error);
-            assert.isObject(body.data);
-            assert.equal(body.data.config.file, opts.config);
-            _libServer2['default'].close();
-            done();
-          });
+
+      _libServer2['default'].listen(9009, function () {
+        _request2['default'].post({
+          url: 'http://127.0.0.1:9009',
+          json: true,
+          body: opts
+        }, function (err, res, body) {
+          assert.isNull(err);
+          assert.isObject(body);
+
+          assert.isNull(body.error);
+          assert.isObject(body.data);
+          assert.equal(body.data.config.file, opts.config);
+
+          _libServer2['default'].close();
+          done();
         });
-      }, 500);
+      });
     });
   });
   it('should accept GET requests and provide some info', function (done) {
@@ -90,6 +97,62 @@ describe('server', function () {
         assert.isString(body);
         assert.include(body, '<html>');
         assert.include(body, 'webpack-build-server');
+        _libServer2['default'].close();
+        done();
+      });
+    });
+  });
+  it('should handle hmr', function (done) {
+    var opts = {
+      config: _path2['default'].join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js'),
+      hmr: true,
+      hmrRoot: 'http://example.com',
+      publicPath: '/test'
+    };
+
+    _libServer2['default'].listen(9009, function () {
+      _request2['default'].post({
+        url: 'http://127.0.0.1:9009',
+        json: true,
+        body: opts
+      }, function (err, res, body) {
+        assert.isNull(err);
+        assert.isObject(body);
+
+        if (body.error) console.log(JSON.stringify(body.error));
+        assert.isNull(body.error);
+        assert.isObject(body.data);
+        assert.equal(body.data.config.file, opts.config);
+
+        _libServer2['default'].close();
+        done();
+      });
+    });
+  });
+  it('should handle hmr with workers', function (done) {
+    var opts = {
+      config: _path2['default'].join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js'),
+      hmr: true,
+      hmrRoot: 'http://example.com',
+      publicPath: '/test'
+    };
+
+    _libWorkers2['default'].spawn(1);
+
+    _libServer2['default'].listen(9009, function () {
+      _request2['default'].post({
+        url: 'http://127.0.0.1:9009',
+        json: true,
+        body: opts
+      }, function (err, res, body) {
+        assert.isNull(err);
+        assert.isObject(body);
+
+        if (body.error) console.log(JSON.stringify(body.error));
+        assert.isNull(body.error);
+        assert.isObject(body.data);
+        assert.equal(body.data.config.file, opts.config);
+
         _libServer2['default'].close();
         done();
       });

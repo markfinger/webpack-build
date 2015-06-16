@@ -54,7 +54,11 @@ app.post('/', (req, res) => {
   logger(`request received for ${opts.buildHash}`);
 
   build(opts, (err, data) => {
-    res.json(processData(err, data));
+    try {
+      res.json(processData(err, data));
+    } catch(_err) {
+      debugger
+    }
   });
 });
 

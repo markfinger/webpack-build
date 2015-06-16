@@ -2,6 +2,7 @@ import os from 'os';
 import path from 'path';
 import cluster from 'cluster';
 import _ from 'lodash';
+import hmr from '../hmr';
 import caches from '../caches';
 import options from '../options';
 import log from '../log';
@@ -9,7 +10,8 @@ import log from '../log';
 cluster.setupMaster({
   exec: path.join(__dirname, 'entry.js'),
   // Prevent the workers from running their own debugger
-  args: _.without(process.argv.slice(2), '--debug-brk', 'debug')
+  args: _.without(process.argv.slice(2), '--debug-brk', 'debug'),
+  execArgv: _.without(process.execArgv, '--debug-brk', 'debug')
 });
 
 class Worker {
@@ -119,7 +121,23 @@ class Worker {
       this.logger(`worker ${this.id} sent a cache signal for build ${opts.buildHash}`);
       caches.set(opts, cacheData);
 
-    // TODO hmr update support
+    } else if (type === 'hmr-register') {
+
+      let {opts} = data;
+      this.logger(`worker ${this.id} sent a hmr-register signal for build ${opts.buildHash}`);
+      hmr.register(opts);
+
+    } else if (type === 'hmr-done') {
+
+      let {opts, stats} = data;
+      this.logger(`worker ${this.id} sent a hmr-done signal for build ${opts.buildHash}`);
+      hmr.emitDone(opts, stats);
+
+    } else if (type === 'hmr-invalid') {
+
+      let {opts} = data;
+      this.logger(`worker ${this.id} sent a hmr-invalid signal for build ${opts.buildHash}`);
+      hmr.emitInvalid(opts);
 
     } else {
       throw new Error(`Unknown message type "${type}" from worker ${this.worker.id}: ${JSON.stringify(msg)}`);

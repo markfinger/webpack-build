@@ -95,7 +95,20 @@ class Wrapper {
 
       if (this.opts.watch && this.opts.hmr && this.opts.hmrRoot) {
         this.logger('adding hmr hooks to compiler');
-        hmr.bindCompiler(compiler, this.opts);
+
+        hmr.register(this.opts);
+
+        compiler.plugin('done', (stats) => {
+          this.logger('emitting done signal to hmr');
+
+          hmr.emitDone(this.opts, stats);
+        });
+
+        compiler.plugin('invalid', () => {
+          this.logger('emitting invalid signal to hmr');
+
+          hmr.emitInvalid(this.opts);
+        });
       }
 
       cb(null, compiler);
@@ -192,7 +205,7 @@ class Wrapper {
   }
   handleErrAndStats(err, stats, cb) {
     if (err) {
-      return cb(err);
+      return cb(err, stats && this.generateOutput(stats));
     }
 
     if (stats.hasErrors()) {
@@ -237,10 +250,7 @@ class Wrapper {
       if (err) return cb(err);
 
       watcher.onceDone((err, stats) => {
-        if (err) return cb(err, stats);
-
         this.logger('watcher provided current build output');
-
         this.handleErrAndStats(err, stats, cb);
       });
     });

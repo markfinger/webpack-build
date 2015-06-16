@@ -34,7 +34,6 @@ class Workers {
     }
 
     let worker = this.match(opts);
-
     if (!worker) {
       worker = this.get(worker);
       this.matches[opts.buildHash] = worker.id;
@@ -43,8 +42,8 @@ class Workers {
     worker.build(opts, cb);
   }
   match(opts) {
-    // Returns a worker, if any, which has previously build `opts` and is likely
-    // to have a warm compiler
+    // Returns a worker, if any, which has previously built `opts` and is likely
+    // to have a warm compiler or in-memory cache
 
     let key = opts.buildHash;
     let id = this.matches[key];

@@ -7,12 +7,12 @@ const hmrConfig = (config, opts) => {
     throw new Error('hmrRoot must be defined to inject hmr runtime');
   }
 
-  if (!opts.outputPath) {
-    throw new Error('outputPath must be defined to inject hmr runtime');
+  if (!opts.outputPath && (!config.output || !config.output.path)) {
+    throw new Error('the output.path prop must be defined in your config or as the outputPath option to inject the hmr runtime');
   }
 
-  if (!opts.publicPath) {
-    throw new Error('publicPath must be defined to inject hmr runtime');
+  if (!opts.publicPath && (!config.output.publicPath || !config.output.publicPath)) {
+    throw new Error('the output.publicPath prop must be defined in your config or as the publicPath option to inject the hmr runtime');
   }
 
   const socketOpts = JSON.stringify({
@@ -22,7 +22,7 @@ const hmrConfig = (config, opts) => {
   });
 
   const devClient = [
-    `webpack-build/lib/hmr/client?${socketOpts}`,
+    `${__dirname}/client?${socketOpts}`,
     // TODO: replace?
     'webpack/hot/only-dev-server'
   ];
@@ -45,9 +45,12 @@ const hmrConfig = (config, opts) => {
 
   config.output = config.output || {};
 
-  config.output.publicPath = opts.publicPath;
+  if (opts.publicPath) {
+    config.output.publicPath = opts.publicPath;
+  }
 
-  config.recordsPath = path.join(opts.outputPath, `webpack.records-${opts.buildHash}.json`);
+  let outputPath = opts.outputPath || config.output.path;
+  config.recordsPath = path.join(outputPath, `webpack.records-${opts.buildHash}.json`);
 };
 
 export default hmrConfig;

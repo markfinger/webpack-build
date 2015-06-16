@@ -1,6 +1,8 @@
 const processData = (err, data) => {
+  // Processes data for communication between processes
+
   let error = null;
-  if (err && err instanceof Error) {
+  if (err && err.message) {
     error = {
       type: err.constructor.name,
       message: err.message,
