@@ -328,10 +328,13 @@ describe('build', function () {
     });
   });
   describe('workers', function () {
-    it('should use workers if they are available', function (done) {
+    it('should expose the workers', function () {
+      assert.strictEqual(_lib2['default'].workers, _libWorkers2['default']);
+    });
+    it('should be used if they are available', function (done) {
       _lib2['default'].workers.spawn(2);
 
-      assert.isTrue(_libWorkers2['default'].available());
+      assert.isTrue(_lib2['default'].workers.available());
 
       var opts = {
         config: _path2['default'].join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js')
@@ -363,6 +366,28 @@ describe('build', function () {
 
           done();
         });
+      });
+    });
+    it('should populate the cache via signals', function (done) {
+      _lib2['default'].workers.spawn();
+
+      assert.isTrue(_lib2['default'].workers.available());
+
+      var opts = {
+        config: _path2['default'].join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js')
+      };
+
+      (0, _lib2['default'])(opts, function (err, data) {
+        assert.isNull(err);
+        assert.isObject(data);
+
+        setTimeout(function () {
+          assert.equal(Object.keys(_libWrappers2['default'].wrappers).length, 0);
+          var cache = _libCaches2['default']._caches.get(opts);
+          assert.deepEqual(data, cache.data);
+
+          done();
+        }, 50);
       });
     });
   });

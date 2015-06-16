@@ -288,10 +288,13 @@ describe('build', () => {
     });
   });
   describe('workers', () => {
-    it('should use workers if they are available', (done) => {
+    it('should expose the workers', () => {
+      assert.strictEqual(build.workers, workers);
+    });
+    it('should be used if they are available', (done) => {
       build.workers.spawn(2);
 
-      assert.isTrue(workers.available());
+      assert.isTrue(build.workers.available());
 
       let opts = {
         config: path.join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js')
@@ -323,6 +326,28 @@ describe('build', () => {
 
           done();
         });
+      });
+    });
+    it('should populate the cache via signals', (done) => {
+      build.workers.spawn();
+
+      assert.isTrue(build.workers.available());
+
+      let opts = {
+        config: path.join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js')
+      };
+
+      build(opts, (err, data) => {
+        assert.isNull(err);
+        assert.isObject(data);
+
+        setTimeout(() => {
+          assert.equal(Object.keys(wrappers.wrappers).length, 0);
+          let cache = caches._caches.get(opts);
+          assert.deepEqual(data, cache.data);
+
+          done();
+        }, 50);
       });
     });
   });

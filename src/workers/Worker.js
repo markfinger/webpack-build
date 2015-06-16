@@ -2,6 +2,7 @@ import os from 'os';
 import path from 'path';
 import cluster from 'cluster';
 import _ from 'lodash';
+import caches from '../caches';
 import options from '../options';
 import log from '../log';
 
@@ -112,10 +113,16 @@ class Worker {
       this.logger(`worker ${this.id} responded to build request ${buildHash}`);
       this._callBuildRequests(buildHash, buildData.error, buildData.data);
 
+    } else if (type === 'cache') {
+
+      let {opts, cacheData} = data;
+      this.logger(`worker ${this.id} sent a cache signal for build ${opts.buildHash}`);
+      caches.set(opts, cacheData);
+
     // TODO hmr update support
 
     } else {
-      this.logger(`Unknown message type from worker: ${msg}`);
+      throw new Error(`Unknown message type "${type}" from worker ${this.worker.id}: ${JSON.stringify(msg)}`);
     }
   }
   handleError(err) {

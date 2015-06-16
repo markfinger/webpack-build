@@ -1,8 +1,14 @@
+import cluster from 'cluster';
 import log from '../log';
 import caches from './caches';
 
 export default {
   get: (opts, cb) => {
+    // Sanity check
+    if (cluster.isWorker) {
+      throw new Error('Workers should not fetch from the cache');
+    }
+
     let logger = log('cache-manager', opts);
 
     if (!opts.cache) {
@@ -42,6 +48,17 @@ export default {
   },
   set: (opts, data) => {
     let logger = log('cache-manager', opts);
+
+    if (cluster.isWorker) {
+      logger('sending cache signal to master process');
+      return process.send({
+        type: 'cache',
+        data: {
+          opts,
+          cacheData: data
+        }
+      });
+    }
 
     if (!opts.cache) {
       logger('caching has been deactivated, data will not be persisted');
