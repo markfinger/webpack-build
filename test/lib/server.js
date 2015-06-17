@@ -46,20 +46,19 @@ var _utils = require('./utils');
 
 var _utils2 = _interopRequireDefault(_utils);
 
-var TEST_OUTPUT_DIR = _utils2['default'].TEST_OUTPUT_DIR;
 var assert = _utils2['default'].assert;
 
 // Ensure we have a clean slate before and after each test
 beforeEach(function () {
   _libWrappers2['default'].clear();
   _libCaches2['default'].clear();
-  _libWorkers2['default'].clear();
+  _libWorkers2['default'].killAll();
   _utils2['default'].cleanTestOutputDir();
 });
 afterEach(function () {
   _libWrappers2['default'].clear();
   _libCaches2['default'].clear();
-  _libWorkers2['default'].clear();
+  _libWorkers2['default'].killAll();
   _utils2['default'].cleanTestOutputDir();
 });
 
@@ -95,8 +94,10 @@ describe('server', function () {
       (0, _request2['default'])('http://127.0.0.1:9009', function (err, res, body) {
         assert.isNull(err);
         assert.isString(body);
+
         assert.include(body, '<html>');
         assert.include(body, 'webpack-build-server');
+
         _libServer2['default'].close();
         done();
       });
@@ -148,7 +149,6 @@ describe('server', function () {
         assert.isNull(err);
         assert.isObject(body);
 
-        if (body.error) console.log(JSON.stringify(body.error));
         assert.isNull(body.error);
         assert.isObject(body.data);
         assert.equal(body.data.config.file, opts.config);

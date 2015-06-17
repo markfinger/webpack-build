@@ -5,7 +5,6 @@ import Worker from '../../lib/workers/Worker';
 import utils from './utils';
 
 let assert = utils.assert;
-let TEST_OUTPUT_DIR = utils.TEST_OUTPUT_DIR;
 
 // Ensure we have a clean slate before and after each test
 beforeEach(() => {

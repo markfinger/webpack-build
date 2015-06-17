@@ -64,7 +64,7 @@ class Workers {
 
     return worker;
   }
-  clear() {
+  killAll() {
     for (let worker of this.workers) {
       worker.kill();
     }

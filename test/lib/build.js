@@ -49,13 +49,13 @@ var assert = _utils2['default'].assert;
 beforeEach(function () {
   _libWrappers2['default'].clear();
   _libCaches2['default'].clear();
-  _libWorkers2['default'].clear();
+  _libWorkers2['default'].killAll();
   _utils2['default'].cleanTestOutputDir();
 });
 afterEach(function () {
   _libWrappers2['default'].clear();
   _libCaches2['default'].clear();
-  _libWorkers2['default'].clear();
+  _libWorkers2['default'].killAll();
   _utils2['default'].cleanTestOutputDir();
 });
 

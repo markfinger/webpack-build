@@ -23,7 +23,6 @@ var _utils = require('./utils');
 var _utils2 = _interopRequireDefault(_utils);
 
 var assert = _utils2['default'].assert;
-var TEST_OUTPUT_DIR = _utils2['default'].TEST_OUTPUT_DIR;
 
 // Ensure we have a clean slate before and after each test
 beforeEach(function () {

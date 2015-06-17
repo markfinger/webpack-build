@@ -16,13 +16,13 @@ let assert = utils.assert;
 beforeEach(() => {
   wrappers.clear();
   caches.clear();
-  workers.clear();
+  workers.killAll();
   utils.cleanTestOutputDir();
 });
 afterEach(() => {
   wrappers.clear();
   caches.clear();
-  workers.clear();
+  workers.killAll();
   utils.cleanTestOutputDir();
 });
 
