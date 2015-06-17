@@ -5,9 +5,9 @@ webpack-build
 [![Dependency Status](https://david-dm.org/markfinger/webpack-build.svg)](https://david-dm.org/markfinger/webpack-build)
 [![devDependency Status](https://david-dm.org/markfinger/webpack-build/dev-status.svg)](https://david-dm.org/markfinger/webpack-build#info=devDependencies)
 
-Wraps webpack so that it plays well with build systems and tool chains. Does a bunch of things...
+Wraps webpack for asset pipelines and tool chains. Does a bunch of things...
 
-- Runs multiple concurrent compilers
+- Handles concurrent compilers across multiple workers
 - Persistent file caching
 - HMR support
 - Environment configuration
@@ -110,8 +110,8 @@ Caching
 -------
 
 Once your a compilation request has completed successfully, the output is cached and subsequent 
-requests will be served from memory until a compiler invalidates it. Cached output is also written 
-to disk, so cold boots are fast.
+requests will be served from memory until a compiler invalidates it. To avoid webpack's slow startup,
+cached output is also written to disk.
 
 When serving cached data, a compiler is spun up in the background so that the cache only has to
 serve data until the compiler has completed. Once the compiler's ready, webpack's incremental 
@@ -127,6 +127,32 @@ emitted assets. Whenever cached data is available, the following checks occur be
 
 If any of the checks fail, requests are handed off to a compiler which will repopulate the cache
 on completion.
+
+
+Workers
+-------
+
+While webpack itself will rarely lock up a process, some of the more popular loaders - postcss and 
+babel, for example - will evaluate synchronously and can easily lock up a process. To ensure that the
+main process remains responsive, worker process can be spawned to perform compilation. Using workers 
+ensures that the main process is left free to handle caching, hmr, and communication workers.
+
+To spawn a worker process, call `build.workers.spawn()` before sending your build request in.
+
+```javascript
+var build = require('webpack-build');
+
+build.workers.spawn();
+
+build({
+ // ..
+}, function(err, data) {
+ // ..
+});
+```
+
+If you want to spawn multiple workers, `spawn` also accepts a number indicating the number of processes 
+to spawn.
 
 
 Environment configuration
@@ -229,16 +255,14 @@ module.exports = {
 HMR
 ---
 
-webpack-build includes hooks to add HMR functionality
+webpack-build includes HMR functionality comparable to webpack-dev-server.
 
 ```javascript
 var build = require('webpack-build');
 
 build({
   config: '/path/to/webpack.config.js',
-  hmr: true,
-  outputPath: '/path/to/static/dir',
-  publicPath: '/static/dir',
+  hmr: true
 }, function(err, stats) {
   // ...
 });
@@ -247,6 +271,10 @@ build({
 When assets are rendered on the front-end, they open sockets to the build server and
 attempt to hot update whenever possible. If hot updates are not possible, console logs
 will indicate the need to refresh for updates to be applied.
+
+If you using your own server to expose hmr, you'll need to specify the `hmrRoot` option
+with the address of your server, eg: `hmrRoot: 'http://127.0.0.1:9009'`. You can bind the
+hmr socket handler to your server by calling `build.hmr.addToServer(yourServer)`.
 
 
 Build server
