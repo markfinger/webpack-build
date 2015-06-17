@@ -105,49 +105,43 @@ class Worker {
 
     let {type, data} = msg;
 
-    if (type === 'ready') {
-
-      this.logger(`worker ${this.id} ready`);
-      this.isReady = true;
-      this._callReady(null);
-
-    } else if (type === 'status') {
-
-      this.logger(`worker ${this.id} responded to status request`);
-      this._callStatusRequests(null, data);
-
-    } else if (type === 'build') {
-
-      let {buildHash, buildData} = data;
-      this.logger(`worker ${this.id} responded to build request ${buildHash}`);
-      this._callBuildRequests(buildHash, buildData.error, buildData.data);
-
-    } else if (type === 'cache') {
-
-      let {opts, cacheData} = data;
-      this.logger(`worker ${this.id} sent a cache signal for build ${opts.buildHash}`);
-      caches.set(opts, cacheData);
-
-    } else if (type === 'hmr-register') {
-
-      let {opts} = data;
-      this.logger(`worker ${this.id} sent a hmr-register signal for build ${opts.buildHash}`);
-      hmr.register(opts);
-
-    } else if (type === 'hmr-done') {
-
-      let {opts, stats} = data;
-      this.logger(`worker ${this.id} sent a hmr-done signal for build ${opts.buildHash}`);
-      hmr.emitDone(opts, stats);
-
-    } else if (type === 'hmr-invalid') {
-
-      let {opts} = data;
-      this.logger(`worker ${this.id} sent a hmr-invalid signal for build ${opts.buildHash}`);
-      hmr.emitInvalid(opts);
-
-    } else {
-      throw new Error(`Unknown message type "${type}" from worker ${this.worker.id}: ${JSON.stringify(msg)}`);
+    switch(type) {
+      case 'ready':
+        this.logger(`worker ${this.id} ready`);
+        this.isReady = true;
+        this._callReady(null);
+        break;
+      case 'status':
+        this.logger(`worker ${this.id} responded to status request`);
+        this._callStatusRequests(null, data);
+        break;
+      case 'build':
+        let {buildHash, buildData} = data;
+        this.logger(`worker ${this.id} responded to build request ${buildHash}`);
+        this._callBuildRequests(buildHash, buildData.error, buildData.data);
+        break;
+      case 'cache':
+        let {opts, cacheData} = data;
+        this.logger(`worker ${this.id} sent a cache signal for build ${opts.buildHash}`);
+        caches.set(opts, cacheData);
+        break;
+      case 'hmr-register':
+        let {opts} = data;
+        this.logger(`worker ${this.id} sent a hmr-register signal for build ${opts.buildHash}`);
+        hmr.register(opts);
+        break;
+      case 'hmr-done':
+        let {opts, stats} = data;
+        this.logger(`worker ${this.id} sent a hmr-done signal for build ${opts.buildHash}`);
+        hmr.emitDone(opts, stats);
+        break;
+      case 'hmr-invalid':
+        let {opts} = data;
+        this.logger(`worker ${this.id} sent a hmr-invalid signal for build ${opts.buildHash}`);
+        hmr.emitInvalid(opts);
+        break;
+      default:
+        throw new Error(`Unknown message type "${type}" from worker ${this.worker.id}: ${JSON.stringify(msg)}`);
     }
   }
   handleError(err) {
