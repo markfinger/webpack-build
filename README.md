@@ -5,12 +5,12 @@ webpack-build
 [![Dependency Status](https://david-dm.org/markfinger/webpack-build.svg)](https://david-dm.org/markfinger/webpack-build)
 [![devDependency Status](https://david-dm.org/markfinger/webpack-build/dev-status.svg)](https://david-dm.org/markfinger/webpack-build#info=devDependencies)
 
-Wraps webpack for asset pipelines and tool chains. Does a bunch of things...
+Wraps webpack for asset pipelines and tool chains. Can do a bunch of things...
 
-- Handles concurrent compilers across multiple workers
-- Persistent file caching
-- HMR support
-- Environment configuration
+- Persistent file caching improves response time
+- HMR support for development
+- Offloads to worker processes to maintain responsiveness and performance
+- Supports environment configuration hooks in your config files
 
 
 Documentation
@@ -20,6 +20,7 @@ Documentation
 - [Basic usage](#basic-usage)
 - [Configuration](#configuration)
 - [Caching](#caching)
+- [Workers](#workers)
 - [Environment configuration](#environment-configuration)
 - [HMR](#hmr)
 - [Build server](#build-server)
@@ -143,16 +144,19 @@ To spawn a worker process, call `build.workers.spawn()` before sending your buil
 var build = require('webpack-build');
 
 build.workers.spawn();
-
-build({
- // ..
-}, function(err, data) {
- // ..
-});
 ```
 
-If you want to spawn multiple workers, `spawn` also accepts a number indicating the number of processes 
+If you want to spawn multiple workers, `spawn` accepts a number indicating the number of processes 
 to spawn.
+
+```javascript
+var build = require('webpack-build');
+
+build.workers.spawn(4);
+```
+
+Fresh requests are parcelled out to workers in sequential order. Repeated requests (for example, to 
+get the latest state of a watched bundle) will be mapped to the worker that first handled the request.
 
 
 Environment configuration
