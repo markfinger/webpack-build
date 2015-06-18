@@ -17,6 +17,10 @@ export default (opts) => {
     opts.publicPath += '/';
   }
 
+  if (opts.hmrRoot && _.endsWith(opts.hmrRoot, '/')) {
+    opts.hmrRoot = opts.hmrRoot.slice(0, -1);
+  }
+
   if (!opts.buildHash) {
     let serializedOpts = JSON.stringify(opts);
     opts.buildHash = crypto.createHash('sha1').update(serializedOpts).digest('hex');
@@ -24,10 +28,6 @@ export default (opts) => {
 
   if (!opts.cacheFile) {
     opts.cacheFile = path.join(opts.cacheDir, `${opts.buildHash}.json`);
-  }
-
-  if (opts.hmrRoot && _.endsWith(opts.hmrRoot, '/')) {
-    opts.hmrRoot = opts.hmrRoot.slice(0, -1);
   }
 
   if (!opts.hmrNamespace) {
