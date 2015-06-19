@@ -37,7 +37,7 @@ describe('server', () => {
 
       server.listen(9009, () => {
         request.post({
-          url: 'http://127.0.0.1:9009',
+          url: 'http://127.0.0.1:9009/build',
           json: true,
           body: opts
         }, (err, res, body) => {
@@ -86,7 +86,7 @@ describe('server', () => {
 
     server.listen(9009, () => {
       request.post({
-        url: 'http://127.0.0.1:9009',
+        url: 'http://127.0.0.1:9009/build',
         json: true,
         body: opts
       }, (err, res, body) => {
@@ -123,7 +123,7 @@ describe('server', () => {
 
     server.listen(9009, () => {
       request.post({
-        url: 'http://127.0.0.1:9009',
+        url: 'http://127.0.0.1:9009/build',
         json: true,
         body: opts
       }, (err, res, body) => {

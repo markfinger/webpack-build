@@ -293,8 +293,6 @@ describe('build', function () {
           setTimeout(function () {
             var wrapper = _libWrappers2['default'].wrappers[opts.buildHash];
 
-            debugger;
-
             wrapper.onceDone(function (err, data3) {
               assert.isNull(err);
               assert.isObject(data3);

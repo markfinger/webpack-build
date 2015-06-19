@@ -3,8 +3,6 @@ import sourceMapSupport from 'source-map-support';
 import defaults from '../../lib/options/defaults';
 import utils from './utils';
 
-
-// Rather than using mocha's `require` hook
 sourceMapSupport.install({
   handleUncaughtExceptions: false
 });

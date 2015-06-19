@@ -18,7 +18,6 @@ var _utils = require('./utils');
 
 var _utils2 = _interopRequireDefault(_utils);
 
-// Rather than using mocha's `require` hook
 _sourceMapSupport2['default'].install({
   handleUncaughtExceptions: false
 });

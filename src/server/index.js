@@ -11,57 +11,17 @@ import log from '../log';
 import packageJson from '../../package';
 import processData from '../utils/process_data';
 import hmr from '../hmr';
+import endpoints from './endpoints';
 
-let app = express();
-let server = http.Server(app);
+export {endpoints} from './endpoints;
+export const app = express();
+export const server = http.Server(app);
+export default server;
 
 app.use(bodyParser.json());
 
-app.get('/', (req, res) => {
-  let title = `webpack-build-server v${packageJson.version}`;
+app.get('/', endpoints.index);
 
-  let wrapperList = _.map(wrappers.wrappers, (wrapper, key) => {
-    return `<li>${key} &mdash; ${JSON.stringify(wrapper.opts, null, 2)}</li>`;
-  });
-  let cacheList = _.map(caches.caches, (cache, key) => {
-    return `
-    <li>
-      ${key} &mdash; ${JSON.stringify(cache, null, 2)}
-    </li>
-    `;
-  });
-  res.end(`
-  <html>
-  <head>
-    <title>${title}</title>
-  </head>
-  <body>
-    <h1>${title}</h1>
-    <h2>Default options</h2>
-    <pre>${JSON.stringify(defaults, null, 2)}</pre>
-    <h2>Wrappers</h2>
-    <ul>${wrapperList}</ul>
-    <h2>Caches</h2>
-    <ul>${cacheList}</ul>
-  </body>
-  </html>
-  `);
-});
-
-app.post('/', (req, res) => {
-  let opts = options(req.body);
-  let logger = log('build-server', opts);
-  logger(`request received for ${opts.buildHash}`);
-
-  build(opts, (err, data) => {
-    try {
-      res.json(processData(err, data));
-    } catch(_err) {
-      debugger
-    }
-  });
-});
+app.post('/build', endpoints.build);
 
 hmr.addToServer(server);
-
-export default server;

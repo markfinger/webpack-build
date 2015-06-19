@@ -73,7 +73,7 @@ describe('server', function () {
 
       _libServer2['default'].listen(9009, function () {
         _request2['default'].post({
-          url: 'http://127.0.0.1:9009',
+          url: 'http://127.0.0.1:9009/build',
           json: true,
           body: opts
         }, function (err, res, body) {
@@ -120,7 +120,7 @@ describe('server', function () {
 
     _libServer2['default'].listen(9009, function () {
       _request2['default'].post({
-        url: 'http://127.0.0.1:9009',
+        url: 'http://127.0.0.1:9009/build',
         json: true,
         body: opts
       }, function (err, res, body) {
@@ -155,7 +155,7 @@ describe('server', function () {
 
     _libServer2['default'].listen(9009, function () {
       _request2['default'].post({
-        url: 'http://127.0.0.1:9009',
+        url: 'http://127.0.0.1:9009/build',
         json: true,
         body: opts
       }, function (err, res, body) {

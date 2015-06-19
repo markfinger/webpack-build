@@ -262,8 +262,6 @@ describe('build', () => {
           setTimeout(() => {
             let wrapper = wrappers.wrappers[opts.buildHash];
 
-            debugger
-
             wrapper.onceDone((err, data3) => {
               assert.isNull(err);
               assert.isObject(data3);
