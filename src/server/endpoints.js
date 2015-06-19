@@ -1,3 +1,13 @@
+import _ from 'lodash';
+import build from '../build';
+import defaults from '../options/defaults';
+import caches from '../caches/caches';
+import wrappers from '../wrappers';
+import options from '../options';
+import log from '../log';
+import packageJson from '../../package';
+import processData from '../utils/process_data';
+
 export default {
   index: (req, res) => {
     let title = `webpack-build-server v${packageJson.version}`;
