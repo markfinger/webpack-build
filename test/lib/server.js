@@ -47,6 +47,7 @@ var _utils = require('./utils');
 var _utils2 = _interopRequireDefault(_utils);
 
 var assert = _utils2['default'].assert;
+var TEST_OUTPUT_DIR = _utils2['default'].TEST_OUTPUT_DIR;
 
 // Ensure we have a clean slate before and after each test
 beforeEach(function () {
@@ -104,8 +105,14 @@ describe('server', function () {
     });
   });
   it('should handle hmr', function (done) {
+    var configFile = _path2['default'].join(TEST_OUTPUT_DIR, 'test_server_handles_hmr.js');
+
+    _mkdirp2['default'].sync(TEST_OUTPUT_DIR);
+
+    _fs2['default'].writeFileSync(configFile, '\n      module.exports = require(\'' + _path2['default'].join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js') + '\');\n    ');
+
     var opts = {
-      config: _path2['default'].join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js'),
+      config: configFile,
       hmr: true,
       hmrRoot: 'http://example.com',
       publicPath: '/test'
@@ -131,8 +138,14 @@ describe('server', function () {
     });
   });
   it('should handle hmr with workers', function (done) {
+    var configFile = _path2['default'].join(TEST_OUTPUT_DIR, 'test_server_handles_hmr_with_workers.js');
+
+    _mkdirp2['default'].sync(TEST_OUTPUT_DIR);
+
+    _fs2['default'].writeFileSync(configFile, '\n      module.exports = require(\'' + _path2['default'].join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js') + '\');\n    ');
+
     var opts = {
-      config: _path2['default'].join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js'),
+      config: configFile,
       hmr: true,
       hmrRoot: 'http://example.com',
       publicPath: '/test'

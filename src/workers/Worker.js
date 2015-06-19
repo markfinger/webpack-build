@@ -23,6 +23,7 @@ class Worker {
     this._onReady = [];
     this._onStatus = [];
     this._onBuild = Object.create(null);
+    this._handled = Object.create(null);
 
     // Sanity check
     if (cluster.isWorker) {
@@ -42,6 +43,25 @@ class Worker {
     this.worker.process.on('uncaughtException', this.kill.bind(this));
 
     this.logger(`started worker ${this.id}`);
+  }
+  canHandle(opts) {
+    // Indicates if the worker has previously handled the config file
+    // under a previous build. Due to the mutability of config objects
+    // this check is required to ensure that builds do not have unintended
+    // side effects or outcomes
+
+    let configFile = opts.config;
+    let buildHash = opts.buildHash;
+
+    if (!configFile || !buildHash) {
+      return false;
+    }
+
+    if (this._handled[configFile]) {
+      return this._handled[configFile] === buildHash;
+    }
+
+    return true;
   }
   build(opts, cb) {
     opts = options(opts);
@@ -65,6 +85,9 @@ class Worker {
           return this._callBuildRequests(buildHash, err, null);
         }
 
+        // Keep track of the config files which have been imported for particular builds
+        this._handled[opts.config] = buildHash;
+
         this.logger(`sending build request for ${buildHash} to worker ${this.id}`);
         this.worker.send({
           type: 'build',
@@ -77,7 +100,7 @@ class Worker {
   }
   getStatus(cb) {
     this.onReady(err => {
-      if (err) return cb(err);
+      if (err) return cb(err, null);
 
       this._onStatus.push(cb);
 

@@ -9,11 +9,11 @@ export const compile = (opts, cb) => {
   let logger = log('compile', opts);
   logger(`build ${opts.buildHash} requested`);
 
-  // Ensure that the imported version of the config file is fresh
-  logger(`checking timestamps on ${opts.config}`);
-  let configErr = checkConfigFile(opts.config, cb);
+  // Ensure that the imported version of the config file is valid
+  logger(`checking config file ${opts.config}`);
+  let configErr = checkConfigFile(opts, cb);
   if (configErr) {
-    logger(`error encountered when checking timestamps on ${opts.config}`, configErr.stack);
+    logger(`error encountered when checking config file ${opts.config}`, configErr.stack);
     return cb(configErr);
   }
 

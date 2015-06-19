@@ -38,24 +38,23 @@ describe('build', () => {
   });
   it('should populate the wrappers list', (done) => {
     let basicBundle = path.join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js');
+    let libraryBundle = path.join(__dirname, 'test_bundles', 'library_bundle', 'webpack.config.js');
 
     let opts1 = {
-      config: basicBundle,
-      watch: true
+      config: basicBundle
     };
     assert.equal(Object.keys(wrappers.wrappers).length, 0);
 
-    build(opts1, (err) => assert.isNull(err));
+    build(opts1, () => {});
 
     _.defer(() => {
       assert.equal(Object.keys(wrappers.wrappers).length, 1);
       assert.strictEqual(wrappers.wrappers[opts1.buildHash].opts, opts1);
 
       let opts2 = {
-        config: basicBundle,
-        watch: true
+        config: basicBundle
       };
-      build(opts2, (err) => assert.isNull(err));
+      build(opts2, () => {});
 
       _.defer(() => {
         assert.strictEqual(wrappers.wrappers[opts2.buildHash], wrappers.wrappers[opts1.buildHash]);
@@ -63,20 +62,18 @@ describe('build', () => {
         assert.strictEqual(wrappers.wrappers[opts2.buildHash].opts, opts1);
 
         let opts3 = {
-          config: basicBundle,
-          watch: false
+          config: libraryBundle
         };
-        build(opts3, (err) => assert.isNull(err));
+        build(opts3, () => {});
 
         _.defer(() => {
           assert.equal(Object.keys(wrappers.wrappers).length, 2);
           assert.strictEqual(wrappers.wrappers[opts3.buildHash].opts, opts3);
 
           let opts4 = {
-            config: basicBundle,
-            watch: false
+            config: basicBundle
           };
-          build(opts4, (err) => assert.isNull(err));
+          build(opts4, () => {});
 
           _.defer(() => {
             assert.equal(Object.keys(wrappers.wrappers).length, 2);
@@ -191,8 +188,7 @@ describe('build', () => {
       let configFile = path.join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js');
 
       let opts = {
-        config: configFile,
-        watch: false
+        config: configFile
       };
 
       build(opts, (err, data) => {
@@ -217,9 +213,9 @@ describe('build', () => {
     });
     it('should stop serving cached data once a watcher has completed', (done) => {
       let cacheFile = path.join(TEST_OUTPUT_DIR, 'test_cache_stops_once_watcher_done.json');
-      let configFile = path.join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js');
+      let configFile = path.join(TEST_OUTPUT_DIR, 'test_cache_stops_once_watcher_done.js');
 
-      mkdirp.sync(path.dirname(cacheFile));
+      mkdirp.sync(TEST_OUTPUT_DIR);
 
       fs.writeFileSync(cacheFile, JSON.stringify({
         startTime: +new Date() + 2000,
@@ -235,6 +231,10 @@ describe('build', () => {
         assets: []
       }));
 
+      fs.writeFileSync(configFile, `
+        module.exports = require('${path.join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js')}');
+      `);
+
       let opts = {
         config: configFile,
         cacheFile: cacheFile,
@@ -242,18 +242,17 @@ describe('build', () => {
         buildHash: 'foo'
       };
 
-      build(opts, (err, data1) => {
-        assert.isNull(err);
+      build(opts, (err1, data1) => {
+        assert.isNull(err1);
         assert.isObject(data1);
         assert.deepEqual(data1.stats, {test: {foo: 'bar'}});
-
 
         let cache = caches._caches.get(opts);
         assert.deepEqual(data1.stats, cache.data.stats);
         assert.isFalse(cache.delegate);
 
-        build(opts, (err, data2) => {
-          assert.isNull(err);
+        build(opts, (err2, data2) => {
+          assert.isNull(err2);
           assert.isObject(data2);
 
           assert.strictEqual(data2, data1);
@@ -262,6 +261,8 @@ describe('build', () => {
 
           setTimeout(() => {
             let wrapper = wrappers.wrappers[opts.buildHash];
+
+            debugger
 
             wrapper.onceDone((err, data3) => {
               assert.isNull(err);

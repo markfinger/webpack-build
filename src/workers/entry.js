@@ -1,18 +1,13 @@
 import sourceMapSupport from 'source-map-support';
 sourceMapSupport.install();
 
-import packageJson from '../../package';
-
-// TODO: a debug-entry.js file which activates this (needed for a `--debug` arg on the server
-//import debug from 'debug';
-//debug.enable(packageJson.name + ':*');
-
 import cluster from 'cluster';
 
 if (!cluster.isWorker) {
   throw new Error(`${__filename} should only be used by workers`);
 }
 
+import packageJson from '../../package';
 import log from '../log';
 import compile from '../compile';
 import processData from '../utils/process_data';

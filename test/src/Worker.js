@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import _ from 'lodash';
 import Worker from '../../lib/workers/Worker';
+import options from '../../lib/options';
 import utils from './utils';
 
 let assert = utils.assert;
@@ -100,6 +101,30 @@ describe('Worker', () => {
         assert.isString(err.message);
         assert.isString(err.stack);
         assert.isNull(data);
+
+        worker.kill();
+        done();
+      });
+    });
+  });
+  describe('#canHandle', () => {
+    it('should check if a worker has handled the config file under another build', (done) => {
+      let worker = new Worker();
+      let opts = options({
+        config: path.join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js')
+      });
+
+      assert.isTrue(worker.canHandle(opts));
+
+      worker.build(opts, (err, data) => {
+        assert.isNull(err);
+        assert.isObject(data);
+
+        assert.isTrue(worker.canHandle(opts));
+        opts.buildHash = 'test';
+        assert.isFalse(worker.canHandle(opts));
+        opts.config = 'foo';
+        assert.isTrue(worker.canHandle(opts));
 
         worker.kill();
         done();

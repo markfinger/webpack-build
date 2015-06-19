@@ -18,6 +18,10 @@ var _libWorkersWorker = require('../../lib/workers/Worker');
 
 var _libWorkersWorker2 = _interopRequireDefault(_libWorkersWorker);
 
+var _libOptions = require('../../lib/options');
+
+var _libOptions2 = _interopRequireDefault(_libOptions);
+
 var _utils = require('./utils');
 
 var _utils2 = _interopRequireDefault(_utils);
@@ -118,6 +122,30 @@ describe('Worker', function () {
         assert.isString(err.message);
         assert.isString(err.stack);
         assert.isNull(data);
+
+        worker.kill();
+        done();
+      });
+    });
+  });
+  describe('#canHandle', function () {
+    it('should check if a worker has handled the config file under another build', function (done) {
+      var worker = new _libWorkersWorker2['default']();
+      var opts = (0, _libOptions2['default'])({
+        config: _path2['default'].join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js')
+      });
+
+      assert.isTrue(worker.canHandle(opts));
+
+      worker.build(opts, function (err, data) {
+        assert.isNull(err);
+        assert.isObject(data);
+
+        assert.isTrue(worker.canHandle(opts));
+        opts.buildHash = 'test';
+        assert.isFalse(worker.canHandle(opts));
+        opts.config = 'foo';
+        assert.isTrue(worker.canHandle(opts));
 
         worker.kill();
         done();

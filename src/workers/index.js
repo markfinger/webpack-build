@@ -1,4 +1,3 @@
-import os from 'os';
 import cluster from 'cluster';
 import _ from 'lodash';
 import options from '../options';
@@ -17,9 +16,9 @@ class Workers {
     return this.workers.length;
   }
   spawn(number) {
-    // Spawns the number of workers specified
+    // Spawns worker processes. If `number` is not defined, 2 workers are spawned
 
-    number = number || 1;
+    number = number || 2;
 
     _.range(number).forEach(() => {
       this.workers.push(new Worker());
@@ -34,17 +33,21 @@ class Workers {
       return cb(new Error('No workers available'));
     }
 
-    let worker = this.match(opts);
-    if (!worker) {
-      worker = this.get(worker);
-      this.matches[opts.buildHash] = worker.id;
+    let matchedWorker = this.match(opts);
+    if (matchedWorker) {
+      return matchedWorker.build(opts, cb);
     }
 
+    let [err, worker] = this.get(opts);
+
+    if (err) return cb(err, null);
+
+    this.matches[opts.buildHash] = worker.id;
     worker.build(opts, cb);
   }
   match(opts) {
     // Returns a worker, if any, which has previously built `opts` and is likely
-    // to have a warm compiler or in-memory cache
+    // to have a warm compiler or an in-memory cache
 
     let key = opts.buildHash;
     let id = this.matches[key];
@@ -52,25 +55,36 @@ class Workers {
       return _.find(this.workers, {id});
     }
   }
-  get() {
-    // Returns the next available worker
+  get(opts) {
+    // Returns the next available worker who can handle the build
 
-    let worker = this.workers[this.next];
+    let current = this.next;
 
-    this.next++;
-    if (this.next >= this.workers.length) {
-      this.next = 0;
-    }
+    do {
+      let worker = this.workers[this.next];
 
-    return worker;
+      this.next++;
+      if (this.next >= this.workers.length) {
+        this.next = 0;
+      }
+
+      if (worker.canHandle(opts)) {
+        return [null, worker];
+      }
+    } while(this.next != current);
+
+    return [
+      new Error(`No workers are available who can safely handle ${opts.config}. Restart the process or add more workers`),
+      null
+    ];
   }
   killAll() {
     for (let worker of this.workers) {
       worker.kill();
     }
     this.workers = [];
-    this.matches = Object.create(null);
     this.next = 0;
+    this.matches = Object.create(null);
   }
 }
 

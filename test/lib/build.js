@@ -71,28 +71,23 @@ describe('build', function () {
   });
   it('should populate the wrappers list', function (done) {
     var basicBundle = _path2['default'].join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js');
+    var libraryBundle = _path2['default'].join(__dirname, 'test_bundles', 'library_bundle', 'webpack.config.js');
 
     var opts1 = {
-      config: basicBundle,
-      watch: true
+      config: basicBundle
     };
     assert.equal(Object.keys(_libWrappers2['default'].wrappers).length, 0);
 
-    (0, _lib2['default'])(opts1, function (err) {
-      return assert.isNull(err);
-    });
+    (0, _lib2['default'])(opts1, function () {});
 
     _lodash2['default'].defer(function () {
       assert.equal(Object.keys(_libWrappers2['default'].wrappers).length, 1);
       assert.strictEqual(_libWrappers2['default'].wrappers[opts1.buildHash].opts, opts1);
 
       var opts2 = {
-        config: basicBundle,
-        watch: true
+        config: basicBundle
       };
-      (0, _lib2['default'])(opts2, function (err) {
-        return assert.isNull(err);
-      });
+      (0, _lib2['default'])(opts2, function () {});
 
       _lodash2['default'].defer(function () {
         assert.strictEqual(_libWrappers2['default'].wrappers[opts2.buildHash], _libWrappers2['default'].wrappers[opts1.buildHash]);
@@ -100,24 +95,18 @@ describe('build', function () {
         assert.strictEqual(_libWrappers2['default'].wrappers[opts2.buildHash].opts, opts1);
 
         var opts3 = {
-          config: basicBundle,
-          watch: false
+          config: libraryBundle
         };
-        (0, _lib2['default'])(opts3, function (err) {
-          return assert.isNull(err);
-        });
+        (0, _lib2['default'])(opts3, function () {});
 
         _lodash2['default'].defer(function () {
           assert.equal(Object.keys(_libWrappers2['default'].wrappers).length, 2);
           assert.strictEqual(_libWrappers2['default'].wrappers[opts3.buildHash].opts, opts3);
 
           var opts4 = {
-            config: basicBundle,
-            watch: false
+            config: basicBundle
           };
-          (0, _lib2['default'])(opts4, function (err) {
-            return assert.isNull(err);
-          });
+          (0, _lib2['default'])(opts4, function () {});
 
           _lodash2['default'].defer(function () {
             assert.equal(Object.keys(_libWrappers2['default'].wrappers).length, 2);
@@ -232,8 +221,7 @@ describe('build', function () {
       var configFile = _path2['default'].join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js');
 
       var opts = {
-        config: configFile,
-        watch: false
+        config: configFile
       };
 
       (0, _lib2['default'])(opts, function (err, data) {
@@ -258,9 +246,9 @@ describe('build', function () {
     });
     it('should stop serving cached data once a watcher has completed', function (done) {
       var cacheFile = _path2['default'].join(TEST_OUTPUT_DIR, 'test_cache_stops_once_watcher_done.json');
-      var configFile = _path2['default'].join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js');
+      var configFile = _path2['default'].join(TEST_OUTPUT_DIR, 'test_cache_stops_once_watcher_done.js');
 
-      _mkdirp2['default'].sync(_path2['default'].dirname(cacheFile));
+      _mkdirp2['default'].sync(TEST_OUTPUT_DIR);
 
       _fs2['default'].writeFileSync(cacheFile, JSON.stringify({
         startTime: +new Date() + 2000,
@@ -276,6 +264,8 @@ describe('build', function () {
         assets: []
       }));
 
+      _fs2['default'].writeFileSync(configFile, '\n        module.exports = require(\'' + _path2['default'].join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js') + '\');\n      ');
+
       var opts = {
         config: configFile,
         cacheFile: cacheFile,
@@ -283,8 +273,8 @@ describe('build', function () {
         buildHash: 'foo'
       };
 
-      (0, _lib2['default'])(opts, function (err, data1) {
-        assert.isNull(err);
+      (0, _lib2['default'])(opts, function (err1, data1) {
+        assert.isNull(err1);
         assert.isObject(data1);
         assert.deepEqual(data1.stats, { test: { foo: 'bar' } });
 
@@ -292,8 +282,8 @@ describe('build', function () {
         assert.deepEqual(data1.stats, cache.data.stats);
         assert.isFalse(cache.delegate);
 
-        (0, _lib2['default'])(opts, function (err, data2) {
-          assert.isNull(err);
+        (0, _lib2['default'])(opts, function (err2, data2) {
+          assert.isNull(err2);
           assert.isObject(data2);
 
           assert.strictEqual(data2, data1);
@@ -302,6 +292,8 @@ describe('build', function () {
 
           setTimeout(function () {
             var wrapper = _libWrappers2['default'].wrappers[opts.buildHash];
+
+            debugger;
 
             wrapper.onceDone(function (err, data3) {
               assert.isNull(err);

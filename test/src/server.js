@@ -11,6 +11,7 @@ import request from 'request';
 import utils from './utils';
 
 let assert = utils.assert;
+let TEST_OUTPUT_DIR = utils.TEST_OUTPUT_DIR;
 
 // Ensure we have a clean slate before and after each test
 beforeEach(() => {
@@ -68,8 +69,16 @@ describe('server', () => {
     });
   });
   it('should handle hmr', (done) => {
+    let configFile = path.join(TEST_OUTPUT_DIR, 'test_server_handles_hmr.js');
+
+    mkdirp.sync(TEST_OUTPUT_DIR);
+
+    fs.writeFileSync(configFile, `
+      module.exports = require('${path.join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js')}');
+    `);
+
     let opts = {
-      config: path.join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js'),
+      config: configFile,
       hmr: true,
       hmrRoot: 'http://example.com',
       publicPath: '/test'
@@ -95,8 +104,16 @@ describe('server', () => {
     });
   });
   it('should handle hmr with workers', (done) => {
+    let configFile = path.join(TEST_OUTPUT_DIR, 'test_server_handles_hmr_with_workers.js');
+
+    mkdirp.sync(TEST_OUTPUT_DIR);
+
+    fs.writeFileSync(configFile, `
+      module.exports = require('${path.join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js')}');
+    `);
+
     let opts = {
-      config: path.join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js'),
+      config: configFile,
       hmr: true,
       hmrRoot: 'http://example.com',
       publicPath: '/test'
