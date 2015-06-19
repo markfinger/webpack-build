@@ -112,42 +112,4 @@ describe('workers', () => {
       });
     });
   });
-  //describe('#build', () => {
-  //  it('should accept an options argument and provide the output from the build', (done) => {
-  //    let worker = new Worker();
-  //
-  //    worker.build({
-  //      config: path.join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js')
-  //    }, (err, data) => {
-  //      assert.isNull(err);
-  //      assert.isObject(data);
-  //
-  //      let existsAt = data.assets[0];
-  //      assert.isString(existsAt);
-  //
-  //      let contents = fs.readFileSync(existsAt).toString();
-  //      assert.include(contents, '__BASIC_BUNDLE_ENTRY_TEST__');
-  //      assert.include(contents, '__BASIC_BUNDLE_REQUIRE_TEST__');
-  //
-  //      worker.kill();
-  //      done();
-  //    });
-  //  });
-  //  it('should handle errors', (done) => {
-  //    let worker = new Worker();
-  //
-  //    worker.build({
-  //      config: path.join('/does/not/exist')
-  //    }, (err, data) => {
-  //      assert.isObject(err);
-  //      assert.isString(err.type);
-  //      assert.isString(err.message);
-  //      assert.isString(err.stack);
-  //      assert.isNull(data);
-  //
-  //      worker.kill();
-  //      done();
-  //    });
-  //  });
-  //});
 });
