@@ -5,12 +5,12 @@ webpack-build
 [![Dependency Status](https://david-dm.org/markfinger/webpack-build.svg)](https://david-dm.org/markfinger/webpack-build)
 [![devDependency Status](https://david-dm.org/markfinger/webpack-build/dev-status.svg)](https://david-dm.org/markfinger/webpack-build#info=devDependencies)
 
-Wraps webpack for asset pipelines and tool chains. Can do a bunch of things...
+Wraps webpack for asset pipelines and tool chains. Does a bunch of things...
 
-- Persistent file caching improves response time
-- HMR support for development
-- Offloads to worker processes to maintain responsiveness and performance
-- Supports environment configuration hooks in your config files
+- Persistent caching
+- HMR support
+- Compiler workers
+- Environment config hooks
 
 
 Documentation
@@ -21,7 +21,8 @@ Documentation
 - [Configuration](#configuration)
 - [Caching](#caching)
 - [Workers](#workers)
-- [Environment configuration](#environment-configuration)
+- [Env config](#env-config)
+- [Env utils](#env-utils)
 - [HMR](#hmr)
 - [Build server](#build-server)
 - [Debugging](#debugging)
@@ -99,9 +100,9 @@ Configuration
   // Hot module replacement
   // ----------------------
 
-  hmr: false, // if true, hmr code is injected
-  hmrRoot: '', // The address of the build server
-  hmrPath: '/__hmr__', // the mount point of the socket handler
+  hmr: false, // if true, hmr code is injected into the assets
+  hmrRoot: '', // The address of the server hosting hmr sockets
+  hmrPath: '/__hmr__', // the path to the hmr socket endpoint
 
 }
 ```
@@ -110,9 +111,14 @@ Configuration
 Caching
 -------
 
+<<<<<<< HEAD
 Once your a compilation request has completed successfully, the output is cached and subsequent 
 requests will be served from memory until a compiler invalidates it. To avoid webpack's slow startup,
 cached output is also written to disk.
+=======
+Succesful compilations have their output cached in memory and persisted to disk. If a compiler 
+invalidates the compilation, subsequent requests will block until it completes.
+>>>>>>> 4c0551e9623f0bd40139d55c5fea5c542e4edde7
 
 To avoid serving stale data, the cache tracks file dependencies, package dependencies, and the
 emitted assets. Whenever cached data is available, the following checks occur before serving it:
@@ -133,10 +139,10 @@ fast rebuilds.
 Workers
 -------
 
-While webpack itself will rarely lock up a process, some of the more popular loaders - postcss and 
-babel, for example - will evaluate synchronously and can easily lock up a process. To ensure that the
-main process remains responsive, worker process can be spawned to perform compilation. Using workers 
-ensures that the main process is left free to handle caching, hmr, and communication workers.
+Worker processes allow the main process to remain responsive under heavy load. Some of the more popular 
+compilation tools - postcss and babel, for example - will evaluate synchronously and can easily lock 
+up a process. To ensure that the main process remains responsive, worker process can be spawned to 
+perform compilation. Using workers ensures that the main process is left free to handle caching and hmr.
 
 To spawn a worker process, call `build.workers.spawn()` before sending your build request in.
 
@@ -159,22 +165,30 @@ Fresh requests are parcelled out to workers in sequential order. Repeated reques
 get the latest state of a watched bundle) will be mapped to the worker that first handled the request.
 
 
-Environment configuration
--------------------------
+Env config
+----------
 
-You can specify functions in your config file which can be run to generate
-environment-specific configuration.
+Using different config files for particular environments can make it difficult to reason about a build. 
+To enable a config file to be a canonical indicator of the expected output, you can specify functions in 
+your config file which can be run to change the config object.
 
 ```javascript
-module.exports = {
+var loaders = [
   // ...
+];
+
+module.exports = {
+  entry: '...',
+  output: {
+    // ..
+  },
   env: {
     dev: function(config, opts) {
       config.devtool = 'eval';
 
-      config.loaders.push({
+      config.loaders = loaders.concat([{
         // ...
-      });
+      }]);
 
       if (opts.hmr) {
         // ...
@@ -182,40 +196,37 @@ module.exports = {
     },
     prod: function(config, opts) {
       config.devtool = 'source-map';
+      
+      config.loaders = loaders.concat([{
+        // ...
+      }]);
     }
   }
 };
 ```
 
-To apply an environment configuration, pass in the `env` option to the wrapper
+To apply a particular env function, pass in the `env` option to the wrapper
 
 ```javascript
-var build = require('webpack-build');
-
 build({
   // ...
   env: 'dev'
-}, function(err, stats) {
+}, function(err, data) {
   // ...
 });
 ```
 
-`env` functions are provided with both your config file's object and your options object you
-passed in to build.
+`env` functions are provided with both your config file's object and the options object that you
+passed in to `build`.
 
-The wrapper also comes with some convenience functions that help you to avoid boilerplate.
+Note: JS's mutable objects make it easy to trip up when changing from one env to another. Try to compose
+the objects functionally to avoid side-effects.
 
-```javascript
-var build = require('webpack-build');
 
-module.exports = {
-  // ...
-  env: {
-    dev: build.env.dev,
-    prod: build.env.prod
-  }
-};
-```
+Environment configuration utils
+-------------------------------
+
+The following functions help to avoid boilerplate.
 
 `build.env.dev(config, opts)` makes the following changes and additions
 
@@ -259,7 +270,8 @@ module.exports = {
 HMR
 ---
 
-webpack-build includes HMR functionality comparable to webpack-dev-server.
+webpack-build includes HMR functionality comparable to webpack-dev-server. A key difference is that it 
+namespaces the hmr sockets per build, so multiple builds can be used on a single page.
 
 ```javascript
 var build = require('webpack-build');
@@ -267,7 +279,7 @@ var build = require('webpack-build');
 build({
   config: '/path/to/webpack.config.js',
   hmr: true
-}, function(err, stats) {
+}, function(err, data) {
   // ...
 });
 ```
@@ -276,9 +288,9 @@ When assets are rendered on the front-end, they open sockets to the build server
 attempt to hot update whenever possible. If hot updates are not possible, console logs
 will indicate the need to refresh for updates to be applied.
 
-If you using your own server to expose hmr, you'll need to specify the `hmrRoot` option
-with the address of your server, eg: `hmrRoot: 'http://127.0.0.1:9009'`. You can bind the
-hmr socket handler to your server by calling `build.hmr.addToServer(yourServer)`.
+If you are using your own server to expose hmr, you'll need to specify the `hmrRoot` option
+with the address of your server, eg: `hmrRoot: 'http://127.0.0.1:9009'`. You can add the
+hmr socket handler to your server by calling `build.hmr.addToServer(yourHttpServer)`.
 
 
 Build server
