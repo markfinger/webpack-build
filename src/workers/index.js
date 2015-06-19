@@ -8,6 +8,7 @@ class Workers {
     this.workers = [];
     this.next = 0;
     this.matches = Object.create(null);
+    this.defaultWorkers = 2;
   }
   available() {
     return this.workers.length > 0;
@@ -18,7 +19,7 @@ class Workers {
   spawn(number) {
     // Spawns worker processes. If `number` is not defined, 2 workers are spawned
 
-    number = number || 2;
+    number = number || this.defaultWorkers;
 
     _.range(number).forEach(() => {
       this.workers.push(new Worker());

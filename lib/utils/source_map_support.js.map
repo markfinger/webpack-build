@@ -1,0 +1,1 @@
+{"version":3,"sources":["../../src/utils/source_map_support.js"],"names":[],"mappings":";;;;gCAA6B,oBAAoB;;;;AAEjD,8BAAiB,OAAO,CAAC;AACvB,0BAAwB,EAAE,KAAK;CAChC,CAAC,CAAC","file":"source_map_support.js","sourcesContent":["import sourceMapSupport from 'source-map-support';\n\nsourceMapSupport.install({\n  handleUncaughtExceptions: false\n});"]}

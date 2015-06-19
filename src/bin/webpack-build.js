@@ -1,11 +1,14 @@
-import sourceMapSupport from 'source-map-support';
+#!/usr/bin/env node
 
-sourceMapSupport.install({
-  handleUncaughtExceptions: false
-});
+// Ensure source map support as early as possible
+import '../utils/source_map_support';
 
-import packageJson from '../../package';
+import _ from 'lodash';
 import yargs from 'yargs';
+import server from '../server';
+import workers from '../workers';
+import defaults from '../options/defaults';
+import packageJson from '../../package';
 
 const argv = yargs
   .option('p', {
@@ -20,18 +23,14 @@ const argv = yargs
   })
   .option('w', {
     alias: 'workers',
-    description: 'Specifies the number of workers to use'
+    description: 'Specify the number of workers to use',
+    default: workers.defaultWorkers
   })
   .version(() => packageJson.version)
   .alias('v', 'version')
   .help('h').alias('h', 'help')
   .strict()
   .argv;
-
-import _ from 'lodash';
-import server from '../server';
-import workers from '../workers';
-import defaults from '../options/defaults';
 
 const url = `http://${argv.address}:${argv.port}`;
 defaults.hmrRoot = url;
