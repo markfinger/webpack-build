@@ -4,7 +4,7 @@ export default {
   config: '',
 
   // Watching
-  watch: true,
+  watch: false,
   aggregateTimeout: 200,
   poll: undefined,
 

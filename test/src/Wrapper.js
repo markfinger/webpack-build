@@ -31,7 +31,7 @@ describe('Wrapper', () => {
     let wrapper = new Wrapper(opts, config);
     assert.strictEqual(wrapper.opts, opts);
     assert.strictEqual(wrapper.config, config);
-    assert.isTrue(wrapper.opts.watch);
+    assert.isFalse(wrapper.opts.watch);
     assert.isNumber(wrapper.opts.aggregateTimeout);
     assert.isUndefined(wrapper.opts.poll);
     assert.equal(wrapper.opts.outputPath, '');
@@ -282,15 +282,15 @@ describe('Wrapper', () => {
     });
   });
   describe('#opts.watch', () => {
-    it('should default to true', () => {
+    it('should default to false', () => {
       let wrapper = new Wrapper();
-      assert.isTrue(wrapper.opts.watch);
+      assert.isFalse(wrapper.opts.watch);
 
       wrapper = new Wrapper({
-        watch: false
+        watch: true
       });
 
-      assert.isFalse(wrapper.opts.watch);
+      assert.isTrue(wrapper.opts.watch);
     });
     it('should cause file changes to trigger bundle rebuilds', function(done) {
       this.timeout(utils.watcherTimeout);

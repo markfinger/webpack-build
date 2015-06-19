@@ -61,7 +61,7 @@ describe('Wrapper', function () {
     var wrapper = new _libWrappersWrapper2['default'](opts, config);
     assert.strictEqual(wrapper.opts, opts);
     assert.strictEqual(wrapper.config, config);
-    assert.isTrue(wrapper.opts.watch);
+    assert.isFalse(wrapper.opts.watch);
     assert.isNumber(wrapper.opts.aggregateTimeout);
     assert.isUndefined(wrapper.opts.poll);
     assert.equal(wrapper.opts.outputPath, '');
@@ -312,15 +312,15 @@ describe('Wrapper', function () {
     });
   });
   describe('#opts.watch', function () {
-    it('should default to true', function () {
+    it('should default to false', function () {
       var wrapper = new _libWrappersWrapper2['default']();
-      assert.isTrue(wrapper.opts.watch);
+      assert.isFalse(wrapper.opts.watch);
 
       wrapper = new _libWrappersWrapper2['default']({
-        watch: false
+        watch: true
       });
 
-      assert.isFalse(wrapper.opts.watch);
+      assert.isTrue(wrapper.opts.watch);
     });
     it('should cause file changes to trigger bundle rebuilds', function (done) {
       this.timeout(_utils2['default'].watcherTimeout);

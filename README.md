@@ -73,7 +73,7 @@ Configuration
   // Watching
   // --------
 
-  watch: true,
+  watch: false,
   aggregateTimeout: 200,
   poll: undefined,
 
@@ -114,10 +114,6 @@ Once your a compilation request has completed successfully, the output is cached
 requests will be served from memory until a compiler invalidates it. To avoid webpack's slow startup,
 cached output is also written to disk.
 
-When serving cached data, a compiler is spun up in the background so that the cache only has to
-serve data until the compiler has completed. Once the compiler's ready, webpack's incremental 
-compilation provides fast rebuilds.
-
 To avoid serving stale data, the cache tracks file dependencies, package dependencies, and the
 emitted assets. Whenever cached data is available, the following checks occur before serving it:
 
@@ -128,6 +124,10 @@ emitted assets. Whenever cached data is available, the following checks occur be
 
 If any of the checks fail, requests are handed off to a compiler which will repopulate the cache
 on completion.
+
+If `watch` is set to true and cached data is available, requests will cause a compiler to be spawned
+in the background. Spawning the compiler early enables webpack's incremental compilation to provide
+fast rebuilds.
 
 
 Workers
