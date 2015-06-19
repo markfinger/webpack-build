@@ -41,6 +41,6 @@
     "build": "scripts/build.js"
   },
   "bin": {
-    "webpack-build-server": "bin/webpack-build-server.js"
+    "webpack-build": "bin/webpack-build.js"
   }
 }
