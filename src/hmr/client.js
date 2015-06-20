@@ -21,7 +21,9 @@ socket.on('hot', () => console.info('[WPB-HMR] Hot Module Replacement enabled'))
 
 socket.on('invalid', () => console.info('[WPB-HMR] Changes detected. Recompiling...'));
 
-socket.on('hash', (hash) => currentHash = hash);
+socket.on('hash', (hash) => {
+  currentHash = hash;
+});
 
 socket.on('no-change', () => console.info('[WPB-HMR] Nothing changed'));
 
