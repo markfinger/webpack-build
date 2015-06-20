@@ -19,7 +19,7 @@ export default {
 
   // Caching
   cache: true,
-  cacheDir: path.join(process.cwd(), '.webpack_cache'),
+  cacheDir: path.join(process.cwd(), '.webpack_build_cache'),
 
   // Hot module replacement
   hmr: false,
