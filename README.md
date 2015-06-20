@@ -350,6 +350,8 @@ the reproducibility of builds and prevents unintended side-effects.
 If you receive errors referring to config file timestamps or indications that no worker will accept
 a config file, you'll need to restart the process.
 
+To get around this limitation, multiple worker processes can be used to handle different builds.
+
 
 Debugging
 ---------
