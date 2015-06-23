@@ -34,6 +34,10 @@ var _utils = require('./utils');
 
 var _utils2 = _interopRequireDefault(_utils);
 
+var _test_bundlesBasic_bundleWebpackConfig = require('./test_bundles/basic_bundle/webpack.config');
+
+var _test_bundlesBasic_bundleWebpackConfig2 = _interopRequireDefault(_test_bundlesBasic_bundleWebpackConfig);
+
 var assert = _utils2['default'].assert;
 var TEST_OUTPUT_DIR = _utils2['default'].TEST_OUTPUT_DIR;
 
@@ -111,7 +115,7 @@ describe('Watcher', function () {
   });
   describe('#onceReady', function () {
     it('should block until a bundle is generated', function (done) {
-      var compiler = (0, _webpack2['default'])(require('./test_bundles/basic_bundle/webpack.config'));
+      var compiler = (0, _webpack2['default'])((0, _test_bundlesBasic_bundleWebpackConfig2['default'])());
       var watcher = new _libWrappersWatcher2['default'](compiler, (0, _libOptions2['default'])());
       watcher.onceDone(function (err, stats) {
         assert.isNull(err);

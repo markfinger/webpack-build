@@ -1,7 +1,9 @@
-module.exports = {
-  context: 'context',
-  entry: 'entry',
-  output: {
-    filename: 'test.js'
-  }
+module.exports = () => {
+  return {
+    context: 'context',
+    entry: 'entry',
+    output: {
+      filename: 'test.js'
+    }
+  };
 };

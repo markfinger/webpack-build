@@ -7,6 +7,8 @@ import Watcher from '../../lib/wrappers/Watcher';
 import options from '../../lib/options';
 import caches from '../../lib/caches';
 import utils from './utils';
+import basic_bundle from './test_bundles/basic_bundle/webpack.config';
+import library_bundle from './test_bundles/library_bundle/webpack.config';
 
 let assert = utils.assert;
 let TEST_OUTPUT_DIR = utils.TEST_OUTPUT_DIR;
@@ -44,12 +46,12 @@ describe('Wrapper', () => {
     });
     wrapper.getConfig((err, config) => {
       assert.isNull(err);
-      assert.strictEqual(config, require('./test_bundles/basic_bundle/webpack.config'));
+      assert.deepEqual(config, basic_bundle());
       done();
     });
   });
   it('should compile a basic bundle', (done) => {
-    let wrapper = new Wrapper({}, require('./test_bundles/basic_bundle/webpack.config'));
+    let wrapper = new Wrapper({}, basic_bundle());
 
     wrapper.compile((err, stats) => {
       assert.isNull(err);
@@ -95,7 +97,7 @@ describe('Wrapper', () => {
     });
   });
   it('should expose the output options object', (done) => {
-    let wrapper = new Wrapper({}, require('./test_bundles/library_bundle/webpack.config'));
+    let wrapper = new Wrapper({}, library_bundle());
 
     wrapper.compile((err, data) => {
       assert.isNull(err);
@@ -538,61 +540,17 @@ describe('Wrapper', () => {
       });
     });
   });
-  describe('#opts.env', () => {
-    it('should call the function matched on the config object', (done) => {
-      let wrapper = new Wrapper({
-        config: {
-          env: {
-            foo: () => {
-              done();
-            }
-          }
-        },
-        env: 'foo'
-      });
-
-      wrapper.getConfig(() =>{});
-    });
-    it('should provide the config and opts objects', (done) => {
+  describe('config factory', () => {
+    it('should call the factory with the opts object', (done) => {
       let opts = {
-        env: 'foo'
-      };
-
-      let config = {
-        env: {
-          foo: (_config, _opts) => {
-            assert.strictEqual(_config, config);
-            assert.strictEqual(_opts, opts);
-            done();
-          }
+        config: (_opts) => {
+          assert.strictEqual(_opts, opts);
+          done();
         }
       };
-
-      opts.config = config;
-
       let wrapper = new Wrapper(opts);
 
       wrapper.getConfig(() =>{});
-    });
-    it('should accept mutations to the config object', (done) => {
-      let wrapper = new Wrapper({
-        config: {
-          env: {
-            foo: (config) => {
-              config.devtool = 'eval';
-            }
-          }
-        },
-        env: 'foo'
-      });
-
-      wrapper.getConfig((err, config) => {
-        assert.isNull(err);
-        assert.isObject(config);
-
-        assert.equal(config.devtool, 'eval');
-        done();
-      });
     });
   });
   describe('#opts.hmr', () => {
@@ -600,7 +558,7 @@ describe('Wrapper', () => {
       let publicPath = '/static/foo';
 
       let wrapper = new Wrapper({
-        config: {},
+        config: () => { return {}; },
         hmr: true,
         hmrRoot: 'http://test.com',
         outputPath: '/foo/bar',

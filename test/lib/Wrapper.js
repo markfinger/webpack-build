@@ -38,6 +38,14 @@ var _utils = require('./utils');
 
 var _utils2 = _interopRequireDefault(_utils);
 
+var _test_bundlesBasic_bundleWebpackConfig = require('./test_bundles/basic_bundle/webpack.config');
+
+var _test_bundlesBasic_bundleWebpackConfig2 = _interopRequireDefault(_test_bundlesBasic_bundleWebpackConfig);
+
+var _test_bundlesLibrary_bundleWebpackConfig = require('./test_bundles/library_bundle/webpack.config');
+
+var _test_bundlesLibrary_bundleWebpackConfig2 = _interopRequireDefault(_test_bundlesLibrary_bundleWebpackConfig);
+
 var assert = _utils2['default'].assert;
 var TEST_OUTPUT_DIR = _utils2['default'].TEST_OUTPUT_DIR;
 
@@ -74,12 +82,12 @@ describe('Wrapper', function () {
     });
     wrapper.getConfig(function (err, config) {
       assert.isNull(err);
-      assert.strictEqual(config, require('./test_bundles/basic_bundle/webpack.config'));
+      assert.deepEqual(config, (0, _test_bundlesBasic_bundleWebpackConfig2['default'])());
       done();
     });
   });
   it('should compile a basic bundle', function (done) {
-    var wrapper = new _libWrappersWrapper2['default']({}, require('./test_bundles/basic_bundle/webpack.config'));
+    var wrapper = new _libWrappersWrapper2['default']({}, (0, _test_bundlesBasic_bundleWebpackConfig2['default'])());
 
     wrapper.compile(function (err, stats) {
       assert.isNull(err);
@@ -125,7 +133,7 @@ describe('Wrapper', function () {
     });
   });
   it('should expose the output options object', function (done) {
-    var wrapper = new _libWrappersWrapper2['default']({}, require('./test_bundles/library_bundle/webpack.config'));
+    var wrapper = new _libWrappersWrapper2['default']({}, (0, _test_bundlesLibrary_bundleWebpackConfig2['default'])());
 
     wrapper.compile(function (err, data) {
       assert.isNull(err);
@@ -568,61 +576,17 @@ describe('Wrapper', function () {
       });
     });
   });
-  describe('#opts.env', function () {
-    it('should call the function matched on the config object', function (done) {
-      var wrapper = new _libWrappersWrapper2['default']({
-        config: {
-          env: {
-            foo: function foo() {
-              done();
-            }
-          }
-        },
-        env: 'foo'
-      });
-
-      wrapper.getConfig(function () {});
-    });
-    it('should provide the config and opts objects', function (done) {
+  describe('config factory', function () {
+    it('should call the factory with the opts object', function (done) {
       var opts = {
-        env: 'foo'
-      };
-
-      var config = {
-        env: {
-          foo: function foo(_config, _opts) {
-            assert.strictEqual(_config, config);
-            assert.strictEqual(_opts, opts);
-            done();
-          }
+        config: function config(_opts) {
+          assert.strictEqual(_opts, opts);
+          done();
         }
       };
-
-      opts.config = config;
-
       var wrapper = new _libWrappersWrapper2['default'](opts);
 
       wrapper.getConfig(function () {});
-    });
-    it('should accept mutations to the config object', function (done) {
-      var wrapper = new _libWrappersWrapper2['default']({
-        config: {
-          env: {
-            foo: function foo(config) {
-              config.devtool = 'eval';
-            }
-          }
-        },
-        env: 'foo'
-      });
-
-      wrapper.getConfig(function (err, config) {
-        assert.isNull(err);
-        assert.isObject(config);
-
-        assert.equal(config.devtool, 'eval');
-        done();
-      });
     });
   });
   describe('#opts.hmr', function () {
@@ -630,7 +594,9 @@ describe('Wrapper', function () {
       var publicPath = '/static/foo';
 
       var wrapper = new _libWrappersWrapper2['default']({
-        config: {},
+        config: function config() {
+          return {};
+        },
         hmr: true,
         hmrRoot: 'http://test.com',
         outputPath: '/foo/bar',

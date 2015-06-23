@@ -144,7 +144,7 @@ describe('build', function () {
     var configFile = _path2['default'].join(TEST_OUTPUT_DIR, 'stale_config_file.js');
 
     _mkdirp2['default'].sync(_path2['default'].dirname(configFile));
-    _fs2['default'].writeFileSync(configFile, 'module.exports = {}');
+    _fs2['default'].writeFileSync(configFile, 'module.exports = function(){ return {}; }');
     var initialMTime = +_fs2['default'].statSync(configFile).mtime;
 
     (0, _lib2['default'])({

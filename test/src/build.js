@@ -111,7 +111,7 @@ describe('build', () => {
     let configFile = path.join(TEST_OUTPUT_DIR, 'stale_config_file.js');
 
     mkdirp.sync(path.dirname(configFile));
-    fs.writeFileSync(configFile, 'module.exports = {}');
+    fs.writeFileSync(configFile, 'module.exports = function(){ return {}; }');
     let initialMTime = +fs.statSync(configFile).mtime;
 
     build({

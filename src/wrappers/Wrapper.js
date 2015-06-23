@@ -15,9 +15,9 @@ class Wrapper {
 
     this.logger = log('wrapper', this.opts);
 
-    // TODO: remove this, it's mostly legacy in the test suite. Should simply pass the config obj as `opts.config`
-    // Convenience hook to pass an object in. You can also define
-    // `opts.config` as a path to a file
+    // TODO: remove this, in favour of `opts.config`
+    // Convenience hook to pass an object in. Mostly of convenience in the
+    // test suite
     this.config = config;
 
     // State
@@ -37,19 +37,34 @@ class Wrapper {
       return cb(new Error('Wrapper options missing `config` value'));
     }
 
-    this.config = this.opts.config;
+    let factory;
 
-    if (_.isString(this.config)) {
+    if (_.isString(this.opts.config)) {
       this.logger(`loading config file ${this.opts.config}`);
       try {
-        this.config = require(this.config);
+        factory = require(this.opts.config);
       } catch(err) {
-        this.config = null;
         return cb(err);
       }
+    } else {
+      factory = this.opts.config;
     }
 
-    if (this.config && this.opts.hmr) {
+    if (!factory || !_.isFunction(factory)) {
+      return cb(new Error(`File ${this.opts.config} does not export a function`));
+    }
+
+    try {
+      this.config = factory(this.opts);
+    } catch(err) {
+      return cb(err);
+    }
+
+    if (!this.config || !_.isObject(this.config)) {
+      return cb(new Error(`The factory exported by ${this.opts.config} did not return an object`));
+    }
+
+    if (this.opts.hmr) {
       try {
         hmrConfig(this.config, this.opts);
       } catch(err) {

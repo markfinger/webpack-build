@@ -6,6 +6,7 @@ import webpack from 'webpack';
 import Watcher from '../../lib/wrappers/Watcher';
 import options from '../../lib/options';
 import utils from './utils';
+import basic_bundle from './test_bundles/basic_bundle/webpack.config';
 
 let assert = utils.assert;
 let TEST_OUTPUT_DIR = utils.TEST_OUTPUT_DIR;
@@ -84,7 +85,7 @@ describe('Watcher', () => {
   });
   describe('#onceReady', () => {
     it('should block until a bundle is generated', (done) => {
-      let compiler = webpack(require('./test_bundles/basic_bundle/webpack.config'));
+      let compiler = webpack(basic_bundle());
       let watcher = new Watcher(compiler, options());
       watcher.onceDone((err, stats) => {
         assert.isNull(err);
