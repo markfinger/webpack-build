@@ -2,11 +2,9 @@ import fs from 'fs';
 import _ from 'lodash';
 
 const fileTimestamps = Object.create(null);
-const buildHashes = Object.create(null);
 
 const checkConfigFile = (opts) => {
   let configFile = opts.config;
-  let buildHash = opts.buildHash;
 
   if (!configFile) {
     return new Error('Config file not defined');
@@ -41,16 +39,6 @@ const checkConfigFile = (opts) => {
     } catch(err) {
       return err;
     }
-  }
-
-  // Ensure that mutated config objects do not cause inexplicable problems
-  if (buildHashes[configFile]) {
-    if (buildHash != buildHashes[configFile]) {
-      let msg = `Config file ${configFile} was previously mutated by build ${buildHashes[configFile]}, the process will need to be restarted to apply a new build`;
-      return new Error(msg);
-    }
-  } else {
-    buildHashes[configFile] = buildHash;
   }
 };
 
