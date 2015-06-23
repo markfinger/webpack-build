@@ -44,25 +44,6 @@ class Worker {
 
     this.logger(`started worker ${this.id}`);
   }
-  canHandle(opts) {
-    // Indicates if the worker has previously handled the config file
-    // under a previous build. Due to the mutability of config objects
-    // this check is required to ensure that builds do not have unintended
-    // side effects or outcomes
-
-    let configFile = opts.config;
-    let buildHash = opts.buildHash;
-
-    if (!configFile || !buildHash) {
-      return false;
-    }
-
-    if (this._handled[configFile]) {
-      return this._handled[configFile] === buildHash;
-    }
-
-    return true;
-  }
   build(opts, cb) {
     opts = options(opts);
 

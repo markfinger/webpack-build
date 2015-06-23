@@ -107,28 +107,4 @@ describe('Worker', () => {
       });
     });
   });
-  describe('#canHandle', () => {
-    it('should check if a worker has handled the config file under another build', (done) => {
-      let worker = new Worker();
-      let opts = options({
-        config: path.join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js')
-      });
-
-      assert.isTrue(worker.canHandle(opts));
-
-      worker.build(opts, (err, data) => {
-        assert.isNull(err);
-        assert.isObject(data);
-
-        assert.isTrue(worker.canHandle(opts));
-        opts.buildHash = 'test';
-        assert.isFalse(worker.canHandle(opts));
-        opts.config = 'foo';
-        assert.isTrue(worker.canHandle(opts));
-
-        worker.kill();
-        done();
-      });
-    });
-  });
 });

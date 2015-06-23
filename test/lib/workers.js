@@ -101,37 +101,6 @@ describe('workers', function () {
         });
       });
     });
-    it('should produce errors if no worker can safely handle a build request', function (done) {
-      _libWorkers2['default'].spawn(1);
-
-      var opts = {
-        config: _path2['default'].join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js')
-      };
-
-      _libWorkers2['default'].build(opts, function (err, data) {
-        assert.isNull(err);
-        assert.isObject(data);
-
-        assert.isTrue(_libWorkers2['default'].workers[0].canHandle(opts));
-        opts.buildHash = 'test';
-        assert.isFalse(_libWorkers2['default'].workers[0].canHandle(opts));
-
-        _libWorkers2['default'].build(opts, function (err, data) {
-          assert.instanceOf(err, Error);
-          assert.isNull(data);
-
-          _libWorkers2['default'].spawn(1);
-          assert.isTrue(_libWorkers2['default'].workers[1].canHandle(opts));
-
-          _libWorkers2['default'].build(opts, function (err, data) {
-            assert.isNull(err);
-            assert.isObject(data);
-
-            done();
-          });
-        });
-      });
-    });
   });
 });
 //# sourceMappingURL=workers.js.map

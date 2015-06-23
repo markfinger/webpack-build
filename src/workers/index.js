@@ -39,10 +39,7 @@ class Workers {
       return matchedWorker.build(opts, cb);
     }
 
-    let [err, worker] = this.get(opts);
-
-    if (err) return cb(err, null);
-
+    let worker = this.get();
     this.matches[opts.buildHash] = worker.id;
     worker.build(opts, cb);
   }
@@ -56,28 +53,15 @@ class Workers {
       return _.find(this.workers, {id});
     }
   }
-  get(opts) {
-    // Returns the next available worker who can handle the build
+  get() {
+    let worker = this.workers[this.next];
 
-    let current = this.next;
+    this.next++;
+    if (this.next >= this.workers.length) {
+      this.next = 0;
+    }
 
-    do {
-      let worker = this.workers[this.next];
-
-      this.next++;
-      if (this.next >= this.workers.length) {
-        this.next = 0;
-      }
-
-      if (worker.canHandle(opts)) {
-        return [null, worker];
-      }
-    } while(this.next != current);
-
-    return [
-      new Error(`No workers are available who can safely handle ${opts.config}. Restart the process or add more workers`),
-      null
-    ];
+    return worker;
   }
   killAll() {
     for (let worker of this.workers) {

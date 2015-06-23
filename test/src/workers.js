@@ -80,36 +80,5 @@ describe('workers', () => {
         });
       });
     });
-    it('should produce errors if no worker can safely handle a build request', (done) => {
-      workers.spawn(1);
-
-      let opts = {
-        config: path.join(__dirname, 'test_bundles', 'basic_bundle', 'webpack.config.js')
-      };
-
-      workers.build(opts, (err, data) => {
-        assert.isNull(err);
-        assert.isObject(data);
-
-        assert.isTrue(workers.workers[0].canHandle(opts));
-        opts.buildHash = 'test';
-        assert.isFalse(workers.workers[0].canHandle(opts));
-
-        workers.build(opts, (err, data) => {
-          assert.instanceOf(err, Error);
-          assert.isNull(data);
-
-          workers.spawn(1);
-          assert.isTrue(workers.workers[1].canHandle(opts));
-
-          workers.build(opts, (err, data) => {
-            assert.isNull(err);
-            assert.isObject(data);
-
-            done();
-          });
-        });
-      });
-    });
   });
 });
