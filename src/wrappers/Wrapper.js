@@ -46,12 +46,16 @@ class Wrapper {
       } catch(err) {
         return cb(err);
       }
+
+      if (!_.isFunction(factory)) {
+        return cb(new Error(`File ${this.opts.config} does not export a function`));
+      }
     } else {
       factory = this.opts.config;
-    }
 
-    if (!factory || !_.isFunction(factory)) {
-      return cb(new Error(`File ${this.opts.config} does not export a function`));
+      if (!_.isFunction(factory)) {
+        return cb(new Error(`Config option is not a function`));
+      }
     }
 
     try {
@@ -61,7 +65,10 @@ class Wrapper {
     }
 
     if (!this.config || !_.isObject(this.config)) {
-      return cb(new Error(`The factory exported by ${this.opts.config} did not return an object`));
+      if (_.isString(this.opts.config)) {
+        return cb(new Error(`The factory exported by ${this.opts.config} did not return an object`));
+      }
+      return cb(new Error('The config factory does not return an object'));
     }
 
     if (this.opts.hmr) {
@@ -74,16 +81,6 @@ class Wrapper {
 
     if (this.opts.outputPath && this.config.output) {
       this.config.output.path = this.opts.outputPath;
-    }
-
-    if (this.config && this.config.env && this.opts.env in this.config.env) {
-      this.logger(`applying env "${this.opts.env}"`);
-      let env = this.config.env[this.opts.env];
-      try {
-        env(this.config, this.opts);
-      } catch(err) {
-        return cb(err);
-      }
     }
 
     cb(null, this.config)

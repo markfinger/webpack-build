@@ -9,7 +9,6 @@ export default {
   poll: undefined,
 
   // Config manipulation
-  env: '',
   outputPath: '',
   publicPath: '',
 

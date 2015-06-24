@@ -11,7 +11,7 @@ Wraps webpack. Does some useful stuff...
 - Persistent caching
 - Build server
 - HMR support
-- Environment config hooks
+- Configuration hooks
 
 
 Documentation
@@ -19,14 +19,12 @@ Documentation
 
 - [Installation](#installation)
 - [Basic usage](#basic-usage)
-- [Configuration](#configuration)
+- [Config files](#config-files)
+- [Build configuration](#build-configuration)
 - [Caching](#caching)
 - [Workers](#workers)
 - [Build server](#build-server)
 - [HMR](#hmr)
-- [Env config](#env-config)
-- [Env utils](#env-utils)
-- [Config file handling](#config-file-handling)
 - [Debugging](#debugging)
 - [Dev notes](#dev-notes)
 - [Colophon](#colophon)
@@ -47,7 +45,8 @@ Basic usage
 var build = require('webpack-build');
 
 build({
-  config: '/path/to/webpack.config.js'
+  config: '/path/to/webpack.config.js',
+  watch: true
 }), function(err, data) {
   console.log(data.output);
 });
@@ -63,16 +62,88 @@ The `data` object includes:
   These values are generated from the `staticRoot` and `staticUrl` options
 - `outputOptions`: the compiler's output options
 
+Whenever you need the latest output from the compiler, just call `build` with the same options.
 
-Configuration
--------------
+
+Config files
+------------
+
+webpack-build uses config factories to generate the webpack config objects. Using factories enables easier
+environment configuration, avoids a number of issues relating to the mutability of JS objects, and makes it
+easier to create templates.
+
+A config file should export a function that will return an object.
+
+```javascript
+module.exports = function(opts) {
+  var config = {
+    entry: '...',
+    output: {
+      // ..
+    },
+    loaders: [
+      // ...
+    ]
+  };
+
+  if (opts.hmr) {
+    config.loaders.push({
+      // ...
+    });
+
+    config.devtool = '...';
+  } else {
+    config.loaders.push({
+      // ...
+    });
+
+    config.devtool = '...';
+  }
+
+  return config;
+};
+```
+
+The `opts` argument is an extended version of the options object sent to the `build` function. If you want to
+pass extra context in to the function, just annotate the options object.
+
+```javascript
+build({
+  // ...
+  context: {
+    DEBUG: true
+  }
+}, function(err, data) {
+  // ...
+});
+```
+
+Your function can then pick up your context
+
+```javascript
+module.exports = function(opts) {
+  var config = {
+    // ...
+  };
+
+  if (opts.context.DEBUG) {
+    config.devtool = '...';
+  }
+
+  return config;
+};
+```
+
+
+Build configuration
+-------------------
 
 ```javascript
 {
 
   // An absolute path to a config file
   config: '/path/to/webpack.config.js',
-  
+
   // Watching
   // --------
 
@@ -83,7 +154,6 @@ Configuration
   // Config manipulation
   // -------------------
 
-  env: '', // the env to apply
   outputPath: '', // override for output.path
   publicPath: '', // override for output.publicPath
 
@@ -243,114 +313,6 @@ var app = express();
 var server = http.Server(app);
 build.hmr.addToServer(server);
 ```
-
-
-Env config
-----------
-
-Using different config files for particular environments can make it difficult to reason about a build. 
-To enable a config file to be a canonical indicator of the expected output, you can specify functions in 
-your config file which can be run to change the config object.
-
-```javascript
-module.exports = {
-  entry: '...',
-  output: {
-    // ..
-  },
-  env: {
-    dev: function(config, opts) {
-      config.devtool = 'eval';
-
-      config.loaders = [{
-        // ...
-      }];
-
-      if (opts.hmr) {
-        // ...
-      }
-    },
-    prod: function(config, opts) {
-      config.devtool = 'source-map';
-      
-      config.loaders = [{
-        // ...
-      }];
-    }
-  }
-};
-```
-
-To apply a particular environment, pass in the `env` option to the wrapper
-
-```javascript
-build({
-  // ...
-  env: 'dev'
-}, function(err, data) {
-  // ...
-});
-```
-
-`env` functions are provided with both your config file's object and the options object that you
-passed in to `build`.
-
-
-Env utils
----------
-
-The following functions can help to avoid boilerplate by applying some typical changes to config files.
-
-`build.env.dev(config, opts)` makes the following changes and additions
-
-```javascript
-{
-  output: {
-    // ...
-    pathinfo: true
-  },
-  devtool: 'eval-source-maps',
-  plugins: [
-    // ...
-    new webpack.optimize.OccurrenceOrderPlugin(),
-    new webpack.NoErrorsPlugin(),
-    new webpack.DefinePlugin({
-      'process.env': {NODE_ENV: JSON.stringify('development')}
-    })
-  ]
-}
-```
-
-`build.env.prod(config, opts)` makes the following changes and additions
-
-```javascript
-{
-  devtool: 'source-maps',
-  plugins: [
-    // ...
-    new webpack.optimize.OccurrenceOrderPlugin(),
-    new webpack.NoErrorsPlugin(),
-    new webpack.optimize.DedupePlugin(),
-    new webpack.optimize.UglifyJsPlugin(),
-    new webpack.DefinePlugin({
-      'process.env': {NODE_ENV: JSON.stringify('production')}
-    })
-  ]
-}
-```
-
-
-Config file handling
---------------------
-
-Due to the mutable nature of webpack's config objects, compile requests will immediately bail if 
-the system has previously imported the config file and mutated it already. This behaviour improves 
-the reproducibility of builds and prevents unintended side-effects.
-
-If you receive errors referring to config file timestamps or indications that no worker will accept
-a config file, you'll need to restart the process.
-
-To get around this limitation, multiple worker processes can be used to handle different builds.
 
 
 Debugging
