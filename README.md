@@ -19,7 +19,7 @@ Documentation
 
 - [Installation](#installation)
 - [Basic usage](#basic-usage)
-- [Build options](#build-options)s)
+- [Build options](#build-options)
 - [Config files](#config-files)
 - [Caching](#caching)
 - [Workers](#workers)
@@ -180,7 +180,7 @@ module.exports = function(opts) {
 Caching
 -------
 
-Once your a compilation request has completed successfully, the output is cached and subsequent 
+Once a compilation request has completed successfully, the output is cached and subsequent 
 requests will be served from memory until a compiler invalidates it. To avoid webpack's slow startup,
 cached output is also written to disk.
 
@@ -203,9 +203,9 @@ provide rapid rebuilds.
 Workers
 -------
 
-Worker processes allow the main process to remain responsive under during compilation. As many of more
-popular loaders will evaluate synchronously, offloading compilation to workers is essential. Workers
-enable the main process to focus on assigning work and handling both caching and hmr.
+Worker processes allow the main process to remain responsive during compilation. As many of the more 
+popular loaders evaluate synchronously, offloading compilation to workers can be essential for performance. 
+Workers enable the main process to focus on assigning work and handling both caching and hmr.
 
 To spawn workers, call `build.workers.spawn()` before sending any build requests.
 
@@ -228,22 +228,24 @@ var build = require('webpack-build');
 build.workers.spawn(os.cpus().length);
 ```
 
-In most situations, new requests are assigned to workers in sequential order. Repeated requests will always be
-always be sent to the same worker that is hosting an active compiler.
+New requests are assigned to workers in sequential order. Repeated requests will always be always be sent 
+to the same worker that previously handled the build, this enables concurrent requests to be batched and
+served from in-memory caches.
 
 
 Build server
 ------------
 
-A build server is available via a CLI interface, `node_modules/.bin/webpack-build`. Run the binary and connect
-via the network to request builds. During startup the build server will spawn workers processes and configure
-itself to support HMR.
+A build server is available via a CLI interface: `node_modules/.bin/webpack-build`. Run the binary and connect
+via the network to request builds.
+
+During startup the build server will spawn workers processes and configure itself to support HMR.
 
 The following optional arguments are accepted by the CLI interface:
 
-- `-a` or `--address` the address to listen at, defaults to `127.0.0.1`
-- `-p` or `--port` the port to listen at, defaults to `9009`
-- `-w` or `--workers` the number of workers to use, defaults to `2`
+- `-a` or `--address`: the address to listen at, defaults to `127.0.0.1`
+- `-p` or `--port`: the port to listen at, defaults to `9009`
+- `-w` or `--workers`: the number of workers to use, defaults to `2`
 
 Incoming HTTP requests are routed via:
 
@@ -281,7 +283,7 @@ HMR
 ---
 
 webpack-build includes hmr functionality comparable to webpack-dev-server. A key difference is that it
-namespaces the hmr sockets per build, which enables multiple builds to emit hmr signals concurrently.
+namespaces the hmr sockets per build - enabling multiple builds to emit hmr signals concurrently.
 
 ```javascript
 var build = require('webpack-build');
@@ -295,13 +297,13 @@ build({
 ```
 
 When assets are rendered on the front-end, they open sockets to the build server and attempt to hot 
-update whenever possible. If hot updates are not possible, console logs will indicate the need to 
-refresh for updates to be applied.
+update whenever possible. If hot updates are not possible, console logs will indicate that updates
+require a refresh to be applied.
 
 If you are using your own server to expose HMR, you'll need to specify the `hmrRoot` option with the 
 address of your server, eg: `hmrRoot: 'http://127.0.0.1:9009'`.
 
-To add the hmr socket handler to an express server
+To use the hmr socket handler with an express app
 
 ```javascript
 var http = require('http');
@@ -310,7 +312,6 @@ var build = require('webpack-build');
 
 var app = express();
 var server = http.Server(app);
-
 build.hmr.addToServer(server);
 ```
 
@@ -321,8 +322,8 @@ Debugging
 The environment variable DEBUG is respected by the library's logger. To expose verbose logs to your 
 shell, prepend `DEBUG=webpack-build:*` to your shell command. For example: `DEBUG=webpack-build:* npm test`
 
-The project uses babel for ES5 compatibility. If you're using the API and want clearer stack traces, 
-turn on source map support:
+The project uses babel for ES5 compatibility. If you are using the library's API and you want clearer stack 
+traces, turn on source map support:
 
 ```
 npm install source-map-support --save
@@ -346,7 +347,7 @@ npm run build
 npm run build -- --watch
 ```
 
-### Run the tests
+### Running the tests
 
 ```
 npm test
