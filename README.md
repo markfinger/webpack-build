@@ -200,16 +200,16 @@ on completion.
 
 If `watch` is set to true and cached data is available, requests will still cause a compiler to be 
 spawned in the background. Spawning the compiler early enables webpack's incremental compilation to
-provide fast rebuilds.
+provide rapid rebuilds.
 
 
 Workers
 -------
 
 Worker processes allow the main process to remain responsive under heavy load. Some of the more popular 
-compilation tools - postcss and babel, for example - will evaluate synchronously and can easily lock 
-up a process. To ensure that the main process remains responsive, worker processes can be spawned to 
-handle compilation. When workers are available, the main process only handles caching and hmr.
+loaders will evaluate synchronously and can easily lock up a process. To ensure that the main process
+remains responsive, worker processes can be spawned to handle compilation. When workers are available,
+the main process only handles caching and hmr.
 
 To spawn workers, call `build.workers.spawn()` before sending your build request in.
 
@@ -219,8 +219,7 @@ var build = require('webpack-build');
 build.workers.spawn();
 ```
 
-By default, 2 worker processes will be spawned. If you want to spawn more, pass a number in which indicates 
-how many you want.
+By default, 2 worker processes will be spawned. If you want to spawn more, pass a number in.
 
 ```javascript
 var os = require('os');
@@ -230,15 +229,16 @@ var build = require('webpack-build');
 build.workers.spawn(os.cpus().length);
 ```
 
-Fresh requests are parcelled out to workers in sequential order. Repeated requests (for example, to 
-get the latest state of a watched bundle) will be mapped to the worker that first handled the request.
+In most situations, requests are assigned to workers in sequential order. The one exception is if the request
+is mapped to a watching compiler which has already been spawned, in that situation it will be sent to the
+worker which is running the compiler.
 
 
 Build server
 ------------
 
 A build server is available via a CLI interface, `node_modules/.bin/webpack-build`. Run the binary and connect
-via the network to request builds.
+via the network to request builds. The server configures itself to support HMR.
 
 The following optional arguments are accepted:
 
@@ -273,9 +273,9 @@ Unsuccessful build requests receive
 }
 ```
 
-Depending on how far the request passed through the build process, the response may or may
-not have a non-null value for `data`. If the error was produced by the compiler, there may
-be multiple errors within `data.stats.errors` and multiple warnings in `data.stats.warnings`.
+Depending on how far the request passed through the build process, the response may or may not have a non-null
+value for `data`. If the error was produced by the compiler, there may be multiple errors within
+`data.stats.errors` and multiple warnings in `data.stats.warnings`.
 
 
 HMR
@@ -311,6 +311,7 @@ var build = require('webpack-build');
 
 var app = express();
 var server = http.Server(app);
+
 build.hmr.addToServer(server);
 ```
 
