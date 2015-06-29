@@ -34,11 +34,14 @@ const checkConfigFile = (opts) => {
       return err;
     }
 
+    let timestamp;
     try {
-      fileTimestamps[configFile] = +fs.statSync(configFile).mtime;
+      timestamp = +fs.statSync(configFile).mtime;
     } catch(err) {
       return err;
     }
+
+    fileTimestamps[configFile] = timestamp;
   }
 };
 
