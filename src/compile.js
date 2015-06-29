@@ -14,7 +14,7 @@ export const compile = (opts, cb) => {
   let configErr = checkConfigFile(opts, cb);
   if (configErr) {
     logger(`error encountered when checking config file ${opts.config}`, configErr.stack);
-    return cb(configErr);
+    return cb(configErr, null);
   }
 
   let wrapper = wrappers.get(opts);

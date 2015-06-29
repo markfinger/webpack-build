@@ -14,34 +14,26 @@ const checkConfigFile = (opts) => {
     return new Error('Config option must be a string');
   }
 
-  if (fileTimestamps[configFile]) {
-    let timestamp;
-    try {
-      timestamp = +fs.statSync(configFile).mtime;
-    } catch(err) {
-      return err;
-    }
+  let timestamp;
+  try {
+    timestamp = +fs.statSync(configFile).mtime;
+  } catch(err) {
+    err.message = `Cannot find config file ${configFile}: ${err.message}`;
+    return err;
+  }
 
-    if (timestamp > fileTimestamps[configFile]) {
-      return new Error(
-        'Config file has changed since being loaded into memory, the process will need to be restarted to apply the changes'
-      );
-    }
-  } else {
+  if (!fileTimestamps[configFile]) {
     try {
       require(configFile);
     } catch(err) {
+      err.message = `Failed to import config file ${configFile}: ${err.message}`;
       return err;
     }
-
-    let timestamp;
-    try {
-      timestamp = +fs.statSync(configFile).mtime;
-    } catch(err) {
-      return err;
-    }
-
     fileTimestamps[configFile] = timestamp;
+  } else if (timestamp > fileTimestamps[configFile]) {
+    return new Error(
+      'Config file has changed since being loaded into memory, the process will need to be restarted to apply the changes'
+    );
   }
 };
 

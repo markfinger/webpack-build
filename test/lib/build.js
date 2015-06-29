@@ -167,6 +167,41 @@ describe('build', function () {
       }, 1000);
     });
   });
+  it('should indicate if a config file does not exist', function (done) {
+    var configFile = _path2['default'].join(TEST_OUTPUT_DIR, 'non_existent_config_file.js');
+
+    assert.throws(function () {
+      _fs2['default'].statSync(configFile);
+    });
+
+    (0, _lib2['default'])({
+      config: configFile
+    }, function (err, data) {
+      assert.instanceOf(err, Error);
+      assert.isNull(data);
+
+      assert.include(err.message, 'Cannot find config file ' + configFile);
+
+      done();
+    });
+  });
+  it('should indicate if importing a config file produced errors', function (done) {
+    var configFile = _path2['default'].join(TEST_OUTPUT_DIR, 'broken_config_file.js');
+
+    _mkdirp2['default'].sync(_path2['default'].dirname(configFile));
+    _fs2['default'].writeFileSync(configFile, 'require("package-that-does-not-exist");');
+
+    (0, _lib2['default'])({
+      config: configFile
+    }, function (err, data) {
+      assert.instanceOf(err, Error);
+      assert.isNull(data);
+
+      assert.include(err.message, 'Failed to import config file ' + configFile);
+
+      done();
+    });
+  });
   describe('file cache', function () {
     it('should respect the cacheDir and cacheFile options', function (done) {
       var cacheFile = _path2['default'].join(TEST_OUTPUT_DIR, 'test_cacheFile.json');

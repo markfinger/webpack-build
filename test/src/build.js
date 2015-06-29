@@ -134,6 +134,41 @@ describe('build', () => {
       }, 1000);
     });
   });
+  it('should indicate if a config file does not exist', (done) => {
+    let configFile = path.join(TEST_OUTPUT_DIR, 'non_existent_config_file.js');
+
+    assert.throws(() => {
+      fs.statSync(configFile);
+    });
+
+    build({
+      config: configFile
+    }, (err, data) => {
+      assert.instanceOf(err, Error);
+      assert.isNull(data);
+
+      assert.include(err.message, `Cannot find config file ${configFile}`);
+
+      done();
+    });
+  });
+  it('should indicate if importing a config file produced errors', (done) => {
+    let configFile = path.join(TEST_OUTPUT_DIR, 'broken_config_file.js');
+
+    mkdirp.sync(path.dirname(configFile));
+    fs.writeFileSync(configFile, 'require("package-that-does-not-exist");');
+
+    build({
+      config: configFile
+    }, (err, data) => {
+      assert.instanceOf(err, Error);
+      assert.isNull(data);
+
+      assert.include(err.message, `Failed to import config file ${configFile}`);
+
+      done();
+    });
+  });
   describe('file cache', () => {
     it('should respect the cacheDir and cacheFile options', (done) => {
       let cacheFile = path.join(TEST_OUTPUT_DIR, 'test_cacheFile.json');
