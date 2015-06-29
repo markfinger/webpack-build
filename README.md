@@ -228,9 +228,9 @@ var build = require('webpack-build');
 build.workers.spawn(os.cpus().length);
 ```
 
-New requests are assigned to workers in sequential order. Repeated requests will always be always be sent 
-to the same worker that previously handled the build, this enables concurrent requests to be batched and
-served from in-memory caches.
+New requests are assigned to workers in sequential order. Repeated requests will always be sent to the same
+worker that previously handled the build, this enables concurrent requests to be batched and served from
+in-memory caches.
 
 
 Build server
