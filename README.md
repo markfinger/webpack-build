@@ -290,6 +290,7 @@ var build = require('webpack-build');
 
 build({
   config: '/path/to/webpack.config.js',
+  watch: true,
   hmr: true
 }, function(err, data) {
   // ...
