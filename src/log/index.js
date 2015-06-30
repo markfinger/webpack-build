@@ -1,8 +1,6 @@
 import debug from 'debug';
 import packageJson from '../../package';
 
-let loggers = Object.create(null);
-
 let log = (name, opts) => {
   let namespace = log.namespace;
 
@@ -13,11 +11,7 @@ let log = (name, opts) => {
     namespace = `${namespace}:${name}`;
   }
 
-  if (!loggers[namespace]) {
-    loggers[namespace] = debug(namespace);
-  }
-
-  return loggers[namespace];
+  return debug(namespace);
 };
 
 log.namespace = packageJson.name;
