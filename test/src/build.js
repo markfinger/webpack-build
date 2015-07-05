@@ -169,6 +169,11 @@ describe('build', () => {
       done();
     });
   });
+  it('should expose the default options', () => {
+    assert.isFunction(build.options);
+    assert.isObject(build.options.defaults);
+    assert.isObject(build.options.defaults);
+  });
   describe('file cache', () => {
     it('should respect the cacheDir and cacheFile options', (done) => {
       let cacheFile = path.join(TEST_OUTPUT_DIR, 'test_cacheFile.json');

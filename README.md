@@ -76,7 +76,7 @@ The following options can be passed to `build`.
 {
 
   // An absolute path to a config file
-  config: '/path/to/webpack.config.js',
+  config: '',
 
   // Watching
   // --------
@@ -112,6 +112,9 @@ The following options can be passed to `build`.
 
 }
 ```
+
+The above properties indicate the default values. If you want to define defaults, you can bind them
+to the `build.options.defaults` object.
 
 
 Config files

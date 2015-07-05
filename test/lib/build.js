@@ -202,6 +202,11 @@ describe('build', function () {
       done();
     });
   });
+  it('should expose the default options', function () {
+    assert.isFunction(_lib2['default'].options);
+    assert.isObject(_lib2['default'].options.defaults);
+    assert.isObject(_lib2['default'].options.defaults);
+  });
   describe('file cache', function () {
     it('should respect the cacheDir and cacheFile options', function (done) {
       var cacheFile = _path2['default'].join(TEST_OUTPUT_DIR, 'test_cacheFile.json');

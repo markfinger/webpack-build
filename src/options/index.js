@@ -4,7 +4,7 @@ import _ from 'lodash';
 import packageJson from '../../package';
 import defaults from './defaults';
 
-export default (opts) => {
+const options = (opts) => {
   opts = opts || {};
 
   opts = _.defaults(opts, defaults);
@@ -36,3 +36,7 @@ export default (opts) => {
 
   return opts;
 };
+
+options.defaults = defaults;
+
+export default options;

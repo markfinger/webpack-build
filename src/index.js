@@ -1,11 +1,11 @@
 import build from './build';
 import hmr from './hmr';
-import env from './env';
+import options from './options';
 import caches from './caches';
 import workers from './workers';
 
 build.hmr = hmr;
-build.env = env;
+build.options = options;
 build.caches = caches;
 build.workers = workers;
 
