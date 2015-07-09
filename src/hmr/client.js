@@ -7,15 +7,27 @@ const socket = socketIoClient(opts.root + opts.namespace, {
   path: opts.path
 });
 
-let currentHash = '';
-
-let reload = () => {
+const reload = () => {
   console.info(`[WPB-HMR] Triggering HMR with hash ${currentHash}...`);
 
   window.postMessage(`webpackHotUpdate${currentHash}`, '*');
 };
 
+// Socket handling
+
 socket.on('connect', () => console.info(`[WPB-HMR] Connected to ${opts.root}${opts.path}${opts.namespace}`));
+
+socket.on('error', (err) => console.error(`[WPB-HMR] Connection error to ${opts.root}${opts.path}${opts.namespace}`, err));
+
+socket.on('disconnect', () => console.warn('[WPB-HMR] Disconnected'));
+
+socket.on('reconnect', (attempt) => console.info(`[WPB-HMR] Reconnected on attempt ${attempt}`));
+
+socket.on('reconnecting', () => console.info(`[WPB-HMR] Attempting to reconnect`));
+
+// HMR handling
+
+let currentHash = '';
 
 socket.on('hot', () => console.info('[WPB-HMR] Hot Module Replacement enabled'));
 
@@ -35,8 +47,8 @@ socket.on('success', () => {
 socket.on('warnings', (warnings) => {
   console.warn('[WPB-HMR] Warnings while compiling...');
 
-  for (let i = 0; i < warnings.length; i++) {
-    console.warn(stripAnsi(warnings[i]));
+  for (let warning of warnings) {
+    console.warn(stripAnsi(warning));
   }
 
   reload();
@@ -45,13 +57,9 @@ socket.on('warnings', (warnings) => {
 socket.on('errors', (errors) => {
   console.error('[WPB-HMR] Errors while compiling...');
 
-  for (let i = 0; i < errors.length; i++) {
-    console.error(stripAnsi(errors[i]));
+  for (let error of errors) {
+    console.warn(stripAnsi(error));
   }
 
   reload();
-});
-
-socket.on('disconnect', () => {
-  console.warn('[WPB-HMR] Disconnected');
 });
