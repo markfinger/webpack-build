@@ -1,3 +1,5 @@
+**DEPRECATED** in favour of [webpack-build](https://github.com/markfinger/webpack-build)
+
 webpack-service
 ===============
 
