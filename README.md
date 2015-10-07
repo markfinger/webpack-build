@@ -47,7 +47,7 @@ var build = require('webpack-build');
 build({
   config: '/path/to/webpack.config.js',
   watch: true
-}), function(err, data) {
+}, function(err, data) {
   // ...
 });
 ```
