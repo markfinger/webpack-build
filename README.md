@@ -23,7 +23,7 @@ Documentation
 - [Config files](#config-files)
 - [Caching](#caching)
 - [Workers](#workers)
-- [Build server](#build-server)
+- [CLI and build server](#cli-and-build-server)
 - [HMR](#hmr)
 - [Debugging](#debugging)
 - [Dev notes](#dev-notes)
@@ -236,21 +236,26 @@ worker that previously handled the build, this enables concurrent requests to be
 in-memory caches.
 
 
-Build server
-------------
+CLI and build server
+--------------------
 
-A build server is available via a CLI interface: `node_modules/.bin/webpack-build`. Run the binary and connect
-via the network to request builds.
+A CLI interface, `webpack-build`, is available which exposes a high-level method of interacting
+with the library.
 
-During startup the build server will spawn workers processes and configure itself to support HMR.
+The following optional arguments are accepted:
 
-The following optional arguments are accepted by the CLI interface:
-
+- `-c` or `--config`: a config file to build, defaults to `'webpack.config.js'`
+- `-d` or `--development`: adds the property `context: {development: true}` to the object passed to config factories, defaults to false
+- `-hmr` or `--hot-module-replacement`: turns on hmr for the config specified, defaults to false
+- `-pp` or `--public-path`: defines the public path for the config specified, defaults to null
+- `-w` or `--watch`: indicates that the compiler should watch the files for changes, defaults to false
 - `-a` or `--address`: the address to listen at, defaults to `127.0.0.1`
 - `-p` or `--port`: the port to listen at, defaults to `9009`
-- `-w` or `--workers`: the number of workers to use, defaults to `2`
+- `-wo` or `--workers`: the number of workers to use, defaults to `2`
+- `-s` or `--server`: should a build server be spawned (set to true if `--hmr` is defined)
+- `-v` or `--version`: indicates the version of the library
 
-Incoming HTTP requests are routed via:
+The build server also listens for network requests. Incoming HTTP requests are routed via:
 
 - `GET: /` responds with a HTML document listing the server's state
 - `POST: /build` reads in options as JSON, pipes it to the `build` function, and responds with JSON

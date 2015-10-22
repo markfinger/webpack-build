@@ -23,7 +23,6 @@ const hmrConfig = (config, opts) => {
 
   const devClient = [
     `${__dirname}/client?${socketOpts}`,
-    // TODO: replace?
     'webpack/hot/only-dev-server'
   ];
 
@@ -32,7 +31,7 @@ const hmrConfig = (config, opts) => {
   if (_.isArray(config.entry)) {
     config.entry = devClient.concat(config.entry);
   } else if (_.isObject(config.entry)) {
-    _.forEach(config.entry).forEach(function(value, key) {
+    _.forEach(config.entry, (value, key) => {
       config.entry[key] = devClient.concat(value);
     });
   } else {
