@@ -3,6 +3,7 @@
 // Ensure source map support as early as possible
 import '../utils/source_map_support';
 
+import 'babel/polyfill';
 import path from 'path';
 import pathIsAbsolute from 'path-is-absolute'; // used for compatibility
 import fs from 'fs';
