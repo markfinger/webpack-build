@@ -76,7 +76,9 @@ if (!fs.existsSync(config)) {
   config = null;
 }
 
-console.log(`${packageJson.name} v${packageJson.version}\n`);
+const startupOutput = [];
+
+startupOutput.push(`${packageJson.name} v${packageJson.version}\n`);
 
 if (!config && !argv.server) {
   throw new Error('Config file "webpack.config.js" does not exist or the --server argument has not been specified');
@@ -118,20 +120,29 @@ if (argv.server || argv.hmr) {
 
   workers.spawn(argv.workers);
   for (let worker of workers.workers) {
-    console.log(`Worker #${worker.worker.id} - ${worker.worker.process.pid}`);
+    startupOutput.push(`Worker #${worker.worker.id} - ${worker.worker.process.pid}`);
+  }
+}
+
+function flushStartupOutput() {
+  for (let message of startupOutput) {
+    console.log(message);
   }
 }
 
 if (argv.server) {
   server.listen(argv.port, argv.address, () => {
-    console.log(`\nListening at ${url}\n`);
+    startupOutput.push(`\nListening at ${url}\n`);
+    flushStartupOutput();
   });
 } else if (argv.hmr) {
   server.listen(argv.port, argv.address, () => {
-    console.log(`\nListening at ${url}\n`);
+    startupOutput.push(`\nListening at ${url}\n`);
+    flushStartupOutput();
 
     buildConfigFile(config);
   });
 } else {
+  flushStartupOutput();
   buildConfigFile(config);
 }
