@@ -4,6 +4,7 @@
 import '../utils/source_map_support';
 
 import path from 'path';
+import pathIsAbsolute from 'path-is-absolute'; // used for compatibility
 import fs from 'fs';
 import _ from 'lodash';
 import yargs from 'yargs';
@@ -68,7 +69,7 @@ const argv = yargs
   .argv;
 
 let config = argv.config;
-if (!path.isAbsolute(config)) {
+if (!pathIsAbsolute(config)) {
   config = path.join(process.cwd(), config);
 }
 if (!fs.existsSync(config)) {
