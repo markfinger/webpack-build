@@ -114,7 +114,7 @@ class Cache {
             },
             (err) => {
               if (err) {
-                this.logger(`emmitted asset check error: ${err.message}`);
+                this.logger(`emitted asset check error: ${err.message}`);
                 return cb(err);
               }
 
